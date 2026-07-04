@@ -19,6 +19,21 @@ export const env = {
   /** Segredo compartilhado do BFF → tributário (`X-Service-Token` / `x-proxy-secret`). */
   proxySharedSecret: () => process.env.PROXY_SHARED_SECRET ?? "",
   portalServiceToken: () => process.env.PORTAL_SERVICE_TOKEN ?? "",
+  /**
+   * Segredo (HMAC) que assina o cookie de sessão do portal — impede o cliente
+   * de forjar/adulterar a sessão (ex.: a lista de empresas do "atuar como").
+   * Usa `PORTAL_SESSION_SECRET`; em dev, cai no `PROXY_SHARED_SECRET` (já é
+   * aleatório forte). Fail-closed se nenhum existir.
+   */
+  sessionSecret: () => {
+    const s = process.env.PORTAL_SESSION_SECRET ?? process.env.PROXY_SHARED_SECRET ?? "";
+    if (s.length < 16) {
+      throw new Error(
+        "PORTAL_SESSION_SECRET (ou PROXY_SHARED_SECRET) ausente/curto: sessão não pode ser assinada.",
+      );
+    }
+    return s;
+  },
   /** Base URL do GED (Laravel) — API do portal. */
   gedBaseUrl: () => process.env.GED_BASE_URL ?? "",
   /** Base URL do gpe2 (Laravel) — API do portal. */

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { contaByDocumento, criarConta } from "@/shared/repos/conta-repo";
-import { writeSession } from "@/shared/lib/portal-session";
+import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
 
 const schema = z.object({
   documento: z.string().min(11),
@@ -50,12 +50,11 @@ export async function POST(req: Request) {
     municipio: tenant.municipio,
   });
 
-  const tokenRes = await adapter.emitirToken(conta.contribuinteId!);
-  await writeSession({
-    conta: { id: conta.contribuinteId!, nome: conta.nome },
-    municipio: tenant.municipio,
-    tributarioToken: tokenRes.accessToken,
-    tributarioTokenExp: Math.floor(Date.now() / 1000) + (tokenRes.expiresIn ?? 900),
+  await montarSessaoLogada({
+    tenant,
+    documento,
+    contribuinteId: conta.contribuinteId!,
+    nome: conta.nome,
   });
 
   return NextResponse.json({ ok: true });

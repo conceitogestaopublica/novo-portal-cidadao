@@ -30,6 +30,14 @@ export interface ResolverResult {
   canalMascarado: string | null;
 }
 
+export interface RepresentacaoResult {
+  contribuinteId: string;
+  nome: string;
+  documento: string | null;
+  tipo: "titular" | "empresa";
+  papel?: string;
+}
+
 /** O tributário embrulha respostas em `{ data: ... }` (WrapperDataInterceptor). */
 function unwrap<T>(json: unknown): T {
   if (json && typeof json === "object" && "data" in (json as Record<string, unknown>)) {
@@ -61,6 +69,26 @@ export class TributarioAdapter {
     const data = unwrap<ResolverResult | { encontrado: false }>(await res.json());
     if (data && "encontrado" in data && data.encontrado === false) return null;
     return data as ResolverResult;
+  }
+
+  /**
+   * Lista as identidades que o documento pode "atuar como": ele mesmo (titular)
+   * + as empresas que representa. Vazio se o documento não é contribuinte.
+   */
+  async representacoes(documento: string): Promise<RepresentacaoResult[]> {
+    const res = await fetch(`${this.base}/portal-auth/contribuinte/representacoes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Service-Token": env.portalServiceToken(),
+        ...tenantHeaders(this.tenant),
+      },
+      body: JSON.stringify({ documento, tenantId: this.tenant.municipio }),
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`representacoes falhou: ${res.status}`);
+    const data = unwrap<{ representacoes: RepresentacaoResult[] }>(await res.json());
+    return data?.representacoes ?? [];
   }
 
   /** Emite o JWT CONTRIBUINTE (passo 2, após validar o OTP). */

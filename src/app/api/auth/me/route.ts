@@ -8,6 +8,9 @@ export async function GET() {
   const [session, tenant] = await Promise.all([readSession(), currentTenant()]);
   const body: MeResponse = {
     conta: session?.conta ?? null,
+    pessoa: session?.pessoa ?? null,
+    representados: session?.representados ?? [],
+    atuandoComoId: session?.conta?.id ?? null,
     tenant: tenant ? { municipio: tenant.municipio, nome: tenant.nome } : null,
   };
   return NextResponse.json(body);

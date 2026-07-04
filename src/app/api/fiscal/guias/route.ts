@@ -1,9 +1,8 @@
 import { proxyPortalMe } from "@/shared/adapters/portal-me-client";
 
-/** Minhas guias (2ª via / débito efetivo). Filtro opcional `?situacao=`. */
+/** Minhas guias em aberto. `?pagas=1` lista só as pagas (comprovantes). */
 export async function GET(req: Request) {
-  const situacao = new URL(req.url).searchParams.get("situacao");
   const sp = new URLSearchParams();
-  if (situacao) sp.set("situacao", situacao);
+  if (new URL(req.url).searchParams.get("pagas") === "1") sp.set("pagas", "1");
   return proxyPortalMe("/guias", sp.toString() ? sp : undefined);
 }

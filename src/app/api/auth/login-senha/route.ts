@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
-import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { contaByDocumento, verificarSenha } from "@/shared/repos/conta-repo";
-import { writeSession } from "@/shared/lib/portal-session";
+import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
 
 const schema = z.object({ documento: z.string().min(11), senha: z.string().min(1) });
 
@@ -22,20 +21,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Documento ou senha inválidos." }, { status: 401 });
   }
 
-  const adapter = new TributarioAdapter(tenant);
-  let tokenRes;
   try {
-    tokenRes = await adapter.emitirToken(conta.contribuinteId!);
+    await montarSessaoLogada({
+      tenant,
+      documento,
+      contribuinteId: conta.contribuinteId!,
+      nome: conta.nome,
+    });
   } catch {
     return NextResponse.json({ message: "Falha ao autenticar. Tente novamente." }, { status: 502 });
   }
-
-  await writeSession({
-    conta: { id: conta.contribuinteId!, nome: conta.nome },
-    municipio: tenant.municipio,
-    tributarioToken: tokenRes.accessToken,
-    tributarioTokenExp: Math.floor(Date.now() / 1000) + (tokenRes.expiresIn ?? 900),
-  });
 
   return NextResponse.json({ ok: true });
 }

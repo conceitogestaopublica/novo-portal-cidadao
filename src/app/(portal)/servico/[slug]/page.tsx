@@ -19,6 +19,15 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
   const cat = servico.categoria;
   const corCat = cat?.cor ? COR_BG[cat.cor] || "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-600";
   const fiscal = servico.tipo_fluxo === "self_service_fiscal";
+  // Cada serviço fiscal abre a tela certa (não "cai sempre no mesmo lugar").
+  const DESTINO_FISCAL: Record<string, { href: string; rotulo: string }> = {
+    certidao: { href: "/fiscal/certidao", rotulo: "Emitir certidão" },
+    parcelamento: { href: "/fiscal/parcelamento", rotulo: "Parcelar débitos" },
+    caixa_postal: { href: "/fiscal#caixa", rotulo: "Abrir caixa postal" },
+  };
+  const acao = servico.fiscal_acao ? DESTINO_FISCAL[servico.fiscal_acao] : undefined;
+  const destinoFiscal = acao?.href ?? "/fiscal";
+  const rotuloFiscal = acao?.rotulo ?? "Ver meus débitos";
 
   return (
     <>
@@ -58,14 +67,23 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
         <aside className="space-y-4">
           <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg">
             <h3 className="text-sm font-bold mb-1">{fiscal ? "Serviço online" : "Solicite este serviço online"}</h3>
+            {cidadao && (
+              <p className="text-[11px] text-blue-100 mb-1 flex items-center gap-1.5">
+                <i className="fas fa-circle-check" />Você está logado como <strong className="text-white">{cidadao.nome.split(" ")[0]}</strong>
+              </p>
+            )}
             <p className="text-xs text-blue-100 mb-3">
               {fiscal
-                ? "Acesse com seu CPF/CNPJ para usar este serviço na hora."
-                : "Acompanhe o andamento e receba atualizações."}
+                ? cidadao
+                  ? "É só clicar para ver seus débitos, agora."
+                  : "Acesse com seu CPF/CNPJ para usar este serviço na hora."
+                : cidadao
+                  ? "Abra a solicitação e acompanhe o andamento."
+                  : "Entre com seu CPF/CNPJ para solicitar e acompanhar."}
             </p>
             {fiscal ? (
-              <Link href={cidadao ? "/fiscal" : "/entrar"} className="block text-center px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
-                <i className="fas fa-arrow-right-to-bracket mr-2" />{cidadao ? "Acessar serviço" : "Entrar para acessar"}
+              <Link href={cidadao ? destinoFiscal : "/entrar"} className="block text-center px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
+                <i className="fas fa-arrow-right-to-bracket mr-2" />{cidadao ? rotuloFiscal : "Entrar para acessar"}
               </Link>
             ) : (
               <Link href={cidadao ? `/servico/${servico.slug}/solicitar` : "/entrar"} className="block text-center px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">

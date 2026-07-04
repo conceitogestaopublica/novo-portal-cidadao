@@ -1,19 +1,39 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies, headers } from "next/headers";
-import type { Cidadao } from "@/shared/types/portal";
+import type { Cidadao, Representacao } from "@/shared/types/portal";
 import { env } from "@/shared/config/env";
 
 /**
- * Sessão do Portal — o BFF é o dono. O cookie `portal_session` guarda uma
- * referência OPACA (assinada) à conta + tenant + os tokens de backend
- * server-side. O cliente NUNCA vê JWT de backend.
+ * Sessão do Portal — o BFF é o dono. O cookie `portal_session` guarda a conta +
+ * tenant + os tokens de backend server-side, no formato `<payload>.<hmac>`:
+ * o payload é base64url(JSON) e o HMAC-SHA256 (com `sessionSecret`) garante a
+ * INTEGRIDADE — o cliente não pode forjar/adulterar a sessão (ex.: a lista de
+ * empresas que pode "atuar como"). O cliente NUNCA vê JWT de backend.
  *
- * M0: apenas a leitura/escrita do cookie e o shape da sessão. A emissão real
- * (após OTP) e o vínculo com o JWT CONTRIBUINTE do tributário entram no M1.
+ * O cookie é httpOnly, mas httpOnly só impede o JS de LER — o dono do browser
+ * ainda pode ENVIAR um cookie arbitrário; por isso a assinatura é obrigatória.
  */
 export const PORTAL_SESSION_COOKIE = "portal_session";
 
+/** Assinatura HMAC-SHA256 (base64url) do payload. */
+function assinar(payload: string): string {
+  return createHmac("sha256", env.sessionSecret()).update(payload).digest("base64url");
+}
+
+/** Verifica a assinatura em tempo constante. */
+function assinaturaValida(payload: string, sig: string): boolean {
+  const esperado = Buffer.from(assinar(payload));
+  const recebido = Buffer.from(sig);
+  return esperado.length === recebido.length && timingSafeEqual(esperado, recebido);
+}
+
 export interface PortalSession {
+  /** Identidade ATIVA — o `id` é o contribuinteId usado no JWT do tributário. */
   conta: Cidadao;
+  /** Pessoa logada (fixa na sessão; não muda ao alternar "atuar como"). */
+  pessoa?: Cidadao;
+  /** Identidades que a pessoa pode atuar (titular + empresas representadas). */
+  representados?: Representacao[];
   municipio: string;
   /** JWT CONTRIBUINTE do tributário (server-side apenas). */
   tributarioToken?: string;
@@ -21,14 +41,19 @@ export interface PortalSession {
   tributarioTokenExp?: number;
 }
 
-/** Lê a sessão do cookie httpOnly (server-side). Retorna null se ausente/ inválida. */
+/** Lê a sessão do cookie httpOnly (server-side). Retorna null se ausente/inválida/adulterada. */
 export async function readSession(): Promise<PortalSession | null> {
   const store = await cookies();
   const raw = store.get(PORTAL_SESSION_COOKIE)?.value;
   if (!raw) return null;
+  const dot = raw.lastIndexOf(".");
+  if (dot <= 0) return null; // sem assinatura → rejeita (cookie legado/forjado)
+  const payload = raw.slice(0, dot);
+  const sig = raw.slice(dot + 1);
   try {
+    if (!assinaturaValida(payload, sig)) return null;
     return JSON.parse(
-      Buffer.from(raw, "base64url").toString("utf8"),
+      Buffer.from(payload, "base64url").toString("utf8"),
     ) as PortalSession;
   } catch {
     return null;
@@ -47,7 +72,8 @@ export async function getSessionCidadao(): Promise<Cidadao | null> {
  */
 export async function writeSession(session: PortalSession): Promise<void> {
   const store = await cookies();
-  const value = Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
+  const payload = Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
+  const value = `${payload}.${assinar(payload)}`;
   try {
     store.set(PORTAL_SESSION_COOKIE, value, {
       httpOnly: true,

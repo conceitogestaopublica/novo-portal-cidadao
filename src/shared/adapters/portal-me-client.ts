@@ -58,6 +58,22 @@ export async function proxyPortalMe(
 }
 
 /**
+ * Faz um POST no `portal-me` com corpo JSON e devolve a resposta como NextResponse.
+ * Usado por ações fiscais (simular/aderir parcelamento).
+ */
+export async function proxyPortalMePost(
+  path: string,
+  body: unknown,
+): Promise<NextResponse> {
+  const t = await ensureToken();
+  if (!t.ok) {
+    return NextResponse.json({ message: "Sessão inválida" }, { status: t.status });
+  }
+  const r = await t.adapter.portalMe<unknown>(path, t.token, { method: "POST", body });
+  return NextResponse.json(r.data ?? {}, { status: r.status });
+}
+
+/**
  * Faz stream de uma resposta binária do `portal-me` (ex.: PDF de 2ª via) mantendo
  * o Content-Type/Disposition do backend. Erros (409 vencida, 403 posse) voltam
  * como JSON do backend.

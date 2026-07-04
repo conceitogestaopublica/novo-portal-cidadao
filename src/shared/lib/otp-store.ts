@@ -46,7 +46,7 @@ export function criarDesafio(input: {
 }
 
 export type VerificacaoResultado =
-  | { ok: true; contribuinteId: string; nome: string; municipio: string }
+  | { ok: true; contribuinteId: string; nome: string; documento: string; municipio: string }
   | { ok: false; motivo: "expirado" | "invalido" | "bloqueado" };
 
 export function verificarDesafio(challengeId: string, otp: string): VerificacaoResultado {
@@ -64,5 +64,11 @@ export function verificarDesafio(challengeId: string, otp: string): VerificacaoR
     return { ok: false, motivo: "invalido" };
   }
   CHALLENGES.delete(challengeId);
-  return { ok: true, contribuinteId: ch.contribuinteId, nome: ch.nome, municipio: ch.municipio };
+  return {
+    ok: true,
+    contribuinteId: ch.contribuinteId,
+    nome: ch.nome,
+    documento: ch.documento,
+    municipio: ch.municipio,
+  };
 }

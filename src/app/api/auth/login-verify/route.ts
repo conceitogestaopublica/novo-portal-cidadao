@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
-import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { verificarDesafio } from "@/shared/lib/otp-store";
-import { writeSession } from "@/shared/lib/portal-session";
+import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
 
 const schema = z.object({
   challengeId: z.string().min(1),
@@ -32,20 +31,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: msg }, { status: 401 });
   }
 
-  const adapter = new TributarioAdapter(tenant);
-  let tokenRes;
   try {
-    tokenRes = await adapter.emitirToken(v.contribuinteId);
+    await montarSessaoLogada({
+      tenant,
+      documento: v.documento,
+      contribuinteId: v.contribuinteId,
+      nome: v.nome,
+    });
   } catch {
     return NextResponse.json({ message: "Falha ao autenticar. Tente novamente." }, { status: 502 });
   }
-
-  await writeSession({
-    conta: { id: v.contribuinteId, nome: v.nome },
-    municipio: tenant.municipio,
-    tributarioToken: tokenRes.accessToken,
-    tributarioTokenExp: Math.floor(Date.now() / 1000) + (tokenRes.expiresIn ?? 900),
-  });
 
   return NextResponse.json({ ok: true });
 }

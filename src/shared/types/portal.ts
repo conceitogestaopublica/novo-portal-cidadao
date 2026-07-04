@@ -61,8 +61,27 @@ export interface Cidadao {
   documento?: string;
 }
 
+/**
+ * Uma identidade que o cidadão pode "atuar como": ele mesmo (titular) ou uma
+ * empresa que representa (hoje, como contador). O `id` é o contribuinteId no
+ * tributário — é o alvo do JWT CONTRIBUINTE quando ativo.
+ */
+export interface Representacao {
+  id: string;
+  nome: string;
+  documento?: string | null;
+  tipo: "titular" | "empresa";
+  papel?: string | null;
+}
+
 /** Sessão do portal exposta ao cliente (nunca inclui tokens de backend). */
 export interface MeResponse {
   conta: Cidadao | null;
+  /** Pessoa logada (não muda ao alternar de empresa). */
+  pessoa?: Cidadao | null;
+  /** Identidades disponíveis no seletor "atuar como". */
+  representados?: Representacao[];
+  /** contribuinteId atualmente ativo (= conta.id). */
+  atuandoComoId?: string | null;
   tenant: { municipio: string; nome: string } | null;
 }

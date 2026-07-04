@@ -1,7 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import Link from "next/link";
+import AtuarComoSeletor from "./AtuarComoSeletor";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -14,6 +16,13 @@ function pick<T = unknown>(o: Record<string, unknown> | undefined, ...keys: stri
   for (const k of keys) if (o[k] != null) return o[k] as T;
   return undefined;
 }
+/** Se a guia é uma parcela de parcelamento, devolve o nº do parcelamento (ex.: "PARC 2026/0012"). */
+function parcelamentoDe(g: Record<string, unknown>): string | null {
+  const obs = String(pick(g, "observacao") ?? "");
+  const m = obs.match(/Parcelamento\s+(PARC\s*\d{4}\/\d+)/i);
+  return m ? m[1].replace(/\s+/g, " ") : null;
+}
+
 function dateBR(v: unknown): string {
   if (!v) return "—";
   const d = new Date(String(v));
@@ -27,26 +36,80 @@ async function getJson(url: string) {
   return res.json();
 }
 
-async function baixarSegundaVia(id: string) {
-  const res = await fetch(`/api/fiscal/guias/${id}/segunda-via`);
+/**
+ * Baixa o PDF da 2ª via. `atualizar` recalcula juros/multa; `data` (AAAA-MM-DD)
+ * é o novo vencimento até quando os acréscimos são calculados (senão, hoje).
+ */
+async function abrirPdfSegundaVia(id: string, atualizar: boolean, data?: string) {
+  const qs = atualizar ? `?atualizar=1${data ? `&data=${data}` : ""}` : "";
+  const res = await fetch(`/api/fiscal/guias/${id}/segunda-via${qs}`);
   if (res.ok && (res.headers.get("content-type") ?? "").includes("pdf")) {
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    return;
+    const u = URL.createObjectURL(blob);
+    window.open(u, "_blank");
+    setTimeout(() => URL.revokeObjectURL(u), 60_000);
+    return { ok: true as const };
   }
-  const msg = await res.json().catch(() => null);
-  alert(msg?.message ?? "Não foi possível gerar a 2ª via desta guia.");
+  const msg = (await res.json().catch(() => null)) as { message?: string; podeAtualizar?: boolean } | null;
+  return { ok: false as const, status: res.status, msg };
+}
+
+function hojeISO(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 type Guia = Record<string, unknown>;
 type Msg = Record<string, unknown>;
+type AlvoAtualizar = { id: string; numero: string };
 
 export default function FiscalPage() {
   const resumo = useQuery({ queryKey: ["fiscal", "resumo"], queryFn: () => getJson("/api/fiscal/resumo") });
-  const guias = useQuery({ queryKey: ["fiscal", "guias"], queryFn: () => getJson("/api/fiscal/guias") });
+  const [verPagas, setVerPagas] = useState(false);
+  const guias = useQuery({ queryKey: ["fiscal", "guias", verPagas ? "pagas" : "abertas"], queryFn: () => getJson(`/api/fiscal/guias${verPagas ? "?pagas=1" : ""}`) });
   const caixa = useQuery({ queryKey: ["fiscal", "caixa"], queryFn: () => getJson("/api/fiscal/caixa-postal") });
+  const divida = useQuery({ queryKey: ["fiscal", "divida"], queryFn: () => getJson("/api/fiscal/divida-ativa") });
+  const qc = useQueryClient();
+  const [busca, setBusca] = useState("");
+  const [ordem, setOrdem] = useState<{ campo: "numero" | "vencimento" | "valor"; dir: "asc" | "desc" }>({ campo: "vencimento", dir: "asc" });
+  const ordenarPor = (campo: "numero" | "vencimento" | "valor") =>
+    setOrdem((o) => (o.campo === campo ? { campo, dir: o.dir === "asc" ? "desc" : "asc" } : { campo, dir: "asc" }));
+  const [alvo, setAlvo] = useState<AlvoAtualizar | null>(null);
+  const [novaData, setNovaData] = useState(hojeISO());
+  const [emitindo, setEmitindo] = useState(false);
+  const [erroModal, setErroModal] = useState<string | null>(null);
+
+  // 2ª via: tenta emitir; se a guia está vencida, abre o modal p/ escolher a
+  // nova data de vencimento (atualização = mesmo serviço).
+  async function iniciarSegundaVia(g: Guia) {
+    const id = String(pick(g, "id") ?? "");
+    if (!id) return;
+    const r = await abrirPdfSegundaVia(id, false);
+    if (r.ok) return;
+    if (r.status === 409 && r.msg?.podeAtualizar) {
+      setErroModal(null);
+      setNovaData(hojeISO());
+      setAlvo({ id, numero: String(pick(g, "numero", "nossoNumero", "codigo", "id") ?? "") });
+      return;
+    }
+    alert(r.msg?.message ?? "Não foi possível gerar a 2ª via desta guia.");
+  }
+
+  async function confirmarAtualizacao() {
+    if (!alvo) return;
+    setErroModal(null);
+    setEmitindo(true);
+    try {
+      const r = await abrirPdfSegundaVia(alvo.id, true, novaData);
+      if (r.ok) {
+        setAlvo(null);
+        qc.invalidateQueries({ queryKey: ["fiscal"] });
+        return;
+      }
+      setErroModal(r.msg?.message ?? "Não foi possível atualizar e emitir a 2ª via.");
+    } finally {
+      setEmitindo(false);
+    }
+  }
 
   const semSessao = [resumo, guias, caixa].some((q) => q.error instanceof Error && q.error.message === "SESSAO");
   if (semSessao) {
@@ -63,7 +126,30 @@ export default function FiscalPage() {
   const qtd = pick<number>(r, "quantidade", "qtd", "total", "totalGuias") ?? 0;
   const valor = pick(r, "valorTotal", "valor", "totalAberto", "valorEmAberto");
 
+  const da = (divida.data ?? {}) as Record<string, unknown>;
+  const daQtd = pick<number>(da, "quantidade", "qtd") ?? 0;
+  const daValorNum = Number(pick(da, "valorInscrito", "valorTotal", "valor") ?? 0);
+  const valorNum = Number(valor ?? 0);
+  const totalGeral = (Number.isFinite(valorNum) ? valorNum : 0) + (Number.isFinite(daValorNum) ? daValorNum : 0);
+
   const items = (pick<Guia[]>(guias.data as Record<string, unknown>, "items", "data") ?? []) as Guia[];
+  const termo = busca.trim().toLowerCase();
+  const itemsFiltrados = termo
+    ? items.filter((g) =>
+        [pick(g, "numero", "nossoNumero", "codigo"), pick(g, "origem"), pick(g, "situacao")]
+          .some((v) => String(v ?? "").toLowerCase().includes(termo)),
+      )
+    : items;
+  const dir = ordem.dir === "asc" ? 1 : -1;
+  const itemsOrdenados = [...itemsFiltrados].sort((a, b) => {
+    if (ordem.campo === "numero")
+      return String(pick(a, "numero", "nossoNumero", "codigo") ?? "").localeCompare(String(pick(b, "numero", "nossoNumero", "codigo") ?? ""), "pt-BR", { numeric: true }) * dir;
+    if (ordem.campo === "valor")
+      return (Number(pick(a, "valorTotal", "valor", "valorAtualizado") ?? 0) - Number(pick(b, "valorTotal", "valor", "valorAtualizado") ?? 0)) * dir;
+    const da = new Date(String(pick(a, "dataVencimento", "vencimento", "vencimentoEm"))).getTime();
+    const db = new Date(String(pick(b, "dataVencimento", "vencimento", "vencimentoEm"))).getTime();
+    return ((isNaN(da) ? 0 : da) - (isNaN(db) ? 0 : db)) * dir;
+  });
   const msgs = (pick<Msg[]>(caixa.data as Record<string, unknown>, "items", "data") ?? []) as Msg[];
   const naoLidas = msgs.filter((m) => !pick(m, "cienciaEm", "lidaEm", "abertaEm")).length;
 
@@ -74,53 +160,87 @@ export default function FiscalPage() {
         <p className="text-sm text-gray-500">Consulte suas guias, 2ª via e a caixa postal do DTE.</p>
       </div>
 
+      <AtuarComoSeletor />
+
       {/* Cards de resumo */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card icon="fas fa-file-invoice-dollar" cor="from-blue-500 to-indigo-600" titulo="Débitos em aberto" valor={String(qtd)} sub="guias" loading={resumo.isLoading} />
-        <Card icon="fas fa-coins" cor="from-amber-500 to-orange-600" titulo="Valor total" valor={money(valor)} sub="em aberto" loading={resumo.isLoading} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card icon="fas fa-file-invoice-dollar" cor="from-blue-500 to-indigo-600" titulo="Guias em aberto" valor={money(valor)} sub={`${qtd} guia(s)`} loading={resumo.isLoading} />
+        <Card icon="fas fa-gavel" cor="from-red-500 to-rose-600" titulo="Dívida ativa" valor={money(daValorNum)} sub={`${daQtd} inscrição(ões)`} loading={divida.isLoading} />
+        <Card icon="fas fa-coins" cor="from-amber-500 to-orange-600" titulo="Total geral a pagar" valor={money(totalGeral)} sub="guias + dívida ativa" loading={resumo.isLoading || divida.isLoading} />
         <Card icon="fas fa-envelope" cor="from-green-500 to-emerald-600" titulo="Caixa Postal" valor={String(naoLidas)} sub="não lidas" loading={caixa.isLoading} href="#caixa" />
       </div>
+      {divida.data != null && daQtd > 0 && (
+        <p className="text-xs text-gray-500 -mt-2"><i className="fas fa-circle-info text-red-500 mr-1.5" />Você tem <strong>dívida ativa</strong> inscrita. Para negociar ou emitir guia da dívida, procure o Atendimento — a negociação online entra em breve.</p>
+      )}
 
       {/* Guias */}
       <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-800"><i className="fas fa-receipt text-blue-600 mr-2" />Minhas guias</h2>
-          <span className="text-xs text-gray-400">{items.length} guia(s)</span>
+        <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-sm font-bold text-gray-800 shrink-0"><i className={`fas ${verPagas ? "fa-circle-check text-green-600" : "fa-receipt text-blue-600"} mr-2`} />{verPagas ? "Guias pagas (comprovantes)" : "Minhas guias"}</h2>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button type="button" onClick={() => { setVerPagas((v) => !v); setBusca(""); }} className="text-xs font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap">
+              <i className={`fas ${verPagas ? "fa-arrow-left" : "fa-receipt"} mr-1`} />{verPagas ? "Ver débitos em aberto" : "Ver guias pagas"}
+            </button>
+            <div className="relative flex-1 sm:w-56">
+              <i className="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs" />
+              <input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar por número, ano, origem…"
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <span className="text-xs text-gray-400 whitespace-nowrap">{itemsFiltrados.length}{termo ? `/${items.length}` : ""} guia(s)</span>
+          </div>
         </div>
         {guias.isLoading ? (
           <div className="p-8 text-center text-gray-400 text-sm">Carregando…</div>
         ) : items.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm"><i className="fas fa-check-circle text-green-500 mr-2" />Você não tem débitos em aberto.</div>
+          <div className="p-8 text-center text-gray-500 text-sm"><i className={`fas ${verPagas ? "fa-inbox" : "fa-check-circle text-green-500"} mr-2`} />{verPagas ? "Nenhuma guia paga encontrada." : "Você não tem débitos em aberto."}</div>
+        ) : itemsFiltrados.length === 0 ? (
+          <div className="p-8 text-center text-gray-500 text-sm"><i className="fas fa-magnifying-glass text-gray-300 mr-2" />Nenhuma guia encontrada para “{busca}”.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                 <tr>
-                  <th className="text-left px-5 py-2 font-semibold">Guia</th>
-                  <th className="text-left px-5 py-2 font-semibold">Vencimento</th>
+                  <ThOrd label="Guia" campo="numero" ordem={ordem} onClick={ordenarPor} />
+                  <ThOrd label="Vencimento" campo="vencimento" ordem={ordem} onClick={ordenarPor} />
                   <th className="text-left px-5 py-2 font-semibold">Situação</th>
-                  <th className="text-right px-5 py-2 font-semibold">Valor</th>
+                  <ThOrd label="Valor" campo="valor" ordem={ordem} onClick={ordenarPor} align="right" />
                   <th className="text-right px-5 py-2 font-semibold">2ª via</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {items.map((g, i) => (
+                {itemsOrdenados.map((g, i) => {
+                  const parc = parcelamentoDe(g);
+                  return (
                   <tr key={String(pick(g, "id") ?? i)} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium text-gray-800">{String(pick(g, "numero", "nossoNumero", "codigo", "id") ?? "—")}</td>
+                    <td className="px-5 py-3">
+                      <span className="font-medium text-gray-800">{String(pick(g, "numero", "nossoNumero", "codigo", "id") ?? "—")}</span>
+                      <span className="block mt-0.5">
+                        {parc ? (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold"><i className="fas fa-file-signature mr-1" />Parcela · {parc}</span>
+                        ) : (
+                          <span className="text-[10px] text-gray-400 uppercase tracking-wide">{String(pick(g, "origem") ?? "")}</span>
+                        )}
+                      </span>
+                    </td>
                     <td className="px-5 py-3 text-gray-600">{dateBR(pick(g, "dataVencimento", "vencimento", "vencimentoEm"))}</td>
                     <td className="px-5 py-3"><span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold">{String(pick(g, "situacao", "status") ?? "—")}</span></td>
                     <td className="px-5 py-3 text-right font-semibold text-gray-800">{money(pick(g, "valorTotal", "valor", "valorAtualizado"))}</td>
                     <td className="px-5 py-3 text-right">
                       <button
-                        onClick={() => baixarSegundaVia(String(pick(g, "id")))}
+                        onClick={() => iniciarSegundaVia(g)}
                         disabled={!pick(g, "id")}
                         className="text-xs font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-40 inline-flex items-center gap-1"
                       >
-                        <i className="fas fa-file-pdf" /> 2ª via
+                        <i className="fas fa-file-pdf" /> {verPagas ? "Comprovante" : "2ª via"}
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -154,7 +274,49 @@ export default function FiscalPage() {
           </ul>
         )}
       </section>
+
+      {/* Modal: atualizar guia vencida com nova data de vencimento */}
+      {alvo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !emitindo && setAlvo(null)}>
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i className="fas fa-triangle-exclamation" /></div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-800">Guia vencida — atualizar 2ª via</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Guia <strong>{alvo.numero}</strong>. Informe o novo vencimento; os juros e a multa são recalculados até essa data.</p>
+              </div>
+            </div>
+            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Novo vencimento</label>
+            <input
+              type="date"
+              value={novaData}
+              min={hojeISO()}
+              onChange={(e) => setNovaData(e.target.value)}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {erroModal && <p className="text-xs text-red-600 mt-2"><i className="fas fa-circle-exclamation mr-1" />{erroModal}</p>}
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setAlvo(null)} disabled={emitindo} className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 disabled:opacity-50">Cancelar</button>
+              <button onClick={confirmarAtualizacao} disabled={emitindo || !novaData} className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
+                {emitindo ? "Emitindo…" : "Atualizar e emitir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function ThOrd({ label, campo, ordem, onClick, align }: { label: string; campo: "numero" | "vencimento" | "valor"; ordem: { campo: string; dir: "asc" | "desc" }; onClick: (c: "numero" | "vencimento" | "valor") => void; align?: "right" }) {
+  const ativo = ordem.campo === campo;
+  return (
+    <th className={`px-5 py-2 font-semibold ${align === "right" ? "text-right" : "text-left"}`}>
+      <button type="button" onClick={() => onClick(campo)} className={`inline-flex items-center gap-1 uppercase tracking-wide hover:text-blue-600 ${ativo ? "text-blue-600" : ""}`}>
+        {label}
+        <i className={`fas ${ativo ? (ordem.dir === "asc" ? "fa-arrow-up-short-wide" : "fa-arrow-down-wide-short") : "fa-sort"} text-[10px] ${ativo ? "text-blue-500" : "text-gray-300"}`} />
+      </button>
+    </th>
   );
 }
 
