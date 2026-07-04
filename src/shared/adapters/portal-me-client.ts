@@ -57,4 +57,33 @@ export async function proxyPortalMe(
   return NextResponse.json(r.data ?? {}, { status: r.status });
 }
 
+/**
+ * Faz stream de uma resposta binária do `portal-me` (ex.: PDF de 2ª via) mantendo
+ * o Content-Type/Disposition do backend. Erros (409 vencida, 403 posse) voltam
+ * como JSON do backend.
+ */
+export async function proxyPortalMeRaw(
+  path: string,
+  searchParams?: URLSearchParams,
+): Promise<NextResponse> {
+  const t = await ensureToken();
+  if (!t.ok) return NextResponse.json({ message: "Sessão inválida" }, { status: t.status });
+  const r = await t.adapter.portalMe<unknown>(path, t.token, { searchParams });
+  const res = r.raw;
+  if (!res) return NextResponse.json({ message: "Serviço indisponível" }, { status: 502 });
+  const ct = res.headers.get("content-type") ?? "application/octet-stream";
+  if (ct.includes("application/json")) {
+    // Erro estruturado do backend (posse/vencida) — repassa o JSON e o status.
+    return NextResponse.json(r.data ?? {}, { status: res.status });
+  }
+  const buf = await res.arrayBuffer();
+  return new NextResponse(buf, {
+    status: res.status,
+    headers: {
+      "Content-Type": ct,
+      "Content-Disposition": res.headers.get("content-disposition") ?? "inline",
+    },
+  });
+}
+
 export { ensureToken };

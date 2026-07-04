@@ -27,6 +27,19 @@ async function getJson(url: string) {
   return res.json();
 }
 
+async function baixarSegundaVia(id: string) {
+  const res = await fetch(`/api/fiscal/guias/${id}/segunda-via`);
+  if (res.ok && (res.headers.get("content-type") ?? "").includes("pdf")) {
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  const msg = await res.json().catch(() => null);
+  alert(msg?.message ?? "Não foi possível gerar a 2ª via desta guia.");
+}
+
 type Guia = Record<string, unknown>;
 type Msg = Record<string, unknown>;
 
@@ -87,6 +100,7 @@ export default function FiscalPage() {
                   <th className="text-left px-5 py-2 font-semibold">Vencimento</th>
                   <th className="text-left px-5 py-2 font-semibold">Situação</th>
                   <th className="text-right px-5 py-2 font-semibold">Valor</th>
+                  <th className="text-right px-5 py-2 font-semibold">2ª via</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -96,6 +110,15 @@ export default function FiscalPage() {
                     <td className="px-5 py-3 text-gray-600">{dateBR(pick(g, "dataVencimento", "vencimento", "vencimentoEm"))}</td>
                     <td className="px-5 py-3"><span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold">{String(pick(g, "situacao", "status") ?? "—")}</span></td>
                     <td className="px-5 py-3 text-right font-semibold text-gray-800">{money(pick(g, "valorTotal", "valor", "valorAtualizado"))}</td>
+                    <td className="px-5 py-3 text-right">
+                      <button
+                        onClick={() => baixarSegundaVia(String(pick(g, "id")))}
+                        disabled={!pick(g, "id")}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-40 inline-flex items-center gap-1"
+                      >
+                        <i className="fas fa-file-pdf" /> 2ª via
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
