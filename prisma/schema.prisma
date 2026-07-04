@@ -1,0 +1,116 @@
+// Banco do Portal do Cidadão (Postgres). O portal é dono do CATÁLOGO (Carta de
+// Serviços) e da IDENTIDADE (contas + vínculos por sistema). Solicitações são
+// espelho leve — a execução (processo/decisão/assinatura) fica no GED.
+//
+// M1: schema definido para revisão. A carga inicial vem do GED (migração/sync,
+// via endpoint `/api/portal/catalogo/export` a criar no GED — revisão do Gabriel).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Mapa município → config dos 3 backends (chave comum: código IBGE).
+model PortalTenant {
+  id                  String   @id @default(uuid())
+  municipio           String   @unique
+  nome                String
+  tributarioSubdomain String
+  gedPortalSlug       String?
+  gpe2Gestora         String?
+  baseUrlsJson        Json
+  criadoEm            DateTime @default(now())
+
+  @@map("portal_tenants")
+}
+
+/// Conta do cidadão no portal (dono da identidade). Uma por documento+município.
+model PortalConta {
+  id        String              @id @default(uuid())
+  documento String
+  nome      String
+  municipio String
+  criadoEm  DateTime            @default(now())
+  vinculos  PortalContaVinculo[]
+
+  @@unique([documento, municipio])
+  @@map("portal_contas")
+}
+
+/// Vínculo da conta com cada sistema (resolvido no 1º acesso).
+model PortalContaVinculo {
+  id         String      @id @default(uuid())
+  contaId    String
+  conta      PortalConta @relation(fields: [contaId], references: [id], onDelete: Cascade)
+  sistema    String // tributario | ged | gpe2
+  externalId String
+  resolvidoEm DateTime   @default(now())
+
+  @@unique([contaId, sistema])
+  @@map("portal_conta_vinculos")
+}
+
+model PortalCategoria {
+  id        String          @id @default(uuid())
+  municipio String
+  nome      String
+  slug      String
+  icone     String?
+  cor       String?
+  descricao String?
+  ordem     Int             @default(0)
+  ativo     Boolean         @default(true)
+  servicos  PortalServico[]
+
+  @@unique([municipio, slug])
+  @@map("portal_categorias")
+}
+
+model PortalServico {
+  id                    String           @id @default(uuid())
+  municipio             String
+  categoriaId           String?
+  categoria             PortalCategoria? @relation(fields: [categoriaId], references: [id])
+  titulo                String
+  slug                  String
+  publicoAlvo           String           @default("cidadao")
+  permiteAnonimo        Boolean          @default(false)
+  descricaoCurta        String?
+  descricaoCompleta     String?
+  requisitos            String?
+  documentosNecessarios Json?
+  prazoEntrega          String?
+  custo                 String?
+  canais                Json?
+  orgaoResponsavel      String?
+  legislacao            String?
+  palavrasChave         Json?
+  icone                 String?
+  publicado             Boolean          @default(true)
+  visualizacoes         Int              @default(0)
+  ordem                 Int              @default(0)
+  /// Roteamento: processo_ged | self_service_fiscal | protocolo_gpe2
+  tipoFluxo             String           @default("processo_ged")
+  /// Para self_service_fiscal: segunda_via | certidao | parcelamento | debitos | caixa_postal
+  fiscalAcao            String?
+
+  @@unique([municipio, slug])
+  @@map("portal_servicos")
+}
+
+model PortalBanner {
+  id         String  @id @default(uuid())
+  municipio  String
+  imagemUrl  String
+  titulo     String?
+  subtitulo  String?
+  linkUrl    String?
+  linkLabel  String?
+  ordem      Int     @default(0)
+  ativo      Boolean @default(true)
+
+  @@map("portal_banners")
+}
