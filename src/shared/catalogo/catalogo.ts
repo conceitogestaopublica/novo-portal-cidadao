@@ -14,11 +14,33 @@ interface ServicoSeed extends Servico {
   categoriaSlug: string;
 }
 
-const CATEGORIAS: Categoria[] = [
-  { id: "tributos", nome: "Tributos e Débitos", slug: "tributos", icone: "fas fa-file-invoice-dollar", cor: "blue", descricao: "Consulte débitos, emita 2ª via de guias, certidões e parcele online." },
-  { id: "imoveis", nome: "Imóveis (IPTU)", slug: "imoveis", icone: "fas fa-home", cor: "green", descricao: "IPTU, valor venal, situação cadastral e certidões do imóvel." },
-  { id: "empresas", nome: "Empresas (ISS)", slug: "empresas", icone: "fas fa-store", cor: "amber", descricao: "NFS-e, DMS, ISS e serviços do cadastro econômico." },
-  { id: "cidade", nome: "Cidade e Ouvidoria", slug: "cidade", icone: "fas fa-city", cor: "indigo", descricao: "Solicitações, reclamações e serviços gerais ao cidadão." },
+/** Ambiente = grande área do portal (mapeia um sistema/domínio). */
+export interface Ambiente {
+  slug: string;
+  nome: string;
+  descricao: string;
+  icone: string;
+  cor: string;
+  sistema: "tributario" | "ged" | "gpe2";
+  disponivel: boolean;
+}
+
+const AMBIENTES: Ambiente[] = [
+  { slug: "atendimento", nome: "Atendimento ao Contribuinte", descricao: "Débitos, 2ª via de guias, certidões, parcelamento, IPTU, ISS e caixa postal (DTE).", icone: "fas fa-hand-holding-dollar", cor: "blue", sistema: "tributario", disponivel: true },
+  { slug: "protocolo", nome: "Protocolo e Ouvidoria", descricao: "Abra requerimentos, protocolos e manifestações de ouvidoria e acompanhe a tramitação.", icone: "fas fa-folder-open", cor: "indigo", sistema: "ged", disponivel: true },
+  { slug: "servidor", nome: "Servidor Público", descricao: "Contracheque, informe de rendimentos e serviços do servidor.", icone: "fas fa-id-badge", cor: "green", sistema: "gpe2", disponivel: false },
+  { slug: "transparencia", nome: "Transparência", descricao: "Consultas públicas de receitas, despesas e contratações.", icone: "fas fa-chart-pie", cor: "amber", sistema: "gpe2", disponivel: false },
+];
+
+interface CategoriaSeed extends Categoria {
+  ambienteSlug: string;
+}
+
+const CATEGORIAS: CategoriaSeed[] = [
+  { id: "tributos", ambienteSlug: "atendimento", nome: "Tributos e Débitos", slug: "tributos", icone: "fas fa-file-invoice-dollar", cor: "blue", descricao: "Consulte débitos, emita 2ª via de guias, certidões e parcele online." },
+  { id: "imoveis", ambienteSlug: "atendimento", nome: "Imóveis (IPTU)", slug: "imoveis", icone: "fas fa-home", cor: "green", descricao: "IPTU, valor venal, situação cadastral e certidões do imóvel." },
+  { id: "empresas", ambienteSlug: "atendimento", nome: "Empresas (ISS)", slug: "empresas", icone: "fas fa-store", cor: "amber", descricao: "NFS-e, DMS, ISS e serviços do cadastro econômico." },
+  { id: "cidade", ambienteSlug: "protocolo", nome: "Requerimentos e Ouvidoria", slug: "cidade", icone: "fas fa-city", cor: "indigo", descricao: "Solicitações, reclamações, denúncias e serviços gerais ao cidadão." },
 ];
 
 const SERVICOS: ServicoSeed[] = [
@@ -105,13 +127,40 @@ function toPublic(s: ServicoSeed): Servico {
   return { ...rest, categoria: cat ? { id: cat.id, nome: cat.nome, slug: cat.slug, cor: cat.cor } : null };
 }
 
-export function getHome() {
-  const categorias = CATEGORIAS.map((c) => ({
-    ...c,
-    servicos_publicados_count: SERVICOS.filter((s) => s.categoriaSlug === c.slug).length,
+function categoriaComCount(c: CategoriaSeed): Categoria {
+  const { ambienteSlug: _a, ...rest } = c;
+  void _a;
+  return { ...rest, servicos_publicados_count: SERVICOS.filter((s) => s.categoriaSlug === c.slug).length };
+}
+
+export function getAmbientes() {
+  const ambientes = AMBIENTES.map((a) => ({
+    ...a,
+    servicos_count: SERVICOS.filter((s) => {
+      const cat = CATEGORIAS.find((c) => c.slug === s.categoriaSlug);
+      return cat?.ambienteSlug === a.slug;
+    }).length,
   }));
+  return { ambientes, totalServicos: SERVICOS.length };
+}
+
+/** Home = grade de ambientes + serviços mais procurados. */
+export function getHome() {
+  const { ambientes, totalServicos } = getAmbientes();
   const maisAcessados = SERVICOS.slice(0, 6).map(toPublic);
-  return { categorias, maisAcessados, totalServicos: SERVICOS.length, publicos: PUBLICOS };
+  return { ambientes, maisAcessados, totalServicos, publicos: PUBLICOS };
+}
+
+/** Um ambiente + suas categorias e serviços. */
+export function getAmbiente(slug: string) {
+  const ambiente = AMBIENTES.find((a) => a.slug === slug);
+  if (!ambiente) return null;
+  const categorias = CATEGORIAS.filter((c) => c.ambienteSlug === slug).map(categoriaComCount);
+  const servicos = SERVICOS.filter((s) => {
+    const cat = CATEGORIAS.find((c) => c.slug === s.categoriaSlug);
+    return cat?.ambienteSlug === slug;
+  }).map(toPublic);
+  return { ambiente, categorias, servicos, publicos: PUBLICOS };
 }
 
 export function listServicos(opts?: { q?: string; categoria?: string; publico?: string }) {

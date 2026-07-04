@@ -1,8 +1,8 @@
-import { HomeView } from "@/modules/carta-servicos/components/home-view";
+import { AmbientesView } from "@/modules/carta-servicos/components/ambientes-view";
 import { getHome } from "@/shared/catalogo/catalogo";
 
-/** Home do portal — Carta de Serviços servida pelo catálogo (server-side). */
+/** Home = grade de ambientes (nível 1) + serviços mais procurados. */
 export default function HomePage() {
-  const { categorias, maisAcessados, totalServicos } = getHome();
-  return <HomeView categorias={categorias} maisAcessados={maisAcessados} totalServicos={totalServicos} />;
+  const { ambientes, maisAcessados } = getHome();
+  return <AmbientesView ambientes={ambientes} maisAcessados={maisAcessados} />;
 }
