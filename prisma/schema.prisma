@@ -28,10 +28,15 @@ model PortalTenant {
 }
 
 /// Conta do cidadão no portal (dono da identidade). Uma por documento+município.
+/// `senhaHash` presente = conta registrada (documento+senha); ausente = acesso
+/// só por OTP. Serviços com `requerCadastro` exigem conta registrada.
 model PortalConta {
   id        String              @id @default(uuid())
   documento String
   nome      String
+  email     String?
+  telefone  String?
+  senhaHash String?
   municipio String
   criadoEm  DateTime            @default(now())
   vinculos  PortalContaVinculo[]

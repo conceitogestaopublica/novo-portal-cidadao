@@ -1,14 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type Etapa = "documento" | "otp";
-
 export default function EntrarPage() {
   const router = useRouter();
-  const [etapa, setEtapa] = useState<Etapa>("documento");
+  const [modo, setModo] = useState<"senha" | "otp">("senha");
   const [documento, setDocumento] = useState("");
+  const [senha, setSenha] = useState("");
   const [otp, setOtp] = useState("");
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [canal, setCanal] = useState<string | null>(null);
@@ -16,52 +16,36 @@ export default function EntrarPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function iniciar(e: React.FormEvent) {
-    e.preventDefault();
-    setErro(null);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/login-start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documento: documento.replace(/\D/g, "") }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message ?? "Falha ao iniciar");
-      if (data.encontrado === false || !data.challengeId) {
-        setErro("Não encontramos um cadastro com este documento neste município.");
-        return;
-      }
-      setChallengeId(data.challengeId);
-      setCanal(data.canalMascarado ?? null);
-      setDevOtp(data.devOtp ?? null);
-      setEtapa("otp");
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro inesperado");
-    } finally {
-      setLoading(false);
-    }
+  async function post(url: string, body: unknown) {
+    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.message ?? "Falha");
+    return data;
   }
 
-  async function verificar(e: React.FormEvent) {
-    e.preventDefault();
-    setErro(null);
-    setLoading(true);
+  async function entrarSenha(e: React.FormEvent) {
+    e.preventDefault(); setErro(null); setLoading(true);
     try {
-      const res = await fetch("/api/auth/login-verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ challengeId, otp: otp.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message ?? "Código inválido");
-      router.push("/fiscal");
-      router.refresh();
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro inesperado");
-    } finally {
-      setLoading(false);
-    }
+      await post("/api/auth/login-senha", { documento: documento.replace(/\D/g, ""), senha });
+      router.push("/fiscal"); router.refresh();
+    } catch (e) { setErro(e instanceof Error ? e.message : "Erro"); } finally { setLoading(false); }
+  }
+
+  async function iniciarOtp(e: React.FormEvent) {
+    e.preventDefault(); setErro(null); setLoading(true);
+    try {
+      const d = await post("/api/auth/login-start", { documento: documento.replace(/\D/g, "") });
+      if (d.encontrado === false || !d.challengeId) { setErro("Documento não encontrado neste município."); return; }
+      setChallengeId(d.challengeId); setCanal(d.canalMascarado ?? null); setDevOtp(d.devOtp ?? null);
+    } catch (e) { setErro(e instanceof Error ? e.message : "Erro"); } finally { setLoading(false); }
+  }
+
+  async function verificarOtp(e: React.FormEvent) {
+    e.preventDefault(); setErro(null); setLoading(true);
+    try {
+      await post("/api/auth/login-verify", { challengeId, otp: otp.trim() });
+      router.push("/fiscal"); router.refresh();
+    } catch (e) { setErro(e instanceof Error ? e.message : "Erro"); } finally { setLoading(false); }
   }
 
   return (
@@ -71,72 +55,45 @@ export default function EntrarPage() {
           <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
             <i className="fas fa-user-lock text-white text-xl" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Entrar no Portal</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {etapa === "documento"
-              ? "Informe seu CPF ou CNPJ. Enviaremos um código de verificação."
-              : "Digite o código que enviamos."}
-          </p>
+          <h1 className="text-xl font-bold text-gray-800">Entrar no Atendimento</h1>
+          <p className="text-sm text-gray-500 mt-1">Acesse seus débitos, guias e certidões.</p>
         </div>
 
-        {erro && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-            <i className="fas fa-circle-exclamation mr-1.5" />
-            {erro}
-          </div>
-        )}
+        {erro && <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2"><i className="fas fa-circle-exclamation mr-1.5" />{erro}</div>}
 
-        {etapa === "documento" ? (
-          <form onSubmit={iniciar} className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">CPF ou CNPJ</label>
-              <input
-                autoFocus
-                value={documento}
-                onChange={(e) => setDocumento(e.target.value)}
-                placeholder="000.000.000-00"
-                className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              />
+        {modo === "senha" ? (
+          <form onSubmit={entrarSenha} className="space-y-4">
+            <Campo label="CPF ou CNPJ"><input autoFocus value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder="000.000.000-00" className={inputCls} /></Campo>
+            <Campo label="Senha"><input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="••••••" className={inputCls} /></Campo>
+            <button disabled={loading} className={btnCls}>{loading ? "Entrando..." : "Entrar"}</button>
+            <div className="flex items-center justify-between text-xs pt-1">
+              <Link href="/cadastrar" className="text-blue-600 font-semibold hover:text-blue-700">Criar conta</Link>
+              <button type="button" onClick={() => { setModo("otp"); setErro(null); }} className="text-gray-500 hover:text-gray-700">Entrar com código</button>
             </div>
-            <button disabled={loading} className="w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
-              {loading ? "Enviando..." : "Continuar"}
-            </button>
+          </form>
+        ) : !challengeId ? (
+          <form onSubmit={iniciarOtp} className="space-y-4">
+            <p className="text-xs text-gray-500 -mt-2">Acesso rápido: enviamos um código para o seu contato cadastrado.</p>
+            <Campo label="CPF ou CNPJ"><input autoFocus value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder="000.000.000-00" className={inputCls} /></Campo>
+            <button disabled={loading} className={btnCls}>{loading ? "Enviando..." : "Enviar código"}</button>
+            <button type="button" onClick={() => { setModo("senha"); setErro(null); }} className="w-full text-xs text-gray-500 hover:text-gray-700">Entrar com senha</button>
           </form>
         ) : (
-          <form onSubmit={verificar} className="space-y-4">
-            {canal && (
-              <p className="text-xs text-gray-500 text-center">
-                Código enviado para <strong>{canal}</strong>.
-              </p>
-            )}
-            {devOtp && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 text-center">
-                <i className="fas fa-flask mr-1" /> Dev: seu código é <strong className="font-mono tracking-widest">{devOtp}</strong>
-              </div>
-            )}
-            <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Código de verificação</label>
-              <input
-                autoFocus
-                inputMode="numeric"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="000000"
-                className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg font-mono tracking-[0.3em]"
-              />
-            </div>
-            <button disabled={loading} className="w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
-              {loading ? "Verificando..." : "Entrar"}
-            </button>
-            <button type="button" onClick={() => { setEtapa("documento"); setOtp(""); setErro(null); }} className="w-full text-xs text-gray-500 hover:text-gray-700">
-              Usar outro documento
-            </button>
+          <form onSubmit={verificarOtp} className="space-y-4">
+            {canal && <p className="text-xs text-gray-500 text-center">Código enviado para <strong>{canal}</strong>.</p>}
+            {devOtp && <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 text-center"><i className="fas fa-flask mr-1" /> Dev: código <strong className="font-mono tracking-widest">{devOtp}</strong></div>}
+            <Campo label="Código de verificação"><input autoFocus inputMode="numeric" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="000000" className={`${inputCls} text-center text-lg font-mono tracking-[0.3em]`} /></Campo>
+            <button disabled={loading} className={btnCls}>{loading ? "Verificando..." : "Entrar"}</button>
           </form>
         )}
       </div>
-      <p className="text-center text-[11px] text-gray-400 mt-4">
-        Acesso protegido por código de verificação (OTP). Em breve: Login Único gov.br.
-      </p>
+      <p className="text-center text-[11px] text-gray-400 mt-4">Em breve: Login Único gov.br.</p>
     </div>
   );
+}
+
+const inputCls = "mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm";
+const btnCls = "w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60";
+function Campo({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div><label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{label}</label>{children}</div>;
 }
