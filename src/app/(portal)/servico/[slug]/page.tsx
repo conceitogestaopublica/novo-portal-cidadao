@@ -12,7 +12,7 @@ const COR_BG: Record<string, string> = {
 
 export default async function ServicoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = getServico(slug);
+  const data = await getServico(slug);
   if (!data) notFound();
   const { servico, relacionados, publicos } = data;
   const cidadao = await getSessionCidadao();

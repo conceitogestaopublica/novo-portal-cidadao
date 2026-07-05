@@ -145,6 +145,23 @@ No serviço **"Parcelamento de débitos"** você parcela sua **dívida ativa** s
 
 ---
 
+## 6. Abrir e acompanhar solicitações (Lei 13.460)
+
+Serviços que **não** são de autoatendimento fiscal (ex.: **Ouvidoria**, **Abrir
+requerimento/protocolo**) geram uma **solicitação**:
+
+1. Na página do serviço, clique em **"Solicitar"**.
+2. Preencha **contato** e a **descrição** da sua solicitação e envie.
+3. Você recebe um **protocolo** (ex.: `SOL20260705-1502`).
+4. Acompanhe em **"Minhas Solicitações"** (menu do topo): cada uma mostra a
+   situação (Aberta, Em andamento, Concluída) e, quando encaminhada, o número do
+   **processo** de tramitação.
+
+> A tramitação e a decisão do processo acontecem no sistema de processos do
+> município; o portal registra e acompanha.
+
+---
+
 ## Apêndice A — Resumo técnico (para revisão / operação)
 
 > Detalhe de implementação da rotina 1. Público: revisor (Gabriel) e operação.

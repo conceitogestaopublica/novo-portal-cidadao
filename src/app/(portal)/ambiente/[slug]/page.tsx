@@ -15,7 +15,7 @@ const COR_CAT: Record<string, string> = {
 
 export default async function AmbientePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = getAmbiente(slug);
+  const data = await getAmbiente(slug);
   if (!data) notFound();
   const { ambiente, categorias, servicos, publicos } = data;
   const isFiscal = ambiente.sistema === "tributario";

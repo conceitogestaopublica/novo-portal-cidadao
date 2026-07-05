@@ -10,7 +10,7 @@ const COR_HERO: Record<string, string> = {
 
 export default async function CategoriaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = getCategoria(slug);
+  const data = await getCategoria(slug);
   if (!data) notFound();
   const { categoria, servicos, publicos } = data;
 
