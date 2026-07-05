@@ -61,8 +61,16 @@ export async function abrirProtocoloGpe2(cfg: ProtocoloConfig, input: AbrirProto
     }),
     cache: "no-store",
   });
-  const data = (await res.json().catch(() => ({}))) as ProtocoloResult;
-  return { ...data, ok: res.ok && data.ok !== false };
+  // O gpe2 responde em snake_case (`protocolo_id`), conforme o contrato. Mapeamos
+  // para o camelCase do portal — sem isso o vínculo do protocolo se perde.
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  return {
+    ok: res.ok && data.ok !== false,
+    protocoloId: (data.protocolo_id ?? data.protocoloId) as number | undefined,
+    numero: data.numero as string | undefined,
+    novo: data.novo as boolean | undefined,
+    mensagem: data.mensagem as string | undefined,
+  };
 }
 
 /** Consulta situação/tramitação de um protocolo no gpe2. */
