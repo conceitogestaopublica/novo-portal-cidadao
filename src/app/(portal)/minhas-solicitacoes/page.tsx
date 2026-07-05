@@ -34,7 +34,7 @@ export default async function MinhasSolicitacoesPage() {
                 </div>
                 <SituacaoBadge situacao={s.situacao} />
               </div>
-              {s.gedProcessoNumero && <p className="text-[11px] text-gray-400 mt-2"><i className="fas fa-folder-open mr-1" />Processo {s.gedProcessoNumero}</p>}
+              {s.protocoloNumero && <p className="text-[11px] text-gray-400 mt-2"><i className="fas fa-folder-open mr-1" />Protocolo {s.protocoloNumero}</p>}
             </Link>
           ))}
         </div>

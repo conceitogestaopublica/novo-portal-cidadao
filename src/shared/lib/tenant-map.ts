@@ -23,6 +23,10 @@ export interface TenantConfig {
   gedPortalSlug?: string;
   /** Gestora/tenant no gpe2. */
   gpe2Gestora?: string;
+  /** id numérico da gestora no gpe2 (gateway de Protocolo). */
+  gpe2GestoraId?: number;
+  /** Token de entrada do Protocolo do gpe2 (header `X-Protocolo-Token`) desta gestora. */
+  gpe2ProtocoloToken?: string;
   baseUrls: {
     tributario: string;
     ged?: string;
@@ -48,6 +52,8 @@ function loadMap(): Record<string, TenantConfig> {
       tributarioSubdomain: devSub,
       gedPortalSlug: process.env.DEV_GED_SLUG,
       gpe2Gestora: process.env.DEV_GPE2_GESTORA,
+      gpe2GestoraId: process.env.DEV_GPE2_GESTORA_ID ? Number(process.env.DEV_GPE2_GESTORA_ID) : undefined,
+      gpe2ProtocoloToken: process.env.DEV_GPE2_PROTOCOLO_TOKEN,
       baseUrls: {
         tributario: env.tributarioBaseUrl(),
         ged: env.gedBaseUrl() || undefined,

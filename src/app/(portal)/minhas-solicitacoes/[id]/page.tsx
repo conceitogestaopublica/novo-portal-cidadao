@@ -30,7 +30,7 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
         <dl className="mt-4 space-y-3 text-sm">
           {s.contato && <Campo rotulo="Contato" valor={s.contato} />}
           {s.mensagem && <Campo rotulo="Descrição" valor={s.mensagem} />}
-          <Campo rotulo="Processo (tramitação)" valor={s.gedProcessoNumero ?? "Aguardando encaminhamento"} />
+          <Campo rotulo="Protocolo (tramitação)" valor={s.protocoloNumero ?? "Aguardando encaminhamento"} />
         </dl>
       </div>
 

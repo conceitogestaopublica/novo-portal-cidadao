@@ -3,7 +3,8 @@ import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { getServico } from "@/shared/catalogo/catalogo";
-import { criarSolicitacao, listByConta } from "@/shared/repos/solicitacao-repo";
+import { criarSolicitacao, listByConta, vincularProtocolo } from "@/shared/repos/solicitacao-repo";
+import { protocoloConfigDe, abrirProtocoloGpe2 } from "@/shared/adapters/gpe2.adapter";
 
 /** Minhas solicitações (do cidadão logado). */
 export async function GET() {
@@ -44,7 +45,27 @@ export async function POST(req: Request) {
     mensagem: parsed.data.mensagem || null,
   });
 
-  // TODO(integração GED): abrir o processo no GED (AbrirProcessoDoPortalService)
-  // e guardar `gedProcessoNumero`. Depende do contrato de auth/tenant do Vitor.
+  // Modelo A: abre o protocolo no PAE central (gpe2), se a gestora estiver
+  // configurada. Se não (dev), a solicitação fica só registrada no portal.
+  const cfg = protocoloConfigDe(tenant);
+  if (cfg) {
+    try {
+      const r = await abrirProtocoloGpe2(cfg, {
+        origemRef: solicitacao.protocolo,
+        descricao: `${data.servico.titulo}${parsed.data.mensagem ? " — " + parsed.data.mensagem : ""}`,
+        solicitanteDoc: cidadao.documento ?? null,
+        solicitanteNome: cidadao.nome,
+      });
+      if (r.ok && r.protocoloId) {
+        await vincularProtocolo(solicitacao.id, { sistema: "gpe2", protocoloId: String(r.protocoloId), numero: r.numero ?? "" });
+        solicitacao.protocoloSistema = "gpe2";
+        solicitacao.protocoloId = String(r.protocoloId);
+        solicitacao.protocoloNumero = r.numero ?? null;
+      }
+    } catch {
+      // gpe2 indisponível — mantém a solicitação registrada; reprocessa depois.
+    }
+  }
+
   return NextResponse.json({ ok: true, solicitacao });
 }

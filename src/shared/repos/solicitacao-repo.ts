@@ -3,8 +3,9 @@ import { db } from "@/shared/lib/db";
 
 /**
  * Solicitação do Portal (Lei 13.460) — espelho leve no banco do portal. A
- * execução/tramitação real do processo fica no GED; aqui guardamos o registro do
- * cidadão + o número do processo do GED quando ele for aberto (`gedProcessoNumero`).
+ * tramitação real acontece no PROTOCOLO/PAE central (Modelo A = gpe2); aqui
+ * guardamos o registro do cidadão + o protocolo do sistema de destino
+ * (`protocoloSistema`/`protocoloId`/`protocoloNumero`) quando ele é aberto.
  */
 export interface Solicitacao {
   id: string;
@@ -18,7 +19,9 @@ export interface Solicitacao {
   servicoTitulo: string;
   mensagem: string | null;
   situacao: string;
-  gedProcessoNumero: string | null;
+  protocoloSistema: string | null;
+  protocoloId: string | null;
+  protocoloNumero: string | null;
   criadoEm: string;
 }
 
@@ -35,9 +38,22 @@ function map(r: Record<string, unknown>): Solicitacao {
     servicoTitulo: r.servico_titulo as string,
     mensagem: (r.mensagem as string) ?? null,
     situacao: r.situacao as string,
-    gedProcessoNumero: (r.ged_processo_numero as string) ?? null,
+    protocoloSistema: (r.protocolo_sistema as string) ?? null,
+    protocoloId: (r.protocolo_id as string) ?? null,
+    protocoloNumero: (r.protocolo_numero as string) ?? null,
     criadoEm: (r.criado_em as Date)?.toISOString?.() ?? String(r.criado_em),
   };
+}
+
+/** Vincula o protocolo aberto no sistema de destino (ex.: gpe2) à solicitação. */
+export async function vincularProtocolo(
+  id: string,
+  info: { sistema: string; protocoloId: string; numero: string },
+): Promise<void> {
+  await db().query(
+    "UPDATE portal_solicitacoes SET protocolo_sistema=$2, protocolo_id=$3, protocolo_numero=$4, atualizado_em=now() WHERE id=$1",
+    [id, info.sistema, info.protocoloId, info.numero],
+  );
 }
 
 function gerarProtocolo(): string {
