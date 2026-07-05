@@ -56,6 +56,29 @@ export async function vincularProtocolo(
   );
 }
 
+/**
+ * Atualiza a situação (e protocolo, se ainda faltando) de uma solicitação a partir
+ * do webhook do sistema de destino, localizando-a pelo `protocolo` (origem_ref)
+ * dentro do município. Retorna quantas linhas foram afetadas.
+ */
+export async function atualizarPorOrigemRef(
+  municipio: string,
+  origemRef: string,
+  info: { situacao?: string | null; protocoloId?: string | null; numero?: string | null },
+): Promise<number> {
+  const r = await db().query(
+    `UPDATE portal_solicitacoes SET
+       situacao = COALESCE($3, situacao),
+       protocolo_id = COALESCE($4, protocolo_id),
+       protocolo_numero = COALESCE($5, protocolo_numero),
+       protocolo_sistema = COALESCE(protocolo_sistema, 'gpe2'),
+       atualizado_em = now()
+     WHERE municipio=$1 AND protocolo=$2`,
+    [municipio, origemRef, info.situacao ?? null, info.protocoloId ?? null, info.numero ?? null],
+  );
+  return r.rowCount ?? 0;
+}
+
 function gerarProtocolo(): string {
   const d = new Date();
   const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;

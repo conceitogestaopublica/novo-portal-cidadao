@@ -61,15 +61,18 @@ Como o `tributario_config`, mas para o portal (pode ser uma linha nova numa tabe
 - `assunto_id` padrão para protocolos abertos pelo portal (fallback).
 - url + token de **notificação de saída** (webhook) para o portal (ver 2.3).
 
-### 2.3 Webhook de status → portal (opcional, fase 2)
+### 2.3 Webhook de status → portal (**o portal já está pronto**)
 
-Estender o `notificarSituacao` para também notificar o **portal** quando a situação
-do protocolo mudar, chamando:
+O portal **já expõe** `POST /api/webhooks/protocolo` (autenticado por
+`X-Protocolo-Token` = token da gestora; resolve o município pelo host). Falta só o
+gpe2 **chamá-lo** no `notificarSituacao`, com:
 ```
-POST <portal>/api/webhooks/protocolo
+POST <portal>/api/webhooks/protocolo     (header X-Protocolo-Token: <token da gestora>)
 { "origem_ref": "SOL...-6219", "protocolo_id": 456, "numero": "123/2026", "situacao": "tramitando" }
 ```
-Assim o cidadão vê a situação atualizada em "Minhas Solicitações".
+O portal mapeia a situação (`aberto`→ABERTA, `tramitando`→EM_ANDAMENTO,
+`deferido`/`indeferido`→CONCLUIDA, `arquivado`→CANCELADA) e atualiza a solicitação.
+Verificado e2e (token errado → 401; correto → 200 e o cidadão vê a nova situação).
 
 ---
 
