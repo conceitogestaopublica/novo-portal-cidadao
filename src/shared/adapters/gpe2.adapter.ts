@@ -73,11 +73,49 @@ export async function abrirProtocoloGpe2(cfg: ProtocoloConfig, input: AbrirProto
   };
 }
 
-/** Consulta situação/tramitação de um protocolo no gpe2. */
-export async function consultarProtocoloGpe2(cfg: ProtocoloConfig, protocoloId: number) {
+export interface TimelineEvento {
+  tipo: "abertura" | "tramite" | "parecer" | "exigencia" | "resposta" | "encerramento";
+  data: string;
+  titulo: string;
+  texto?: string | null;
+  de?: string | null;
+  para?: string | null;
+  status?: string | null;
+  dt_recepcao?: string | null;
+}
+
+export interface ProtocoloDetalhe {
+  ok: boolean;
+  numero?: string;
+  situacao?: string;
+  situacao_label?: string;
+  encerrado?: boolean;
+  origem_ref?: string;
+  data_abertura?: string;
+  data_encerramento?: string | null;
+  eventos?: TimelineEvento[];
+}
+
+/** Consulta situação + linha do tempo completa de um protocolo no gpe2. */
+export async function consultarProtocoloGpe2(cfg: ProtocoloConfig, protocoloId: number): Promise<ProtocoloDetalhe | null> {
   const res = await fetch(`${cfg.baseUrl}/api/protocolo/${protocoloId}`, {
     headers: { "X-Protocolo-Token": cfg.token },
     cache: "no-store",
   });
   return res.json().catch(() => null);
+}
+
+/** O solicitante responde a uma exigência do protocolo (via portal). */
+export async function responderProtocoloGpe2(
+  cfg: ProtocoloConfig,
+  input: { origemRef: string; texto: string },
+): Promise<{ ok: boolean; mensagem?: string }> {
+  const res = await fetch(`${cfg.baseUrl}/api/protocolo/portal/responder`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Protocolo-Token": cfg.token },
+    body: JSON.stringify({ gestora_id: cfg.gestoraId, origem_ref: input.origemRef, texto: input.texto }),
+    cache: "no-store",
+  });
+  const data = (await res.json().catch(() => ({}))) as { ok?: boolean; mensagem?: string };
+  return { ok: res.ok && data.ok !== false, mensagem: data.mensagem };
 }

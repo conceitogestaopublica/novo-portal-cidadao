@@ -1,6 +1,9 @@
 const MAPA: Record<string, { cor: string; texto: string }> = {
   ABERTA: { cor: "bg-blue-50 text-blue-700", texto: "Aberta" },
   EM_ANDAMENTO: { cor: "bg-amber-50 text-amber-700", texto: "Em andamento" },
+  AGUARDANDO_VOCE: { cor: "bg-violet-50 text-violet-700", texto: "Aguardando você" },
+  DEFERIDA: { cor: "bg-green-50 text-green-700", texto: "Deferida" },
+  INDEFERIDA: { cor: "bg-red-50 text-red-700", texto: "Indeferida" },
   CONCLUIDA: { cor: "bg-green-50 text-green-700", texto: "Concluída" },
   CANCELADA: { cor: "bg-gray-100 text-gray-500", texto: "Cancelada" },
 };

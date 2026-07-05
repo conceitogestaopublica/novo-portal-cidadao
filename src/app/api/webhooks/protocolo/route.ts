@@ -9,8 +9,9 @@ function mapearSituacao(s?: string | null): string | null {
   switch ((s ?? "").toLowerCase()) {
     case "aberto": return "ABERTA";
     case "tramitando": return "EM_ANDAMENTO";
-    case "deferido":
-    case "indeferido": return "CONCLUIDA";
+    case "aguardando": return "AGUARDANDO_VOCE";
+    case "deferido": return "DEFERIDA";
+    case "indeferido": return "INDEFERIDA";
     case "arquivado": return "CANCELADA";
     default: return null; // desconhecido → não altera a situação
   }
