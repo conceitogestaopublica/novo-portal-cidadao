@@ -34,7 +34,17 @@ type Empresa = {
   situacao: string;
   ativo: boolean;
 };
-type ItemServico = { id: string; codigo: string; descricao: string };
+/**
+ * Serviço que a empresa presta. Atenção: `id` é do VÍNCULO empresa↔serviço; o
+ * que a emissão espera é o `itemServicoId` (o item da LC116). Mandar o `id`
+ * daqui devolve "Item da lista LC116 inexistente".
+ */
+type ItemServico = {
+  id: string;
+  itemServicoId: string;
+  codigo: string;
+  descricao: string;
+};
 type Nota = {
   id: string;
   numero: number;
@@ -254,7 +264,7 @@ export default function NfsePage() {
               >
                 <option value="">Selecione…</option>
                 {(itens.data ?? []).map((i) => (
-                  <option key={i.id} value={i.id}>
+                  <option key={i.id} value={i.itemServicoId}>
                     {i.codigo} — {i.descricao}
                   </option>
                 ))}
