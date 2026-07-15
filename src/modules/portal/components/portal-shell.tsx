@@ -128,6 +128,7 @@ export function PortalShell({
             <ul className="space-y-1">
               <li><Link href="/" className="hover:text-white">Página inicial</Link></li>
               <li><Link href="/buscar" className="hover:text-white">Todos os serviços</Link></li>
+              <li><Link href="/admin" className="hover:text-white">Administração</Link></li>
             </ul>
           </div>
           <div>

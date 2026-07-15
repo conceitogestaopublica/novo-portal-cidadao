@@ -36,6 +36,11 @@ async function seedSeVazio(): Promise<void> {
   }
 }
 
+/** Invalida o cache em memória — chamar após qualquer escrita no catálogo (admin/sync GED). */
+export function invalidarCatalogo(): void {
+  g.__portalCatalogo = undefined;
+}
+
 /** Catálogo (do banco do portal). 1ª carga semeia da semente; fallback = semente. */
 export async function carregarCatalogo(): Promise<CatalogoData> {
   if (g.__portalCatalogo) return g.__portalCatalogo;
