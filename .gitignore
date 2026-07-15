@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+
+# O template DEVE ser versionado — sem ele ninguém sabe o que configurar.
+!.env.example
