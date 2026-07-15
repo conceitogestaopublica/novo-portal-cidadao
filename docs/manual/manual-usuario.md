@@ -145,7 +145,36 @@ No serviço **"Parcelamento de débitos"** você parcela sua **dívida ativa** s
 
 ---
 
-## 6. Abrir e acompanhar solicitações (Lei 13.460)
+## 6. NFS-e — emitir nota de serviço
+
+Se você é **prestador de serviço** inscrito no município, emite a **Nota Fiscal
+de Serviço eletrônica** direto pelo portal, em **Área fiscal → Emitir NFS-e**.
+
+> Até agora só era possível emitir por **sistema próprio integrado** (ERP com
+> chave de API). Pela web, não havia como.
+
+1. **Escolha a empresa** — só aparece se você tiver mais de uma. Contador: use
+   **"Atuar como"** para emitir pelo cliente.
+2. **Selecione o serviço prestado** (lista LC116 da sua empresa). Se a lista
+   estiver vazia, procure a Prefeitura para vincular os serviços que você presta.
+3. **Informe o valor** e marque **ISS retido** se quem contratou vai reter.
+4. **Identifique o tomador** (nome; CPF/CNPJ é opcional — consumidor pessoa
+   física nem sempre se identifica).
+5. **Descreva o serviço** e clique em **Emitir**.
+
+A nota sai **na hora**, com **código de verificação**, e o **ISS é calculado
+pela alíquota vigente** do serviço — você não digita imposto.
+
+**Minhas notas emitidas** lista tudo que você já emitiu, com a situação
+(emitida/cancelada/substituída) e o botão para baixar o **DANFSE em PDF**
+(com QR de verificação).
+
+> **Você só enxerga e emite pelas suas empresas.** Uma empresa que não é sua é
+> recusada pelo sistema.
+
+---
+
+## 7. Abrir e acompanhar solicitações (Lei 13.460)
 
 Serviços que **não** são de autoatendimento fiscal (ex.: **Ouvidoria**, **Abrir
 requerimento/protocolo**) geram uma **solicitação**:

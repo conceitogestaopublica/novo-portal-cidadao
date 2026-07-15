@@ -173,6 +173,14 @@ export default function FiscalPage() {
         <p className="text-xs text-gray-500 -mt-2"><i className="fas fa-circle-info text-red-500 mr-1.5" />Você tem <strong>dívida ativa</strong> inscrita. Para negociar ou emitir guia da dívida, procure o Atendimento — a negociação online entra em breve.</p>
       )}
 
+      {/* Atalhos: até aqui estas telas só eram alcançáveis pela Carta de
+          Serviços — quem já está na área fiscal não deveria dar essa volta. */}
+      <div className="flex flex-wrap gap-2">
+        <Atalho href="/fiscal/nfse" icon="fas fa-file-invoice" rotulo="Emitir NFS-e" />
+        <Atalho href="/fiscal/certidao" icon="fas fa-certificate" rotulo="Emitir certidão" />
+        <Atalho href="/fiscal/parcelamento" icon="fas fa-file-signature" rotulo="Parcelar débitos" />
+      </div>
+
       {/* Guias */}
       <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -334,4 +342,16 @@ function Card({ icon, cor, titulo, valor, sub, loading, href }: { icon: string; 
     </div>
   );
   return href ? <a href={href}>{inner}</a> : inner;
+}
+
+function Atalho({ href, icon, rotulo }: { href: string; icon: string; rotulo: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700"
+    >
+      <i className={`${icon} text-blue-600`} />
+      {rotulo}
+    </Link>
+  );
 }
