@@ -203,8 +203,36 @@ CREATE TABLE IF NOT EXISTS public.portal_seed_aplicado (
 
 
 --
+-- Name: portal_senha_reset; Type: TABLE; Schema: public; Owner: -
+--
+-- Pedidos de recuperação de senha do portal (qualquer usuário — não só o
+-- prestador de fora). Vive no banco, não em memória como o OTP: o link é
+-- clicado minutos depois, e um restart do processo não pode invalidar a
+-- recuperação de quem já recebeu o e-mail.
+--
+-- Guarda o HASH do token, nunca o token: se o banco vazar, os links não são
+-- utilizáveis — mesma razão de não guardar senha em texto.
+--
+
+CREATE TABLE IF NOT EXISTS public.portal_senha_reset (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    conta_id uuid NOT NULL,
+    token_hash character varying(255) NOT NULL,
+    expira_em timestamp with time zone NOT NULL,
+    -- Uso único: depois de trocar a senha, o mesmo link não serve mais.
+    usado_em timestamp with time zone,
+    criado_em timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT portal_senha_reset_pkey PRIMARY KEY (id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_portal_senha_reset_token
+    ON public.portal_senha_reset USING btree (token_hash);
+CREATE INDEX IF NOT EXISTS idx_portal_senha_reset_conta
+    ON public.portal_senha_reset USING btree (conta_id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 \unrestrict sSSgAKgWKFjORXcoJczaJetF12gtpu71vVaXbcZvREnkFC9XknvzaX5I9kFw924
-

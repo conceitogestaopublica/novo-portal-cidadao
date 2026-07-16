@@ -70,6 +70,11 @@ export default function EntrarPage() {
               <Link href="/cadastrar" className="text-blue-600 font-semibold hover:text-blue-700">Criar conta</Link>
               <button type="button" onClick={() => { setModo("otp"); setErro(null); }} className="text-gray-500 hover:text-gray-700">Entrar com código</button>
             </div>
+            <p className="text-center text-xs pt-1">
+              <Link href="/recuperar" className="text-gray-500 hover:text-gray-700">
+                Esqueci minha senha
+              </Link>
+            </p>
           </form>
         ) : !challengeId ? (
           <form onSubmit={iniciarOtp} className="space-y-4">

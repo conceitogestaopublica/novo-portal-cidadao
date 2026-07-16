@@ -78,6 +78,23 @@ Tudo do Atendimento passa a valer para a empresa selecionada:
 
 ---
 
+## 1.1. Esqueci minha senha
+
+Em **Entrar → Esqueci minha senha**, informe seu CPF ou CNPJ. Enviamos um link
+para o e-mail do seu cadastro.
+
+- O link **vale por 1 hora** e **só pode ser usado uma vez**.
+- Depois de trocar, entre com a senha nova (a antiga deixa de funcionar).
+- Pedindo um link novo, o anterior deixa de valer.
+
+> Por segurança, a resposta é sempre a mesma — exista a conta ou não. Assim
+> ninguém descobre, testando documentos, quem tem cadastro no portal.
+
+> **Não tem e-mail no seu cadastro?** Não há como enviar o link. Nesse caso,
+> use **Entrar com código** ou procure a Prefeitura.
+
+---
+
 ## 2. Consultar débitos e comprovantes (Meus Débitos)
 
 A tela **Meus Débitos** mostra, no topo, quatro cartões: **Guias em aberto**,
