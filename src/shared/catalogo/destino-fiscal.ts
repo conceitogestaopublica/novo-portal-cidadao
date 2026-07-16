@@ -13,6 +13,11 @@ export const DESTINO_FISCAL: Record<FiscalAcao, { href: string; rotulo: string; 
   parcelamento: { href: "/fiscal/parcelamento", rotulo: "Parcelar débitos", icone: "fas fa-file-signature" },
   nfse: { href: "/fiscal/nfse", rotulo: "Emitir NFS-e", icone: "fas fa-file-invoice" },
   dms: { href: "/fiscal/dms", rotulo: "Declaração mensal (DMS)", icone: "fas fa-book" },
+  prestei: {
+    href: "/fiscal/prestei",
+    rotulo: "Declarar serviço que prestei aqui",
+    icone: "fas fa-file-circle-plus",
+  },
 };
 
 export function destinoDe(servico: Pick<Servico, "tipo_fluxo" | "fiscal_acao">) {

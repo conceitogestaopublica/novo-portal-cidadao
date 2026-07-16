@@ -107,6 +107,15 @@ export const SERVICOS_SEED: ServicoSeed[] = [
     tipo_fluxo: "self_service_fiscal", fiscal_acao: "dms", palavras_chave: ["dms", "declaração", "iss", "competência"],
   },
   {
+    id: "prestei", categoriaSlug: "empresas", titulo: "Prestei serviço aqui e sou de outro município", slug: "prestei",
+    publico_alvo: "empresa", icone: "fas fa-file-circle-plus",
+    descricao_curta: "Declare o serviço que você prestou no município e pague o ISS.",
+    descricao_completa: "Empresa ou profissional de outro município que prestou serviço aqui: declare a nota (número, competência, valor e ISS) e gere a guia — de tudo junto ou nota a nota. Se quem contratou reteve o ISS na fonte, quem declara é ele: o imposto já saiu do seu pagamento.",
+    prazo_entrega: "Imediato", custo: "Gratuito", orgao_responsavel: "Secretaria da Fazenda",
+    tipo_fluxo: "self_service_fiscal", fiscal_acao: "prestei",
+    palavras_chave: ["prestador de fora", "outro município", "iss", "declarar"],
+  },
+  {
     id: "ouvidoria", categoriaSlug: "cidade", titulo: "Ouvidoria — reclamação, denúncia ou elogio", slug: "ouvidoria",
     publico_alvo: "cidadao", permite_anonimo: true, icone: "fas fa-comment-dots",
     descricao_curta: "Registre uma manifestação e acompanhe a resposta.",

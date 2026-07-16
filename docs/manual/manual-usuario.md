@@ -203,7 +203,41 @@ não entram na sua guia — o imposto é devido por quem contratou.
 
 ---
 
-## 8. Abrir e acompanhar solicitações (Lei 13.460)
+## 8. Prestei serviço aqui e sou de outro município
+
+Se você **não é do município** mas prestou serviço aqui, o ISS pode ser devido a
+esta Prefeitura. Você mesmo se cadastra e declara — não precisa vir ao balcão.
+
+> Antes, quem era de fora simplesmente não existia no cadastro: não conseguia se
+> cadastrar nem declarar. Dependia de alguém declarar por você.
+
+### Criar sua conta
+
+Em **Criar conta**, marque **"Sou de outro município e prestei serviço aqui"**.
+Informe CPF/CNPJ, nome, e-mail e uma senha. Seu cadastro é criado na hora e você
+já entra. Nas próximas vezes, entre com o mesmo documento e sua senha.
+
+### Declarar e pagar
+
+Em **Área fiscal → Serviços que prestei no município**:
+
+1. Informe **quem contratou** (CPF/CNPJ), o **número da sua nota**, a
+   **competência**, a **data**, o **valor** e o **ISS**.
+2. A nota entra em **A pagar**.
+3. Clique em **Gerar guia de tudo** — ou marque algumas e gere só delas.
+
+A guia aparece em **Meus Débitos**, com linha digitável e QR PIX.
+
+> **Se quem contratou reteve o ISS na fonte, quem declara é ele** — o imposto já
+> saiu do seu pagamento, e a obrigação de recolher passou a ser dele. Declare
+> aqui só o serviço em que **não houve retenção**.
+
+> A mesma nota não entra duas vezes: se o contratante já declarou, o sistema
+> avisa.
+
+---
+
+## 9. Abrir e acompanhar solicitações (Lei 13.460)
 
 Serviços que **não** são de autoatendimento fiscal (ex.: **Ouvidoria**, **Abrir
 requerimento/protocolo**) geram uma **solicitação**:
