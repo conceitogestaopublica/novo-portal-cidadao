@@ -174,7 +174,36 @@ pela alíquota vigente** do serviço — você não digita imposto.
 
 ---
 
-## 7. Abrir e acompanhar solicitações (Lei 13.460)
+## 7. DMS — declaração mensal de serviços
+
+Todo mês o prestador declara ao município os serviços que prestou. Isso se faz
+em **Área fiscal → Declaração mensal (DMS)**.
+
+> Antes, só o fisco escriturava a DMS (pelo ERP). O prestador não tinha como
+> cumprir a obrigação pela web — tinha que ir à Prefeitura.
+
+1. **Abra a competência** — escolha o mês e o ano e clique em **Abrir**. Ela
+   nasce como **rascunho**: dá para mexer à vontade.
+2. **Escriture cada serviço prestado**: selecione o serviço (lista LC116 da sua
+   empresa), informe o **valor**, e marque **ISS retido** se quem contratou vai
+   reter o imposto. O CPF/CNPJ do tomador é opcional.
+   - O **ISS é calculado pela alíquota vigente** do serviço — você não digita imposto.
+   - Errou? O ícone de lixeira remove o item **enquanto for rascunho**.
+3. **Entregue a declaração**. É preciso ter **ao menos um serviço escriturado**.
+
+Na entrega, a **guia do ISS é gerada na hora** e passa a aparecer em
+**Meus Débitos**, com linha digitável e QR PIX. Serviços marcados como **retidos**
+não entram na sua guia — o imposto é devido por quem contratou.
+
+> **Depois de entregue, a declaração não pode ser alterada** — nem por você, nem
+> pelo portal. Procure a Prefeitura se precisar retificar.
+
+> **Você só enxerga e declara pelas suas empresas.** Uma declaração de terceiro é
+> recusada pelo sistema.
+
+---
+
+## 8. Abrir e acompanhar solicitações (Lei 13.460)
 
 Serviços que **não** são de autoatendimento fiscal (ex.: **Ouvidoria**, **Abrir
 requerimento/protocolo**) geram uma **solicitação**:

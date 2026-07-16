@@ -177,6 +177,7 @@ export default function FiscalPage() {
           Serviços — quem já está na área fiscal não deveria dar essa volta. */}
       <div className="flex flex-wrap gap-2">
         <Atalho href="/fiscal/nfse" icon="fas fa-file-invoice" rotulo="Emitir NFS-e" />
+        <Atalho href="/fiscal/dms" icon="fas fa-book" rotulo="Declaração mensal (DMS)" />
         <Atalho href="/fiscal/certidao" icon="fas fa-certificate" rotulo="Emitir certidão" />
         <Atalho href="/fiscal/parcelamento" icon="fas fa-file-signature" rotulo="Parcelar débitos" />
       </div>

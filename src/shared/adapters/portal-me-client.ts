@@ -74,6 +74,18 @@ export async function proxyPortalMePost(
 }
 
 /**
+ * Faz um DELETE no `portal-me`. Usado para desfazer escrituração (item da DMS).
+ */
+export async function proxyPortalMeDelete(path: string): Promise<NextResponse> {
+  const t = await ensureToken();
+  if (!t.ok) {
+    return NextResponse.json({ message: "Sessão inválida" }, { status: t.status });
+  }
+  const r = await t.adapter.portalMe<unknown>(path, t.token, { method: "DELETE" });
+  return NextResponse.json(r.data ?? {}, { status: r.status });
+}
+
+/**
  * Faz stream de uma resposta binária do `portal-me` (ex.: PDF de 2ª via) mantendo
  * o Content-Type/Disposition do backend. Erros (409 vencida, 403 posse) voltam
  * como JSON do backend.

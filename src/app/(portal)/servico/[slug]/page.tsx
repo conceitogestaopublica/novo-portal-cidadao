@@ -25,6 +25,7 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
     parcelamento: { href: "/fiscal/parcelamento", rotulo: "Parcelar débitos" },
     caixa_postal: { href: "/fiscal#caixa", rotulo: "Abrir caixa postal" },
     nfse: { href: "/fiscal/nfse", rotulo: "Emitir NFS-e" },
+    dms: { href: "/fiscal/dms", rotulo: "Declarar serviços do mês" },
   };
   const acao = servico.fiscal_acao ? DESTINO_FISCAL[servico.fiscal_acao] : undefined;
   const destinoFiscal = acao?.href ?? "/fiscal";
