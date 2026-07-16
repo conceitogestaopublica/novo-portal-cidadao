@@ -72,6 +72,39 @@ export class TributarioAdapter {
   }
 
   /**
+   * Autocadastro do prestador de FORA: cria a ficha de contribuinte dele.
+   *
+   * Quem presta serviço aqui mas não é do município não existe no cadastro —
+   * e o cadastro do portal só aceita contribuinte. Sem isto ele dependeria de
+   * alguém declarar por ele antes de conseguir se cadastrar.
+   *
+   * Idempotente no backend: se um tomador já declarou nota dele, reusa a ficha.
+   */
+  async cadastrarPrestadorExterno(input: {
+    documento: string;
+    nome: string;
+    municipioIbge?: number | null;
+  }): Promise<{ contribuinteId: string }> {
+    const res = await fetch(
+      `${this.base}/portal-auth/contribuinte/prestador-externo`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Service-Token": env.portalServiceToken(),
+          ...tenantHeaders(this.tenant),
+        },
+        body: JSON.stringify({ ...input, tenantId: this.tenant.municipio }),
+        cache: "no-store",
+      },
+    );
+    if (!res.ok) {
+      throw new Error(`cadastro do prestador externo falhou: ${res.status}`);
+    }
+    return unwrap<{ contribuinteId: string }>(await res.json());
+  }
+
+  /**
    * Lista as identidades que o documento pode "atuar como": ele mesmo (titular)
    * + as empresas que representa. Vazio se o documento não é contribuinte.
    */

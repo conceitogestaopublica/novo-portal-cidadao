@@ -10,12 +10,21 @@ const schema = z.object({
   nome: z.string().min(3),
   email: z.string().email().optional().or(z.literal("")),
   senha: z.string().min(6),
+  /**
+   * "Sou prestador de fora e prestei serviço no município." Quem não é do
+   * município não existe no cadastro, e sem isto ficaria trancado: precisaria
+   * que um tomador declarasse por ele antes de conseguir se cadastrar.
+   */
+  prestadorExterno: z.boolean().optional(),
 });
 
 /**
- * Cadastro do cidadão no Atendimento ao Contribuinte: documento + senha. Só
- * permite cadastrar quem é contribuinte real do município (valida no tributário)
- * e vincula o contribuinteId à conta. Já deixa logado.
+ * Cadastro no Atendimento ao Contribuinte: documento + senha.
+ *
+ * Regra: só contribuinte real do município se cadastra — a conta é vinculada ao
+ * `contribuinteId`. A exceção é o PRESTADOR DE FORA, que se identifica como tal
+ * e tem a ficha criada no ato (é ele quem presta serviço aqui e deve o ISS).
+ * Já deixa logado.
  */
 export async function POST(req: Request) {
   const tenant = await currentTenant();
@@ -37,8 +46,34 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ message: "Serviço indisponível. Tente novamente." }, { status: 502 });
   }
-  if (!resolved) {
-    return NextResponse.json({ message: "Documento não encontrado no cadastro do município." }, { status: 404 });
+
+  // Prestador de fora: a ficha dele nasce aqui. O backend valida o documento
+  // (dígito verificador) e é idempotente — se um tomador já declarou nota dele,
+  // reusa a ficha em vez de criar outra.
+  let contribuinteId = resolved?.contribuinteId;
+  if (!contribuinteId && parsed.data.prestadorExterno) {
+    try {
+      const criado = await adapter.cadastrarPrestadorExterno({
+        documento,
+        nome: parsed.data.nome,
+      });
+      contribuinteId = criado.contribuinteId;
+    } catch {
+      return NextResponse.json(
+        { message: "Não foi possível criar seu cadastro. Confira o CPF/CNPJ." },
+        { status: 422 },
+      );
+    }
+  }
+
+  if (!contribuinteId) {
+    return NextResponse.json(
+      {
+        message:
+          "Documento não encontrado no cadastro do município. Se você é prestador de fora e prestou serviço aqui, marque essa opção.",
+      },
+      { status: 404 },
+    );
   }
 
   const conta = await criarConta({
@@ -46,7 +81,7 @@ export async function POST(req: Request) {
     nome: parsed.data.nome,
     email: parsed.data.email || null,
     senha: parsed.data.senha,
-    contribuinteId: resolved.contribuinteId,
+    contribuinteId,
     municipio: tenant.municipio,
   });
 

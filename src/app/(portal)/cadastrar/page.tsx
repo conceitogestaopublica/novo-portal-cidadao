@@ -7,6 +7,9 @@ import { useState } from "react";
 export default function CadastrarPage() {
   const router = useRouter();
   const [f, setF] = useState({ documento: "", nome: "", email: "", senha: "", senha2: "" });
+  // "Sou prestador de fora": quem não é do município não está no cadastro, e o
+  // cadastro só aceita contribuinte. Marcando, a ficha dele nasce aqui.
+  const [prestadorExterno, setPrestadorExterno] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
@@ -19,7 +22,7 @@ export default function CadastrarPage() {
     try {
       const res = await fetch("/api/auth/cadastrar", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documento: f.documento.replace(/\D/g, ""), nome: f.nome, email: f.email, senha: f.senha }),
+        body: JSON.stringify({ documento: f.documento.replace(/\D/g, ""), nome: f.nome, email: f.email, senha: f.senha, prestadorExterno }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.message ?? "Falha no cadastro");
@@ -46,10 +49,29 @@ export default function CadastrarPage() {
             <Campo label="Senha"><input type="password" value={f.senha} onChange={set("senha")} placeholder="mín. 6" className={inputCls} /></Campo>
             <Campo label="Confirmar"><input type="password" value={f.senha2} onChange={set("senha2")} className={inputCls} /></Campo>
           </div>
+          <label className="flex items-start gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={prestadorExterno}
+              onChange={(e) => setPrestadorExterno(e.target.checked)}
+              className="mt-0.5 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">
+              <strong>Sou de outro município</strong> e prestei serviço aqui
+              <span className="block text-xs text-gray-500 mt-0.5">
+                Marque para declarar o serviço que você prestou no município e
+                pagar o ISS. Seu cadastro é criado agora.
+              </span>
+            </span>
+          </label>
           <button disabled={loading} className={btnCls}>{loading ? "Criando..." : "Criar conta"}</button>
         </form>
         <p className="text-center text-xs text-gray-500 mt-4">Já tem conta? <Link href="/entrar" className="text-blue-600 font-semibold hover:text-blue-700">Entrar</Link></p>
-        <p className="text-center text-[11px] text-gray-400 mt-2">O cadastro é validado no cadastro de contribuintes do município.</p>
+        <p className="text-center text-[11px] text-gray-400 mt-2">
+          {prestadorExterno
+            ? "Seu CPF/CNPJ é validado e passa a constar no cadastro do município."
+            : "O cadastro é validado no cadastro de contribuintes do município."}
+        </p>
       </div>
     </div>
   );
