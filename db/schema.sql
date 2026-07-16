@@ -188,6 +188,21 @@ CREATE UNIQUE INDEX uq_portal_solic_protocolo ON public.portal_solicitacoes USIN
 
 
 --
+-- Name: portal_seed_aplicado; Type: TABLE; Schema: public; Owner: -
+--
+-- Registro de qual linha da semente já foi oferecida a este banco. Garante que
+-- rotina nova (ex.: DMS) chegue a quem já subiu o portal, sem ressuscitar o que
+-- o município excluiu de propósito. Criada também em runtime (catalogo-repo).
+--
+
+CREATE TABLE IF NOT EXISTS public.portal_seed_aplicado (
+    chave text NOT NULL,
+    aplicado_em timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT portal_seed_aplicado_pkey PRIMARY KEY (chave)
+);
+
+
+--
 -- PostgreSQL database dump complete
 --
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServico } from "@/shared/catalogo/catalogo";
+import { destinoDe } from "@/shared/catalogo/destino-fiscal";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import type { Servico } from "@/shared/types/portal";
 
@@ -20,14 +21,7 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
   const corCat = cat?.cor ? COR_BG[cat.cor] || "bg-gray-100 text-gray-600" : "bg-blue-100 text-blue-600";
   const fiscal = servico.tipo_fluxo === "self_service_fiscal";
   // Cada serviço fiscal abre a tela certa (não "cai sempre no mesmo lugar").
-  const DESTINO_FISCAL: Record<string, { href: string; rotulo: string }> = {
-    certidao: { href: "/fiscal/certidao", rotulo: "Emitir certidão" },
-    parcelamento: { href: "/fiscal/parcelamento", rotulo: "Parcelar débitos" },
-    caixa_postal: { href: "/fiscal#caixa", rotulo: "Abrir caixa postal" },
-    nfse: { href: "/fiscal/nfse", rotulo: "Emitir NFS-e" },
-    dms: { href: "/fiscal/dms", rotulo: "Declarar serviços do mês" },
-  };
-  const acao = servico.fiscal_acao ? DESTINO_FISCAL[servico.fiscal_acao] : undefined;
+  const acao = destinoDe(servico);
   const destinoFiscal = acao?.href ?? "/fiscal";
   const rotuloFiscal = acao?.rotulo ?? "Ver meus débitos";
 

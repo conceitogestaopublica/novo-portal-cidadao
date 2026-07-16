@@ -31,7 +31,14 @@ export interface Categoria {
 }
 
 export type TipoFluxo = "processo_ged" | "self_service_fiscal" | "protocolo_gpe2";
-export type FiscalAcao = "segunda_via" | "certidao" | "parcelamento" | "debitos" | "caixa_postal";
+export type FiscalAcao =
+  | "segunda_via"
+  | "certidao"
+  | "parcelamento"
+  | "debitos"
+  | "caixa_postal"
+  | "nfse"
+  | "dms";
 
 export interface Servico {
   id: number | string;

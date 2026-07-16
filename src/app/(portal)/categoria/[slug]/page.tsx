@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCategoria } from "@/shared/catalogo/catalogo";
+import { destinoDe } from "@/shared/catalogo/destino-fiscal";
+import { getSessionCidadao } from "@/shared/lib/portal-session";
 import type { Servico } from "@/shared/types/portal";
 
 const COR_HERO: Record<string, string> = {
@@ -13,6 +15,18 @@ export default async function CategoriaPage({ params }: { params: Promise<{ slug
   const data = await getCategoria(slug);
   if (!data) notFound();
   const { categoria, servicos, publicos } = data;
+
+  // Quem já está logado quer RESOLVER, não ler sobre o serviço: as ações da
+  // categoria vêm na frente, sem passar pela página do serviço nem pelos
+  // débitos. A ficha do serviço (prazo/custo/órgão — Lei 13.460) continua
+  // publicada logo abaixo, que é para o que ela existe.
+  const cidadao = await getSessionCidadao();
+  const acoes = cidadao
+    ? servicos
+        .map((s: Servico) => destinoDe(s))
+        .filter((a): a is NonNullable<typeof a> => !!a)
+        .filter((a, i, todas) => todas.findIndex(o => o.href === a.href) === i)
+    : [];
 
   return (
     <>
@@ -27,6 +41,29 @@ export default async function CategoriaPage({ params }: { params: Promise<{ slug
         </div>
       </div>
 
+      {acoes.length > 0 && (
+        <div className="mb-8">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            Fazer agora
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {acoes.map(a => (
+              <Link
+                key={a.href}
+                href={a.href}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700 hover:shadow-sm transition-all"
+              >
+                <i className={`${a.icone} text-blue-600`} />
+                {a.rotulo}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+        {acoes.length > 0 ? "Sobre estes serviços" : "Serviços"}
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {servicos.map((s: Servico) => (
           <Link key={String(s.id)} href={`/servico/${s.slug}`} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 hover:shadow-md transition-all flex items-start gap-3 group">

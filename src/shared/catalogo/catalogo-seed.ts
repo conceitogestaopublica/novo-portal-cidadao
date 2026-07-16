@@ -96,7 +96,15 @@ export const SERVICOS_SEED: ServicoSeed[] = [
     descricao_curta: "Emissão e consulta de NFS-e (Padrão Nacional).",
     descricao_completa: "Prestadores emitem, consultam e cancelam suas NFS-e. Verificação pública da nota por chave/QR, sem login.",
     prazo_entrega: "Imediato", custo: "Gratuito", orgao_responsavel: "Secretaria da Fazenda",
-    tipo_fluxo: "self_service_fiscal", fiscal_acao: "debitos", palavras_chave: ["nfse", "nota fiscal", "iss"],
+    tipo_fluxo: "self_service_fiscal", fiscal_acao: "nfse", palavras_chave: ["nfse", "nota fiscal", "iss"],
+  },
+  {
+    id: "dms", categoriaSlug: "empresas", titulo: "DMS — Declaração mensal de serviços", slug: "dms",
+    publico_alvo: "empresa", icone: "fas fa-book",
+    descricao_curta: "Declare os serviços prestados no mês e gere a guia do ISS.",
+    descricao_completa: "O prestador escritura os serviços prestados na competência e entrega a declaração. Na entrega, a guia do ISS é gerada e passa a constar em Meus Débitos. Serviços com ISS retido não entram na guia do prestador.",
+    prazo_entrega: "Imediato", custo: "Gratuito", orgao_responsavel: "Secretaria da Fazenda",
+    tipo_fluxo: "self_service_fiscal", fiscal_acao: "dms", palavras_chave: ["dms", "declaração", "iss", "competência"],
   },
   {
     id: "ouvidoria", categoriaSlug: "cidade", titulo: "Ouvidoria — reclamação, denúncia ou elogio", slug: "ouvidoria",
