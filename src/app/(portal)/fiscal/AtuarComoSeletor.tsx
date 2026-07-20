@@ -25,6 +25,7 @@ export default function AtuarComoSeletor() {
     queryKey: ["auth", "me"],
     queryFn: async (): Promise<MeResponse> => {
       const res = await fetch("/api/auth/me");
+      if (!res.ok) throw new Error("Falha ao carregar a sessão.");
       return res.json();
     },
   });

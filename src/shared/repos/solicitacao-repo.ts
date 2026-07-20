@@ -1,4 +1,5 @@
 import "server-only";
+import { randomInt } from "crypto";
 import { db } from "@/shared/lib/db";
 
 /**
@@ -82,9 +83,16 @@ export async function atualizarPorOrigemRef(
 function gerarProtocolo(): string {
   const d = new Date();
   const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
-  const rnd = Math.floor(1000 + Math.random() * 9000);
+  // randomInt (node:crypto) é criptograficamente seguro, ao contrário de
+  // Math.random() — e o intervalo maior (6 dígitos) reduz a chance de colisão
+  // no mesmo dia/município. Ainda assim criarSolicitacao() tenta de novo em
+  // caso de colisão real (constraint uq_portal_solic_protocolo).
+  const rnd = randomInt(100000, 1000000);
   return `SOL${ymd}-${rnd}`;
 }
+
+const PG_UNIQUE_VIOLATION = "23505";
+const MAX_TENTATIVAS_PROTOCOLO = 3;
 
 export async function criarSolicitacao(input: {
   municipio: string;
@@ -96,23 +104,34 @@ export async function criarSolicitacao(input: {
   servicoTitulo: string;
   mensagem: string | null;
 }): Promise<Solicitacao> {
-  const r = await db().query(
-    `INSERT INTO portal_solicitacoes
-       (protocolo, municipio, conta_id, documento, nome, contato, servico_slug, servico_titulo, mensagem)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-    [
-      gerarProtocolo(),
-      input.municipio,
-      input.contaId,
-      input.documento,
-      input.nome,
-      input.contato,
-      input.servicoSlug,
-      input.servicoTitulo,
-      input.mensagem,
-    ],
-  );
-  return map(r.rows[0]);
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS_PROTOCOLO; tentativa++) {
+    try {
+      const r = await db().query(
+        `INSERT INTO portal_solicitacoes
+           (protocolo, municipio, conta_id, documento, nome, contato, servico_slug, servico_titulo, mensagem)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+        [
+          gerarProtocolo(),
+          input.municipio,
+          input.contaId,
+          input.documento,
+          input.nome,
+          input.contato,
+          input.servicoSlug,
+          input.servicoTitulo,
+          input.mensagem,
+        ],
+      );
+      return map(r.rows[0]);
+    } catch (err) {
+      const codigo = (err as { code?: string } | null)?.code;
+      const ultimaTentativa = tentativa === MAX_TENTATIVAS_PROTOCOLO;
+      if (codigo !== PG_UNIQUE_VIOLATION || ultimaTentativa) throw err;
+      // Colisão de protocolo no mesmo dia/município — gera outro e tenta de novo.
+    }
+  }
+  // Inatingível (o loop sempre retorna ou lança), só pra satisfazer o TypeScript.
+  throw new Error("Falha ao gerar protocolo único.");
 }
 
 /** Solicitações de uma conta (as "minhas solicitações"). */

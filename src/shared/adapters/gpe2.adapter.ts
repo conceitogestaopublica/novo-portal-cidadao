@@ -1,6 +1,20 @@
 import "server-only";
 import type { TenantConfig } from "@/shared/lib/tenant-map";
 
+/** Timeout de rede pra chamadas ao gpe2 — evita travar a requisição do cidadão
+ * indefinidamente se o gpe2 estiver fora do ar/lento. */
+const GPE2_TIMEOUT_MS = 10_000;
+
+async function fetchComTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), GPE2_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /**
  * Adapter do gpe2 — gateway de **Protocolo** (Modelo A: o gpe2 é o protocolo/PAE
  * central; o cidadão abre pelo portal). Espelha o gateway que o gpe2 já tem para
@@ -45,7 +59,7 @@ export interface ProtocoloResult {
 
 /** Abre (ou recupera, idempotente) um protocolo no gpe2 a partir da solicitação. */
 export async function abrirProtocoloGpe2(cfg: ProtocoloConfig, input: AbrirProtocoloInput): Promise<ProtocoloResult> {
-  const res = await fetch(`${cfg.baseUrl}/api/protocolo/portal/abrir`, {
+  const res = await fetchComTimeout(`${cfg.baseUrl}/api/protocolo/portal/abrir`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -98,11 +112,19 @@ export interface ProtocoloDetalhe {
 
 /** Consulta situação + linha do tempo completa de um protocolo no gpe2. */
 export async function consultarProtocoloGpe2(cfg: ProtocoloConfig, protocoloId: number): Promise<ProtocoloDetalhe | null> {
-  const res = await fetch(`${cfg.baseUrl}/api/protocolo/${protocoloId}`, {
-    headers: { "X-Protocolo-Token": cfg.token },
-    cache: "no-store",
-  });
-  return res.json().catch(() => null);
+  try {
+    const res = await fetchComTimeout(`${cfg.baseUrl}/api/protocolo/${protocoloId}`, {
+      headers: { "X-Protocolo-Token": cfg.token },
+      cache: "no-store",
+    });
+    const data = (await res.json().catch(() => ({}))) as Partial<ProtocoloDetalhe>;
+    // Erro HTTP (404/500) não pode virar um "detalhe" válido — sem checar
+    // res.ok, um corpo de erro com `situacao` residual acionaria estado errado
+    // na tela do cidadão (ex.: "aguardando você" indevido).
+    return { ...data, ok: res.ok && data.ok !== false };
+  } catch {
+    return null;
+  }
 }
 
 /** O solicitante responde a uma exigência do protocolo (via portal). */
@@ -110,7 +132,7 @@ export async function responderProtocoloGpe2(
   cfg: ProtocoloConfig,
   input: { origemRef: string; texto: string },
 ): Promise<{ ok: boolean; mensagem?: string }> {
-  const res = await fetch(`${cfg.baseUrl}/api/protocolo/portal/responder`, {
+  const res = await fetchComTimeout(`${cfg.baseUrl}/api/protocolo/portal/responder`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Protocolo-Token": cfg.token },
     body: JSON.stringify({ gestora_id: cfg.gestoraId, origem_ref: input.origemRef, texto: input.texto }),

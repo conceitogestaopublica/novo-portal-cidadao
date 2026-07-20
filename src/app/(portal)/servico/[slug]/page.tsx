@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServico } from "@/shared/catalogo/catalogo";
 import { destinoDe } from "@/shared/catalogo/destino-fiscal";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
+import { currentTenant } from "@/shared/lib/tenant-map";
 import type { Servico } from "@/shared/types/portal";
 
 const COR_BG: Record<string, string> = {
@@ -13,7 +14,9 @@ const COR_BG: Record<string, string> = {
 
 export default async function ServicoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = await getServico(slug);
+  const tenant = await currentTenant();
+  if (!tenant) notFound();
+  const data = await getServico(tenant.municipio, slug);
   if (!data) notFound();
   const { servico, relacionados, publicos } = data;
   const cidadao = await getSessionCidadao();

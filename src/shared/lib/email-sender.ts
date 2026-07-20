@@ -29,16 +29,35 @@ export function emailHabilitado(): boolean {
   return Boolean(process.env.SMTP_URL);
 }
 
+/** Mascara um e-mail pra log seguro: `us***@dominio.com`. */
+function mascarar(email: string): string {
+  const [usuario, dominio] = email.split("@");
+  if (!dominio) return "***";
+  const visivel = usuario.slice(0, 2);
+  return `${visivel}${"*".repeat(Math.max(1, usuario.length - visivel.length))}@${dominio}`;
+}
+
 export async function enviarEmail(input: EmailInput): Promise<EmailResult> {
   if (!input.para) {
     return { enviado: false, detalhe: "Sem e-mail de destino." };
   }
 
   if (!emailHabilitado()) {
-    // Não é erro: é o município que ainda não configurou o transporte.
-    console.info(
-      `[email] (não enviado — SMTP_URL ausente) para=${input.para} assunto="${input.assunto}"\n${input.texto}`,
-    );
+    // Não é erro: é o município que ainda não configurou o transporte. NUNCA logar
+    // `input.texto` aqui — em e-mails de recuperação de senha ele carrega o link
+    // com o token em texto puro; logar isso grava credenciais de reset no log do
+    // servidor pra qualquer e-mail enviado enquanto o SMTP não estiver configurado.
+    // Só sob `DEV_OTP_ECHO=true` (mesma flag já usada pro OTP) logamos o corpo
+    // completo, para depuração local explícita.
+    if (process.env.DEV_OTP_ECHO === "true") {
+      console.info(
+        `[email] (não enviado — SMTP_URL ausente) para=${input.para} assunto="${input.assunto}"\n${input.texto}`,
+      );
+    } else {
+      console.info(
+        `[email] (não enviado — SMTP_URL ausente) para=${mascarar(input.para)} assunto="${input.assunto}"`,
+      );
+    }
     return { enviado: false, detalhe: "Transporte de e-mail não configurado." };
   }
 

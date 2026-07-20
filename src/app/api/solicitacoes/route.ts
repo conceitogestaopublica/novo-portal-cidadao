@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ message: "Dados inválidos" }, { status: 400 });
 
   // Serviço válido do catálogo (título vem do servidor, não do cliente).
-  const data = await getServico(parsed.data.servicoSlug);
+  const data = await getServico(tenant.municipio, parsed.data.servicoSlug);
   if (!data) return NextResponse.json({ message: "Serviço não encontrado." }, { status: 404 });
 
   const solicitacao = await criarSolicitacao({

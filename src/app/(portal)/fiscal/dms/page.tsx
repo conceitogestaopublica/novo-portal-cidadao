@@ -435,7 +435,7 @@ export default function DmsPage() {
           ) : (
             <div className="px-5 py-4 border-t border-gray-100 text-sm text-gray-600">
               <i className="fas fa-circle-check text-green-600 mr-1.5" />
-              Entregue{d.dataEntrega ? ` em ${new Date(d.dataEntrega).toLocaleDateString("pt-BR")}` : ""}. A
+              Entregue{d.dataEntrega ? ` em ${new Date(d.dataEntrega).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}` : ""}. A
               guia do ISS está em <Link href="/fiscal" className="text-blue-600 font-semibold">Meus Débitos</Link>.
             </div>
           )}

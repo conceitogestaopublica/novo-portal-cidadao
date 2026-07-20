@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { baixarArquivo } from "@/shared/lib/baixar-arquivo";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
 const dateBR = (v: unknown) => {
   const d = new Date(String(v));
-  return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR");
+  return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 };
 
 async function getJson(url: string) {
@@ -75,6 +76,7 @@ export default function NfsePage() {
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [emitida, setEmitida] = useState<Emitida | null>(null);
+  const [erroDownload, setErroDownload] = useState<string | null>(null);
 
   // Formulário
   const [itemServicoId, setItemServicoId] = useState("");
@@ -134,6 +136,12 @@ export default function NfsePage() {
   }
 
   async function emitir() {
+    if (
+      !window.confirm(
+        "Emitir esta NFS-e agora? A nota fiscal é gerada oficialmente, com código de verificação, e não pode ser desfeita.",
+      )
+    )
+      return;
     setErro(null);
     setOcupado(true);
     try {
@@ -377,6 +385,21 @@ export default function NfsePage() {
             Minhas notas emitidas
           </h2>
         </div>
+        {erroDownload && (
+          <div className="mx-5 mt-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-center justify-between gap-3">
+            <span>
+              <i className="fas fa-circle-exclamation mr-1.5" />
+              {erroDownload}
+            </span>
+            <button
+              type="button"
+              onClick={() => setErroDownload(null)}
+              className="text-xs text-red-400 hover:text-red-600"
+            >
+              fechar
+            </button>
+          </div>
+        )}
         {notas.isLoading ? (
           <p className="px-5 py-6 text-sm text-gray-400">Carregando…</p>
         ) : (notas.data?.items ?? []).length === 0 ? (
@@ -427,15 +450,18 @@ export default function NfsePage() {
                       </span>
                     </td>
                     <td className="px-5 py-2 text-right">
-                      <a
-                        href={`/api/fiscal/nfse/${n.id}/danfse`}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setErroDownload(null);
+                          const r = await baixarArquivo(`/api/fiscal/nfse/${n.id}/danfse`);
+                          if (!r.ok) setErroDownload(r.mensagem);
+                        }}
                         className="text-blue-600 hover:text-blue-800"
                         title="Baixar DANFSE"
                       >
                         <i className="fas fa-file-pdf" />
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 ))}

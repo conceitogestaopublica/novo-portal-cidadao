@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAmbiente } from "@/shared/catalogo/catalogo";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
+import { currentTenant } from "@/shared/lib/tenant-map";
 import type { Categoria, Servico } from "@/shared/types/portal";
 
 const COR_HERO: Record<string, string> = {
@@ -15,7 +16,9 @@ const COR_CAT: Record<string, string> = {
 
 export default async function AmbientePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = await getAmbiente(slug);
+  const tenant = await currentTenant();
+  if (!tenant) notFound();
+  const data = await getAmbiente(tenant.municipio, slug);
   if (!data) notFound();
   const { ambiente, categorias, servicos, publicos } = data;
   const isFiscal = ambiente.sistema === "tributario";

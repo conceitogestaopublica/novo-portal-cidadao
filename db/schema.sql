@@ -39,6 +39,7 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.portal_ambientes (
+    municipio text NOT NULL,
     slug text NOT NULL,
     ordem integer DEFAULT 0 NOT NULL,
     dados jsonb NOT NULL
@@ -50,6 +51,7 @@ CREATE TABLE public.portal_ambientes (
 --
 
 CREATE TABLE public.portal_categorias (
+    municipio text NOT NULL,
     slug text NOT NULL,
     ambiente_slug text NOT NULL,
     ordem integer DEFAULT 0 NOT NULL,
@@ -79,6 +81,7 @@ CREATE TABLE public.portal_contas (
 --
 
 CREATE TABLE public.portal_servicos (
+    municipio text NOT NULL,
     slug text NOT NULL,
     categoria_slug text NOT NULL,
     publicado boolean DEFAULT true NOT NULL,
@@ -116,7 +119,7 @@ CREATE TABLE public.portal_solicitacoes (
 --
 
 ALTER TABLE ONLY public.portal_ambientes
-    ADD CONSTRAINT portal_ambientes_pkey PRIMARY KEY (slug);
+    ADD CONSTRAINT portal_ambientes_pkey PRIMARY KEY (municipio, slug);
 
 
 --
@@ -124,7 +127,7 @@ ALTER TABLE ONLY public.portal_ambientes
 --
 
 ALTER TABLE ONLY public.portal_categorias
-    ADD CONSTRAINT portal_categorias_pkey PRIMARY KEY (slug);
+    ADD CONSTRAINT portal_categorias_pkey PRIMARY KEY (municipio, slug);
 
 
 --
@@ -140,7 +143,7 @@ ALTER TABLE ONLY public.portal_contas
 --
 
 ALTER TABLE ONLY public.portal_servicos
-    ADD CONSTRAINT portal_servicos_pkey PRIMARY KEY (slug);
+    ADD CONSTRAINT portal_servicos_pkey PRIMARY KEY (municipio, slug);
 
 
 --
@@ -163,14 +166,14 @@ ALTER TABLE ONLY public.portal_contas
 -- Name: idx_portal_cat_ambiente; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_portal_cat_ambiente ON public.portal_categorias USING btree (ambiente_slug);
+CREATE INDEX idx_portal_cat_ambiente ON public.portal_categorias USING btree (municipio, ambiente_slug);
 
 
 --
 -- Name: idx_portal_serv_categoria; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_portal_serv_categoria ON public.portal_servicos USING btree (categoria_slug);
+CREATE INDEX idx_portal_serv_categoria ON public.portal_servicos USING btree (municipio, categoria_slug);
 
 
 --

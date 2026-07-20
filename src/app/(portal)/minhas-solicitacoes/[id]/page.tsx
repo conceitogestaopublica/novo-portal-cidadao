@@ -32,8 +32,11 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
   // Linha do tempo real, buscada no PAE central (gpe2), quando há protocolo.
   const cfg = tenant ? protocoloConfigDe(tenant) : null;
   const detalhe = cfg && s.protocoloId ? await consultarProtocoloGpe2(cfg, Number(s.protocoloId)) : null;
-  const eventos: TimelineEvento[] = detalhe?.eventos ?? [];
-  const aguardandoVoce = detalhe?.situacao === "aguardando" || s.situacao === "AGUARDANDO_VOCE";
+  // Só usar o corpo do gpe2 se `ok` — um erro HTTP com JSON residual não pode
+  // virar situação/eventos válidos na tela do cidadão.
+  const detalheValido = detalhe?.ok === true;
+  const eventos: TimelineEvento[] = detalheValido ? (detalhe?.eventos ?? []) : [];
+  const aguardandoVoce = (detalheValido && detalhe?.situacao === "aguardando") || s.situacao === "AGUARDANDO_VOCE";
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

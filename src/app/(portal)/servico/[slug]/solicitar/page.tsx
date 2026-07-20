@@ -2,11 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getServico } from "@/shared/catalogo/catalogo";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
+import { currentTenant } from "@/shared/lib/tenant-map";
 import SolicitarForm from "./SolicitarForm";
 
 export default async function SolicitarPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const data = await getServico(slug);
+  const tenant = await currentTenant();
+  if (!tenant) notFound();
+  const data = await getServico(tenant.municipio, slug);
   if (!data) notFound();
   const cidadao = await getSessionCidadao();
   if (!cidadao) redirect("/entrar");

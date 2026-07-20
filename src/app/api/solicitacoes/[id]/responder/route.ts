@@ -28,8 +28,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ message: "Esta solicitação ainda não tem protocolo para responder." }, { status: 409 });
   }
 
-  const r = await responderProtocoloGpe2(cfg, { origemRef: s.protocolo, texto: parsed.data.texto });
-  if (!r.ok) return NextResponse.json({ message: r.mensagem ?? "Não foi possível registrar a resposta." }, { status: 422 });
+  try {
+    const r = await responderProtocoloGpe2(cfg, { origemRef: s.protocolo, texto: parsed.data.texto });
+    if (!r.ok) return NextResponse.json({ message: r.mensagem ?? "Não foi possível registrar a resposta." }, { status: 422 });
+  } catch {
+    return NextResponse.json({ message: "Serviço indisponível. Tente novamente." }, { status: 502 });
+  }
 
   return NextResponse.json({ ok: true });
 }

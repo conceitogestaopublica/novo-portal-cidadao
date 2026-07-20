@@ -25,8 +25,8 @@ function categoriaComCount(c: CategoriaSeed, servicos: ServicoSeed[]): Categoria
   return { ...rest, servicos_publicados_count: servicos.filter((s) => s.categoriaSlug === c.slug).length };
 }
 
-export async function getAmbientes() {
-  const { ambientes, categorias, servicos } = await carregarCatalogo();
+export async function getAmbientes(municipio: string) {
+  const { ambientes, categorias, servicos } = await carregarCatalogo(municipio);
   const lista = ambientes.map((a) => ({
     ...a,
     servicos_count: servicos.filter((s) => {
@@ -38,8 +38,8 @@ export async function getAmbientes() {
 }
 
 /** Home = grade de ambientes + serviços mais procurados. */
-export async function getHome() {
-  const { ambientes, categorias, servicos } = await carregarCatalogo();
+export async function getHome(municipio: string) {
+  const { ambientes, categorias, servicos } = await carregarCatalogo(municipio);
   const ambientesComCount = ambientes.map((a) => ({
     ...a,
     servicos_count: servicos.filter((s) => {
@@ -52,8 +52,8 @@ export async function getHome() {
 }
 
 /** Um ambiente + suas categorias e serviços. */
-export async function getAmbiente(slug: string) {
-  const { ambientes, categorias, servicos } = await carregarCatalogo();
+export async function getAmbiente(municipio: string, slug: string) {
+  const { ambientes, categorias, servicos } = await carregarCatalogo(municipio);
   const ambiente = ambientes.find((a) => a.slug === slug);
   if (!ambiente) return null;
   const cats = categorias.filter((c) => c.ambienteSlug === slug).map((c) => categoriaComCount(c, servicos));
@@ -63,8 +63,8 @@ export async function getAmbiente(slug: string) {
   return { ambiente, categorias: cats, servicos: servs, publicos: PUBLICOS };
 }
 
-export async function listServicos(opts?: { q?: string; categoria?: string; publico?: string }) {
-  const { categorias, servicos } = await carregarCatalogo();
+export async function listServicos(municipio: string, opts?: { q?: string; categoria?: string; publico?: string }) {
+  const { categorias, servicos } = await carregarCatalogo(municipio);
   let list = servicos;
   if (opts?.categoria) list = list.filter((s) => s.categoriaSlug === opts.categoria);
   if (opts?.publico) list = list.filter((s) => s.publico_alvo === opts.publico);
@@ -78,16 +78,16 @@ export async function listServicos(opts?: { q?: string; categoria?: string; publ
   return { items: list.map((s) => toPublic(s, categorias)), total: list.length, publicos: PUBLICOS };
 }
 
-export async function getCategoria(slug: string) {
-  const { categorias, servicos } = await carregarCatalogo();
+export async function getCategoria(municipio: string, slug: string) {
+  const { categorias, servicos } = await carregarCatalogo(municipio);
   const categoria = categorias.find((c) => c.slug === slug);
   if (!categoria) return null;
   const servs = servicos.filter((s) => s.categoriaSlug === slug).map((s) => toPublic(s, categorias));
   return { categoria, servicos: servs, publicos: PUBLICOS };
 }
 
-export async function getServico(slug: string) {
-  const { categorias, servicos } = await carregarCatalogo();
+export async function getServico(municipio: string, slug: string) {
+  const { categorias, servicos } = await carregarCatalogo(municipio);
   const s = servicos.find((x) => x.slug === slug);
   if (!s) return null;
   const relacionados = servicos
