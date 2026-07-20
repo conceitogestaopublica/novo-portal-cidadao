@@ -39,7 +39,8 @@ export type FiscalAcao =
   | "caixa_postal"
   | "nfse"
   | "dms"
-  | "prestei";
+  | "prestei"
+  | "desif";
 
 export interface Servico {
   id: number | string;

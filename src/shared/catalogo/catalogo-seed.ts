@@ -116,6 +116,15 @@ export const SERVICOS_SEED: ServicoSeed[] = [
     palavras_chave: ["prestador de fora", "outro município", "iss", "declarar"],
   },
   {
+    id: "desif", categoriaSlug: "empresas", titulo: "DES-IF — declaração de instituições financeiras", slug: "desif",
+    publico_alvo: "empresa", icone: "fas fa-building-columns",
+    descricao_curta: "Bancos e instituições financeiras entregam a escrituração do ISSQN.",
+    descricao_completa: "Instituição financeira autorizada pelo BACEN: envie a DES-IF no leiaute nacional da ABRASF (versão 3.1), gerada pelo seu sistema contábil. O sistema valida o arquivo e devolve o protocolo de entrega — guarde-o, é o seu comprovante. Ao encerrar a competência, a guia do ISSQN é emitida.",
+    prazo_entrega: "Imediato", custo: "Gratuito", orgao_responsavel: "Secretaria da Fazenda",
+    tipo_fluxo: "self_service_fiscal", fiscal_acao: "desif",
+    palavras_chave: ["desif", "banco", "instituição financeira", "cosif", "issqn"],
+  },
+  {
     id: "ouvidoria", categoriaSlug: "cidade", titulo: "Ouvidoria — reclamação, denúncia ou elogio", slug: "ouvidoria",
     publico_alvo: "cidadao", permite_anonimo: true, icone: "fas fa-comment-dots",
     descricao_curta: "Registre uma manifestação e acompanhe a resposta.",
