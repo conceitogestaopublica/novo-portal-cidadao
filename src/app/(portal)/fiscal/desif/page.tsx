@@ -118,6 +118,13 @@ type ResultadoImport = {
   qtdAlertas: number;
 };
 
+type ResultadoEncerramento = {
+  competencia: string;
+  totalGuias: number;
+  valorTotal: number;
+  guias: { guiaId: string; numero: string; valor: number }[];
+};
+
 const card = "bg-white rounded-2xl border border-gray-200 p-6";
 const btn =
   "px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60";
@@ -131,9 +138,17 @@ export default function DesifPage() {
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState<ResultadoImport | null>(null);
 
+  const [encerrando, setEncerrando] = useState<Declaracao | null>(null);
+  const [vencimento, setVencimento] = useState("");
+  const [erroEncerrar, setErroEncerrar] = useState<string | null>(null);
+  const [encerrandoEmCurso, setEncerrandoEmCurso] = useState(false);
+  const [resultadoEncerramento, setResultadoEncerramento] =
+    useState<ResultadoEncerramento | null>(null);
+
   const instituicoes = useQuery({
     queryKey: ["desif", "instituicoes"],
-    queryFn: async () => (await getJson("/api/fiscal/desif")).data as Instituicao[],
+    queryFn: async () =>
+      (await getJson("/api/fiscal/desif")).data as Instituicao[],
     retry: false,
   });
 
@@ -154,8 +169,11 @@ export default function DesifPage() {
   const detalhe = useQuery({
     queryKey: ["desif", "detalhe", resultado?.declaracaoId],
     queryFn: async () =>
-      (await getJson(`/api/fiscal/desif/declaracoes/${resultado!.declaracaoId}`))
-        .data as { apontamentos: Apontamento[] },
+      (
+        await getJson(
+          `/api/fiscal/desif/declaracoes/${resultado!.declaracaoId}`,
+        )
+      ).data as { apontamentos: Apontamento[] },
     // Só busca os apontamentos quando há o que corrigir.
     enabled: Boolean(resultado?.declaracaoId) && (resultado?.qtdErros ?? 0) > 0,
     retry: false,
@@ -184,6 +202,27 @@ export default function DesifPage() {
       setErro(e instanceof Error ? e.message : "Erro ao enviar.");
     } finally {
       setEnviando(false);
+    }
+  }
+
+  async function encerrar() {
+    if (!encerrando) return;
+    setErroEncerrar(null);
+    setEncerrandoEmCurso(true);
+    try {
+      const r = await send(
+        `/api/fiscal/desif/declaracoes/${encerrando.id}/encerrar`,
+        "POST",
+        { dataVencimento: vencimento },
+      );
+      setResultadoEncerramento(r.data as ResultadoEncerramento);
+      setEncerrando(null);
+      setVencimento("");
+      qc.invalidateQueries({ queryKey: ["desif", "declaracoes"] });
+    } catch (e) {
+      setErroEncerrar(e instanceof Error ? e.message : "Erro ao encerrar.");
+    } finally {
+      setEncerrandoEmCurso(false);
     }
   }
 
@@ -237,8 +276,8 @@ export default function DesifPage() {
       <div className={card}>
         <h2 className="font-bold text-gray-800 mb-1">Enviar declaração</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Arquivo no leiaute ABRASF 3.1, gerado pelo seu sistema contábil. Guarde
-          o protocolo: ele é o comprovante da entrega.
+          Arquivo no leiaute ABRASF 3.1, gerado pelo seu sistema contábil.
+          Guarde o protocolo: ele é o comprovante da entrega.
         </p>
 
         {erro && (
@@ -363,6 +402,7 @@ export default function DesifPage() {
                   <th>Protocolo</th>
                   <th className="text-right">ISSQN</th>
                   <th>Situação</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -391,6 +431,20 @@ export default function DesifPage() {
                           {s.texto}
                         </span>
                       </td>
+                      <td className="text-right">
+                        {/* Só a apuração mensal validada encerra: o módulo 3 é
+                            cadastro (não gera imposto) e o que já encerrou não
+                            pode encerrar de novo, sob pena de guia dobrada. */}
+                        {d.situacao === "VALIDADA" &&
+                        d.modulo === "APURACAO_MENSAL" ? (
+                          <button
+                            onClick={() => setEncerrando(d)}
+                            className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
+                          >
+                            Encerrar competência
+                          </button>
+                        ) : null}
+                      </td>
                     </tr>
                   );
                 })}
@@ -399,6 +453,90 @@ export default function DesifPage() {
           </div>
         )}
       </div>
+
+      {encerrando && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h3 className="font-bold text-gray-800 mb-1">
+              Encerrar {competenciaLabel(encerrando.competenciaInicio)}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              O encerramento apura o ISSQN da competência e emite a guia. Depois
+              disso, a competência só muda por declaração retificadora.
+            </p>
+
+            {erroEncerrar && (
+              <div className="mb-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
+                {erroEncerrar}
+              </div>
+            )}
+
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+              Vencimento da guia
+            </label>
+            <input
+              type="date"
+              value={vencimento}
+              onChange={(e) => setVencimento(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm mb-4"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => void encerrar()}
+                disabled={!vencimento || encerrandoEmCurso}
+                className={btn}
+              >
+                {encerrandoEmCurso ? "Encerrando…" : "Encerrar e gerar guia"}
+              </button>
+              <button
+                onClick={() => {
+                  setEncerrando(null);
+                  setErroEncerrar(null);
+                }}
+                className="px-5 py-2.5 rounded-xl border border-gray-300 text-sm font-semibold"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {resultadoEncerramento && (
+        <div className={`${card} border-green-300`}>
+          <h2 className="font-bold text-gray-800 mb-2">
+            Competência {competenciaLabel(resultadoEncerramento.competencia)}{" "}
+            encerrada
+          </h2>
+          {/* Nada a cobrar não é erro. Anunciar "guia emitida" com zero guias
+              prometeria uma cobrança que não existe. */}
+          {resultadoEncerramento.totalGuias === 0 ? (
+            <p className="text-sm text-gray-700">
+              Encerrada <strong>sem emissão de guia</strong>: não havia ISSQN a
+              recolher na competência (tudo retido, isento ou compensado).
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-gray-700 mb-2">
+                {resultadoEncerramento.totalGuias} guia(s) emitida(s) — total{" "}
+                {money(resultadoEncerramento.valorTotal)}. Consulte em{" "}
+                <Link href="/fiscal" className="text-blue-600 underline">
+                  Meus débitos
+                </Link>{" "}
+                para pagar.
+              </p>
+              <ul className="text-sm space-y-1">
+                {resultadoEncerramento.guias.map((g) => (
+                  <li key={g.guiaId} className="font-mono">
+                    {g.numero} — {money(g.valor)}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
