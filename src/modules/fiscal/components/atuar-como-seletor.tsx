@@ -1,9 +1,9 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Building, Check, Loader2, Tag, User } from "lucide-react";
 import { useState } from "react";
-import type { MeResponse, Representacao } from "@/shared/types/portal";
+import type { Representacao } from "@/shared/types/portal";
+import { useAtuarComo, useMe } from "../hooks/use-atuar-como";
 
 function docFmt(doc?: string | null): string {
   const d = (doc ?? "").replace(/\D/g, "");
@@ -18,18 +18,11 @@ function docFmt(doc?: string | null): string {
  * reemite o token no BFF e recarrega os dados fiscais da identidade escolhida.
  */
 export function AtuarComoSeletor() {
-  const qc = useQueryClient();
   const [trocando, setTrocando] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
-  const me = useQuery({
-    queryKey: ["auth", "me"],
-    queryFn: async (): Promise<MeResponse> => {
-      const res = await fetch("/api/auth/me");
-      if (!res.ok) throw new Error("Falha ao carregar a sessão.");
-      return res.json();
-    },
-  });
+  const me = useMe();
+  const atuarComo = useAtuarComo();
 
   const representados = me.data?.representados ?? [];
   const ativoId = me.data?.atuandoComoId ?? null;
@@ -40,17 +33,7 @@ export function AtuarComoSeletor() {
     setErro(null);
     setTrocando(alvo.id);
     try {
-      const res = await fetch("/api/auth/atuar-como", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contribuinteId: alvo.id }),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => null);
-        throw new Error(j?.message ?? "Não foi possível trocar de identidade.");
-      }
-      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
-      await qc.invalidateQueries({ queryKey: ["fiscal"] });
+      await atuarComo.mutateAsync(alvo.id);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao trocar.");
     } finally {

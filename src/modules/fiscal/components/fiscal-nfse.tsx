@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
@@ -14,9 +13,9 @@ import {
   UserLock,
 } from "lucide-react";
 import Link from "next/link";
-import { baixarArquivo } from "@/shared/lib/baixar-arquivo";
-import { postJson, requestJsonOrError } from "@/shared/lib/client-api";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { baixarDanfse, Emitida } from "../services/nfse.service";
+import { useEmitirNfse, useNfseEmpresas, useNfseItensServico, useNfseNotas } from "../hooks/use-nfse";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
@@ -25,40 +24,6 @@ const dateBR = (v: unknown) => {
   return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 };
 
-type Empresa = {
-  economicoId: string;
-  inscricaoMunicipal: string;
-  situacao: string;
-  ativo: boolean;
-};
-/**
- * Serviço que a empresa presta. Atenção: `id` é do VÍNCULO empresa↔serviço; o
- * que a emissão espera é o `itemServicoId` (o item da LC116). Mandar o `id`
- * daqui devolve "Item da lista LC116 inexistente".
- */
-type ItemServico = {
-  id: string;
-  itemServicoId: string;
-  codigo: string;
-  descricao: string;
-};
-type Nota = {
-  id: string;
-  numero: number;
-  serie: string;
-  situacao: string;
-  dataEmissao: string;
-  competencia: string;
-  valorServicos: number;
-  valorIss: number;
-  issRetido: boolean;
-  tomadorNome: string;
-  tomadorDocumento: string | null;
-  discriminacao: string;
-};
-type Notas = { items: Nota[]; total: number };
-type Emitida = { numero: number; serie: string; codigoVerificacao: string; valorIss: number };
-
 const SITUACAO_COR: Record<string, string> = {
   EMITIDA: "bg-green-100 text-green-700",
   CANCELADA: "bg-red-100 text-red-700",
@@ -66,7 +31,6 @@ const SITUACAO_COR: Record<string, string> = {
 };
 
 export function FiscalNfse() {
-  const qc = useQueryClient();
   const [economicoId, setEconomicoId] = useState("");
   const [emitindo, setEmitindo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -82,10 +46,7 @@ export function FiscalNfse() {
   const [tomadorDoc, setTomadorDoc] = useState("");
   const [issRetido, setIssRetido] = useState(false);
 
-  const empresas = useQuery<Empresa[]>({
-    queryKey: ["nfse", "empresas"],
-    queryFn: () => requestJsonOrError<Empresa[]>("/api/fiscal/nfse/economicos"),
-  });
+  const empresas = useNfseEmpresas();
 
   // A empresa escolhida vale o que o usuário selecionou; sem seleção, cai na
   // primeira ATIVA — quem só tem uma empresa não precisa escolher nada.
@@ -95,16 +56,9 @@ export function FiscalNfse() {
   );
   const empresaId = economicoId || ativas[0]?.economicoId || "";
 
-  const itens = useQuery<ItemServico[]>({
-    queryKey: ["nfse", "itens", empresaId],
-    queryFn: () => requestJsonOrError<ItemServico[]>(`/api/fiscal/nfse/itens-servico?economicoId=${empresaId}`),
-    enabled: !!empresaId,
-  });
-  const notas = useQuery<Notas>({
-    queryKey: ["nfse", "notas", empresaId],
-    queryFn: () => requestJsonOrError<Notas>(`/api/fiscal/nfse?economicoId=${empresaId}&perPage=50`),
-    enabled: !!empresaId,
-  });
+  const itens = useNfseItensServico(empresaId);
+  const notas = useNfseNotas(empresaId);
+  const emitirMutation = useEmitirNfse();
 
   const semSessao = [empresas, itens, notas].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
@@ -139,25 +93,20 @@ export function FiscalNfse() {
     setErro(null);
     setOcupado(true);
     try {
-      const r = await postJson<Emitida>(
-        "/api/fiscal/nfse",
-        {
-          economicoId: empresaId,
-          itemServicoId,
-          discriminacao: discriminacao.trim(),
-          valorServicos: Number(valor.replace(",", ".")),
-          issRetido,
-          tomador: {
-            nome: tomadorNome.trim(),
-            documento: tomadorDoc.replace(/\D/g, "") || null,
-          },
+      const r = await emitirMutation.mutateAsync({
+        economicoId: empresaId,
+        itemServicoId,
+        discriminacao: discriminacao.trim(),
+        valorServicos: Number(valor.replace(",", ".")),
+        issRetido,
+        tomador: {
+          nome: tomadorNome.trim(),
+          documento: tomadorDoc.replace(/\D/g, "") || null,
         },
-        "Falha ao emitir.",
-      );
+      });
       setEmitida(r);
       setEmitindo(false);
       limpar();
-      void qc.invalidateQueries({ queryKey: ["nfse", "notas", empresaId] });
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao emitir.");
     } finally {
@@ -452,7 +401,7 @@ export function FiscalNfse() {
                         type="button"
                         onClick={async () => {
                           setErroDownload(null);
-                          const r = await baixarArquivo(`/api/fiscal/nfse/${n.id}/danfse`);
+                          const r = await baixarDanfse(n.id);
                           if (!r.ok) setErroDownload(r.mensagem);
                         }}
                         className="text-blue-600 hover:text-blue-800"

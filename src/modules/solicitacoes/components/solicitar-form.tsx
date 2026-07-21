@@ -10,18 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/shared/lib/http-client";
-import { postJson } from "@/shared/lib/client-api";
 import { criarSolicitacaoSchema, type CriarSolicitacaoInput } from "@/modules/solicitacoes/schemas/solicitacoes.schema";
+import { useCriarSolicitacao } from "../hooks/use-solicitar";
 
 export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
   const router = useRouter();
   const [protocolo, setProtocolo] = useState<string | null>(null);
+  const { mutateAsync, isPending } = useCriarSolicitacao();
 
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CriarSolicitacaoInput>({
     resolver: zodResolver(criarSolicitacaoSchema),
     defaultValues: { servicoSlug: slug, contato: "", mensagem: "" },
@@ -29,11 +30,7 @@ export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
 
   async function onSubmit(data: CriarSolicitacaoInput) {
     try {
-      const resposta = await postJson<{ solicitacao?: { protocolo?: string } }>(
-        "/api/solicitacoes",
-        data,
-        "Falha ao abrir a solicitação.",
-      );
+      const resposta = await mutateAsync(data);
       setProtocolo(resposta?.solicitacao?.protocolo ?? "—");
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -90,9 +87,9 @@ export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
           {...register("mensagem")}
         />
       </div>
-      <Button type="submit" disabled={isSubmitting} className="w-full px-5 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
+      <Button type="submit" disabled={isPending} className="w-full px-5 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
         <Send className="size-4 mr-2" />
-        {isSubmitting ? "Enviando…" : "Enviar solicitação"}
+        {isPending ? "Enviando…" : "Enviar solicitação"}
       </Button>
       <p className="text-[11px] text-gray-400 text-center">Sua solicitação gera um protocolo e será encaminhada para tramitação.</p>
     </form>

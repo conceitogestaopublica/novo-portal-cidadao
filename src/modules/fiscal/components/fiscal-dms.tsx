@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowLeft,
@@ -16,37 +15,23 @@ import {
   UserLock,
 } from "lucide-react";
 import Link from "next/link";
-import { postJson, requestJsonOrError, requestNoContentOrError } from "@/shared/lib/client-api";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import {
+  useAbrirCompetenciaDms,
+  useDmsDetalhe,
+  useDmsLista,
+  useEmpresasEconomico,
+  useEntregarDms,
+  useEscriturarItemDms,
+  useItensServicoDms,
+  useRemoverItemDms,
+} from "../hooks/use-fiscal-dms";
+import type { Empresa } from "../services/fiscal-dms.service";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 const competenciaLabel = (ano: number, mes: number) => `${MESES[mes - 1]}/${ano}`;
-
-type Empresa = { economicoId: string; inscricaoMunicipal: string; ativo: boolean };
-type ItemServico = { id: string; itemServicoId: string; codigo: string; descricao: string };
-type Item = {
-  id: string;
-  codigo: string;
-  descricao: string;
-  baseCalculo: number;
-  aliquota: number;
-  valorIss: number;
-  retido: boolean;
-  tomadorDocumento: string | null;
-};
-type Dms = {
-  id: string;
-  competenciaAno: number;
-  competenciaMes: number;
-  situacao: string;
-  dataEntrega: string | null;
-  totalBase: number;
-  totalIss: number;
-  qtdItens?: number;
-  itens?: Item[];
-};
 
 const SITUACAO_COR: Record<string, string> = {
   RASCUNHO: "bg-amber-100 text-amber-700",
@@ -61,7 +46,6 @@ function vencimentoPadrao(): string {
 }
 
 export function FiscalDms() {
-  const qc = useQueryClient();
   const [economicoId, setEconomicoId] = useState("");
   const [abertaId, setAbertaId] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -77,28 +61,21 @@ export function FiscalDms() {
   const [retido, setRetido] = useState(false);
   const [tomadorDoc, setTomadorDoc] = useState("");
 
-  const empresas = useQuery<Empresa[]>({
-    queryKey: ["dms", "empresas"],
-    queryFn: () => requestJsonOrError<Empresa[]>("/api/fiscal/nfse/economicos"),
-  });
-  const ativas = useMemo(() => (empresas.data ?? []).filter((e) => e.ativo), [empresas.data]);
+  const empresas = useEmpresasEconomico();
+  const ativas = useMemo(
+    () => (empresas.data ?? []).filter((e: Empresa) => e.ativo),
+    [empresas.data],
+  );
   const empresaId = economicoId || ativas[0]?.economicoId || "";
 
-  const lista = useQuery<Dms[]>({
-    queryKey: ["dms", "lista", empresaId],
-    queryFn: () => requestJsonOrError<Dms[]>(`/api/fiscal/dms?economicoId=${empresaId}`),
-    enabled: !!empresaId,
-  });
-  const detalhe = useQuery<Dms>({
-    queryKey: ["dms", "detalhe", abertaId],
-    queryFn: () => requestJsonOrError<Dms>(`/api/fiscal/dms/${abertaId}`),
-    enabled: !!abertaId,
-  });
-  const itens = useQuery<ItemServico[]>({
-    queryKey: ["dms", "itens-servico", empresaId],
-    queryFn: () => requestJsonOrError<ItemServico[]>(`/api/fiscal/nfse/itens-servico?economicoId=${empresaId}`),
-    enabled: !!empresaId,
-  });
+  const lista = useDmsLista(empresaId);
+  const detalhe = useDmsDetalhe(abertaId);
+  const itens = useItensServicoDms(empresaId);
+
+  const abrirCompetenciaMutation = useAbrirCompetenciaDms(empresaId);
+  const escriturarItemMutation = useEscriturarItemDms(empresaId, abertaId);
+  const entregarMutation = useEntregarDms(empresaId, abertaId);
+  const removerItemMutation = useRemoverItemDms(empresaId, abertaId);
 
   const semSessao = [empresas, lista].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
@@ -113,17 +90,11 @@ export function FiscalDms() {
     );
   }
 
-  function recarregar() {
-    void qc.invalidateQueries({ queryKey: ["dms", "lista", empresaId] });
-    if (abertaId) void qc.invalidateQueries({ queryKey: ["dms", "detalhe", abertaId] });
-  }
-
   async function acao(fn: () => Promise<unknown>) {
     setErro(null);
     setOcupado(true);
     try {
       await fn();
-      recarregar();
       return true;
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro.");
@@ -135,15 +106,11 @@ export function FiscalDms() {
 
   async function abrirCompetencia() {
     const r = (await acao(async () => {
-      const d = await postJson<{ id: string }>(
-        "/api/fiscal/dms",
-        {
-          economicoId: empresaId,
-          competenciaAno: Number(ano),
-          competenciaMes: Number(mes),
-        },
-        "Falha na operação.",
-      );
+      const d = await abrirCompetenciaMutation.mutateAsync({
+        economicoId: empresaId,
+        competenciaAno: Number(ano),
+        competenciaMes: Number(mes),
+      });
       setAbertaId(d.id);
       return d;
     })) as boolean;
@@ -153,16 +120,12 @@ export function FiscalDms() {
   async function escriturar() {
     if (!abertaId) return;
     const ok = await acao(() =>
-      postJson(
-        `/api/fiscal/dms/${abertaId}/itens`,
-        {
-          itemServicoLc116Id: itemServicoId,
-          baseCalculo: Number(base.replace(",", ".")),
-          retido,
-          tomadorDocumento: tomadorDoc.replace(/\D/g, "") || null,
-        },
-        "Falha na operação.",
-      ),
+      escriturarItemMutation.mutateAsync({
+        itemServicoLc116Id: itemServicoId,
+        baseCalculo: Number(base.replace(",", ".")),
+        retido,
+        tomadorDocumento: tomadorDoc.replace(/\D/g, "") || null,
+      }),
     );
     if (ok) {
       setBase("");
@@ -180,15 +143,7 @@ export function FiscalDms() {
       )
     )
       return;
-    await acao(() =>
-      postJson(
-        `/api/fiscal/dms/${abertaId}/entregar`,
-        {
-          dataVencimento: vencimentoPadrao(),
-        },
-        "Falha na operação.",
-      ),
-    );
+    await acao(() => entregarMutation.mutateAsync({ dataVencimento: vencimentoPadrao() }));
   }
 
   const d = detalhe.data;
@@ -363,15 +318,7 @@ export function FiscalDms() {
                           <button
                             type="button"
                             disabled={ocupado}
-                            onClick={() =>
-                              void acao(() =>
-                                requestNoContentOrError(
-                                  `/api/fiscal/dms/${abertaId}/itens/${i.id}`,
-                                  { method: "DELETE" },
-                                  "Falha na operação.",
-                                ),
-                              )
-                            }
+                            onClick={() => void acao(() => removerItemMutation.mutateAsync(i.id))}
                             className="text-gray-300 hover:text-red-600"
                             title="Remover"
                           >

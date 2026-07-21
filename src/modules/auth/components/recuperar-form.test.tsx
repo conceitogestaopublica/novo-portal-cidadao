@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderWithProviders as render } from "@/test/render-with-providers";
 import { RecuperarForm } from "./recuperar-form";
 
 function jsonResponse(status: number, body: unknown) {

@@ -8,11 +8,12 @@ import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { postJson } from "@/shared/lib/client-api";
 import { cadastroFormSchema, type CadastroFormInput } from "@/modules/auth/schemas/auth.schema";
+import { useCadastro } from "@/modules/auth/hooks/use-cadastro";
 
 export function CadastroForm() {
   const router = useRouter();
+  const { mutateAsync: cadastrar } = useCadastro();
   const {
     register,
     handleSubmit,
@@ -27,7 +28,7 @@ export function CadastroForm() {
 
   async function onSubmit(data: CadastroFormInput) {
     try {
-      await postJson("/api/auth/cadastrar", {
+      await cadastrar({
         documento: data.documento.replace(/\D/g, ""),
         nome: data.nome,
         email: data.email,

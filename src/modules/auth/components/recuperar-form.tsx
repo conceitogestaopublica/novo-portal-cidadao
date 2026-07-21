@@ -8,8 +8,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { postJson } from "@/shared/lib/client-api";
 import { recuperarSchema, type RecuperarInput } from "@/modules/auth/schemas/auth.schema";
+import { useRecuperar } from "@/modules/auth/hooks/use-recuperar";
 
 /**
  * Pedir o link de recuperação de senha. Vale para qualquer usuário do portal.
@@ -24,6 +24,8 @@ export function RecuperarForm() {
     envioConfigurado?: boolean;
   } | null>(null);
 
+  const { mutateAsync: recuperar } = useRecuperar();
+
   const {
     register,
     handleSubmit,
@@ -35,10 +37,7 @@ export function RecuperarForm() {
 
   async function onSubmit(data: RecuperarInput) {
     try {
-      const resposta = await postJson<{ message: string; devLink?: string; envioConfigurado?: boolean }>(
-        "/api/auth/recuperar",
-        { documento: data.documento.replace(/\D/g, "") },
-      );
+      const resposta = await recuperar({ documento: data.documento.replace(/\D/g, "") });
       setEnviado(resposta);
     } catch (e) {
       setError("root", { message: e instanceof Error ? e.message : "Erro" });

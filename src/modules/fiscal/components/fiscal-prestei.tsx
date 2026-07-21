@@ -1,22 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, FilePlus2, Plus, Receipt, UserLock } from "lucide-react";
-import { postJson, requestJsonOrError } from "@/shared/lib/client-api";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { useDeclararPrestei, useGerarGuiaPrestei, usePresteiPendentes } from "../hooks/use-prestei";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
-
-type Pendente = {
-  id: string;
-  numeroNota: string | null;
-  competencia: string | null;
-  valorIss: number;
-};
-type Pendentes = { total: number; valorIss: number; notas: Pendente[] };
 
 /** Vencimento sugerido: dia 10 do mês que vem. */
 function vencimentoPadrao(): string {
@@ -25,7 +16,6 @@ function vencimentoPadrao(): string {
 }
 
 export function FiscalPrestei() {
-  const qc = useQueryClient();
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [selecao, setSelecao] = useState<string[]>([]);
@@ -43,10 +33,9 @@ export function FiscalPrestei() {
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setF({ ...f, [k]: e.target.value });
 
-  const pendentes = useQuery<Pendentes>({
-    queryKey: ["prestei", "pendentes"],
-    queryFn: () => requestJsonOrError<Pendentes>("/api/fiscal/tomadas/prestei/pendentes"),
-  });
+  const pendentes = usePresteiPendentes();
+  const declararMutation = useDeclararPrestei();
+  const gerarGuiaMutation = useGerarGuiaPrestei();
 
   if (isSessaoExpirada(pendentes.error)) {
     return (
@@ -65,7 +54,6 @@ export function FiscalPrestei() {
     setOcupado(true);
     try {
       await fn();
-      void qc.invalidateQueries({ queryKey: ["prestei", "pendentes"] });
       return true;
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro.");
@@ -78,20 +66,16 @@ export function FiscalPrestei() {
   async function declarar(e: React.FormEvent) {
     e.preventDefault();
     const ok = await acao(() =>
-      postJson(
-        "/api/fiscal/tomadas/prestei",
-        {
-          tomadorDocumento: f.tomadorDocumento.replace(/\D/g, ""),
-          tomadorNome: f.tomadorNome || null,
-          numeroNota: f.numeroNota,
-          competencia: f.competencia,
-          dataEmissao: f.dataEmissao,
-          discriminacao: f.discriminacao || null,
-          valorServicos: Number(f.valorServicos.replace(",", ".")),
-          valorIss: Number(f.valorIss.replace(",", ".")),
-        },
-        "Falha na operação.",
-      ),
+      declararMutation.mutateAsync({
+        tomadorDocumento: f.tomadorDocumento.replace(/\D/g, ""),
+        tomadorNome: f.tomadorNome || null,
+        numeroNota: f.numeroNota,
+        competencia: f.competencia,
+        dataEmissao: f.dataEmissao,
+        discriminacao: f.discriminacao || null,
+        valorServicos: Number(f.valorServicos.replace(",", ".")),
+        valorIss: Number(f.valorIss.replace(",", ".")),
+      }),
     );
     if (ok) {
       setF({ ...f, numeroNota: "", valorServicos: "", valorIss: "", discriminacao: "" });
@@ -107,14 +91,10 @@ export function FiscalPrestei() {
     )
       return;
     const ok = await acao(() =>
-      postJson(
-        "/api/fiscal/tomadas/prestei/guia",
-        {
-          notaIds: ids,
-          dataVencimento: vencimentoPadrao(),
-        },
-        "Falha na operação.",
-      ),
+      gerarGuiaMutation.mutateAsync({
+        notaIds: ids,
+        dataVencimento: vencimentoPadrao(),
+      }),
     );
     if (ok) setSelecao([]);
   }

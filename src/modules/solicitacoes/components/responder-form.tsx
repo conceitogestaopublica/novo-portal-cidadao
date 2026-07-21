@@ -5,19 +5,20 @@ import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { postJson } from "@/shared/lib/client-api";
 import { responderSolicitacaoSchema, type ResponderSolicitacaoInput } from "@/modules/solicitacoes/schemas/solicitacoes.schema";
+import { useResponderSolicitacao } from "../hooks/use-responder";
 
 /** Formulário do cidadão para responder a uma exigência ("pedir mais informações"). */
 export function ResponderForm({ id }: { id: string }) {
   const router = useRouter();
+  const { mutateAsync, isPending } = useResponderSolicitacao(id);
   const {
     register,
     handleSubmit,
     reset,
     setError,
     control,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ResponderSolicitacaoInput>({
     resolver: zodResolver(responderSolicitacaoSchema),
     defaultValues: { texto: "" },
@@ -26,7 +27,7 @@ export function ResponderForm({ id }: { id: string }) {
 
   async function onSubmit(data: ResponderSolicitacaoInput) {
     try {
-      await postJson(`/api/solicitacoes/${id}/responder`, data, "Não foi possível enviar sua resposta.");
+      await mutateAsync(data);
       reset();
       router.refresh();
     } catch (e) {
@@ -50,11 +51,11 @@ export function ResponderForm({ id }: { id: string }) {
       <div className="flex justify-end mt-2">
         <Button
           type="submit"
-          disabled={isSubmitting || !texto.trim()}
+          disabled={isPending || !texto.trim()}
           className="inline-flex items-center gap-2 px-4 py-2 h-auto text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 disabled:opacity-50"
         >
           <Send className="size-4" />
-          {isSubmitting ? "Enviando…" : "Enviar resposta"}
+          {isPending ? "Enviando…" : "Enviar resposta"}
         </Button>
       </div>
     </form>

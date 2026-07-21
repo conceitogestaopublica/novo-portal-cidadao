@@ -1,11 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CheckCircle2, FileSignature, Receipt, ShieldUser, TriangleAlert, UserLock } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
-import { requestJsonOrError } from "@/shared/lib/client-api";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { emitirCertidaoPdf } from "../services/certidao.service";
+import { useCertidaoApuracao } from "../hooks/use-certidao";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 function money(v: unknown): string {
@@ -13,18 +13,9 @@ function money(v: unknown): string {
   return Number.isFinite(n) ? BRL.format(n) : "—";
 }
 
-type Apuracao = {
-  apuracao?: { totalExigivel?: number; totalSuspenso?: number; itens?: unknown[] };
-  tipoPrevisto?: string;
-  podeEmitir?: boolean;
-};
-
 export function FiscalCertidao() {
   const [emitindo, setEmitindo] = useState(false);
-  const q = useQuery<Apuracao>({
-    queryKey: ["fiscal", "certidao", "apurar"],
-    queryFn: () => requestJsonOrError<Apuracao>("/api/fiscal/certidao/apurar"),
-  });
+  const q = useCertidaoApuracao();
 
   if (isSessaoExpirada(q.error)) {
     return (
@@ -44,16 +35,14 @@ export function FiscalCertidao() {
   async function emitir() {
     setEmitindo(true);
     try {
-      const res = await fetch("/api/fiscal/certidao");
-      if (res.ok && (res.headers.get("content-type") ?? "").includes("pdf")) {
-        const blob = await res.blob();
-        const u = URL.createObjectURL(blob);
+      const r = await emitirCertidaoPdf();
+      if (r.ok) {
+        const u = URL.createObjectURL(r.blob);
         window.open(u, "_blank");
         setTimeout(() => URL.revokeObjectURL(u), 60_000);
         return;
       }
-      const msg = await res.json().catch(() => null);
-      alert(msg?.message ?? "Não foi possível emitir a certidão.");
+      alert(r.mensagem);
     } finally {
       setEmitindo(false);
     }

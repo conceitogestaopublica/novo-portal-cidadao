@@ -9,7 +9,6 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { postJson } from "@/shared/lib/client-api";
 import {
   loginSenhaSchema,
   loginStartSchema,
@@ -18,13 +17,7 @@ import {
   type LoginStartInput,
   type LoginVerifyInput,
 } from "@/modules/auth/schemas/auth.schema";
-
-interface LoginStartResponse {
-  challengeId: string | null;
-  canalMascarado: string | null;
-  encontrado?: boolean;
-  devOtp?: string;
-}
+import { useLoginSenha, useLoginStart, useLoginVerify } from "@/modules/auth/hooks/use-login";
 
 export function EntrarForm() {
   const router = useRouter();
@@ -32,6 +25,10 @@ export function EntrarForm() {
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [canal, setCanal] = useState<string | null>(null);
   const [devOtp, setDevOtp] = useState<string | null>(null);
+
+  const { mutateAsync: enviarLoginSenha } = useLoginSenha();
+  const { mutateAsync: enviarLoginStart } = useLoginStart();
+  const { mutateAsync: enviarLoginVerify } = useLoginVerify();
 
   const formSenha = useForm<LoginSenhaInput>({
     resolver: zodResolver(loginSenhaSchema),
@@ -50,7 +47,7 @@ export function EntrarForm() {
 
   async function entrarSenha(data: LoginSenhaInput) {
     try {
-      await postJson("/api/auth/login-senha", { documento: data.documento.replace(/\D/g, ""), senha: data.senha });
+      await enviarLoginSenha({ documento: data.documento.replace(/\D/g, ""), senha: data.senha });
       router.push("/fiscal");
       router.refresh();
     } catch (e) {
@@ -61,7 +58,7 @@ export function EntrarForm() {
   async function iniciarOtp(data: LoginStartInput) {
     try {
       const documento = data.documento.replace(/\D/g, "");
-      const d = await postJson<LoginStartResponse>("/api/auth/login-start", { documento });
+      const d = await enviarLoginStart({ documento });
       if (d.encontrado === false || !d.challengeId) {
         formStart.setError("root", { message: "Documento não encontrado neste município." });
         return;
@@ -77,7 +74,7 @@ export function EntrarForm() {
 
   async function verificarOtp(data: LoginVerifyInput) {
     try {
-      await postJson("/api/auth/login-verify", { challengeId: data.challengeId, otp: data.otp.trim() });
+      await enviarLoginVerify({ challengeId: data.challengeId, otp: data.otp.trim() });
       router.push("/fiscal");
       router.refresh();
     } catch (e) {

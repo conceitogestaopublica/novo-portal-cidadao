@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -16,8 +15,14 @@ import {
   Receipt,
   UserLock,
 } from "lucide-react";
-import { postJson, requestJsonOrError } from "@/shared/lib/client-api";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { parcelamentoTermoUrl, Resultado, Simulacao } from "../services/parcelamento.service";
+import {
+  useAderirParcelamento,
+  useDebitosParcelamento,
+  useProgramasParcelamento,
+  useSimularParcelamento,
+} from "../hooks/use-parcelamento";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
@@ -25,14 +30,6 @@ const dateBR = (v: unknown) => {
   const d = new Date(String(v));
   return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR");
 };
-
-type Programa = { id: string; nome: string; fundamentoLegal?: string | null; maxParcelas: number; entradaPercentual: number; valorMinimoParcela: number; textoConfissao?: string | null };
-type Debito = { inscricaoId: string; numero: string; saldoAtualizado: number; elegivel: boolean; motivoInelegivel?: string; valorPrincipal?: number; valorMulta?: number; valorJuros?: number; valorCorrecao?: number; valorEncargoLegal?: number };
-type ResumoSit = { quantidade: number; valorInscrito: number };
-type DebitosResp = { debitos: Debito[]; naoParcelavel?: { jaParceladas?: ResumoSit; ajuizadas?: ResumoSit } };
-type Parcela = { numero: number; dataVencimento: string; valor: number };
-type Simulacao = { parametroNome?: string; valorConsolidado?: number; entradaValor?: number; honorariosValor?: number; valorTotal?: number; qtdParcelas?: number; parcelas?: Parcela[] };
-type Resultado = { id: string; numero: string; valorTotal: number };
 
 export function FiscalParcelamento() {
   const [programaId, setProgramaId] = useState("");
@@ -44,12 +41,10 @@ export function FiscalParcelamento() {
   const [verEntram, setVerEntram] = useState(false);
   const [verNaoEntram, setVerNaoEntram] = useState(false);
 
-  const programas = useQuery<{ programas: Programa[] }>({ queryKey: ["parc", "programas"], queryFn: () => requestJsonOrError<{ programas: Programa[] }>("/api/fiscal/parcelamento/programas") });
-  const debitos = useQuery<DebitosResp>({
-    queryKey: ["parc", "debitos", programaId],
-    queryFn: () => requestJsonOrError<DebitosResp>(`/api/fiscal/parcelamento/debitos?parametroId=${programaId}`),
-    enabled: !!programaId,
-  });
+  const programas = useProgramasParcelamento();
+  const debitos = useDebitosParcelamento(programaId);
+  const simularMutation = useSimularParcelamento();
+  const aderirMutation = useAderirParcelamento();
 
   const programa = programas.data?.programas.find((p) => p.id === programaId);
   const maxParcelas = programa?.maxParcelas ?? 240;
@@ -92,11 +87,7 @@ export function FiscalParcelamento() {
     setErro(null); setOcupado(true); setSim(null);
     try {
       setSim(
-        await postJson<Simulacao>(
-          "/api/fiscal/parcelamento/simular",
-          { parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd },
-          "Falha na operação.",
-        ),
+        await simularMutation.mutateAsync({ parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd }),
       );
     } catch (e) { setErro(e instanceof Error ? e.message : "Erro ao simular."); } finally { setOcupado(false); }
   }
@@ -106,11 +97,7 @@ export function FiscalParcelamento() {
     if (!window.confirm(`${programa.textoConfissao ?? "Ao aderir, você confessa o débito e se compromete a pagar as parcelas."}\n\nDeseja confirmar a adesão ao ${programa.nome}?`)) return;
     setErro(null); setOcupado(true);
     try {
-      const r = await postJson<Resultado>(
-        "/api/fiscal/parcelamento/aderir",
-        { parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd },
-        "Falha na operação.",
-      );
+      const r = await aderirMutation.mutateAsync({ parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd });
       setResultado(r);
     } catch (e) { setErro(e instanceof Error ? e.message : "Erro ao aderir."); } finally { setOcupado(false); }
   }
@@ -123,7 +110,7 @@ export function FiscalParcelamento() {
           <h1 className="text-xl font-bold text-gray-800">Parcelamento efetivado!</h1>
           <p className="text-sm text-gray-500 mt-1">Termo <strong>{resultado.numero}</strong> — total {money(resultado.valorTotal)}.</p>
           <div className="flex gap-2 justify-center mt-5">
-            <a href={`/api/fiscal/parcelamento/${resultado.id}/termo`} target="_blank" rel="noreferrer" className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700"><FileSignature className="size-4 mr-2" />Baixar termo (PDF)</a>
+            <a href={parcelamentoTermoUrl(resultado.id)} target="_blank" rel="noreferrer" className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700"><FileSignature className="size-4 mr-2" />Baixar termo (PDF)</a>
             <Link href="/fiscal" className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50">Ver meus débitos</Link>
           </div>
           <p className="text-[11px] text-gray-400 mt-4">As guias das parcelas já estão disponíveis em “Meus Débitos”.</p>

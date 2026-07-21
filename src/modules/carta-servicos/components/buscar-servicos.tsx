@@ -1,13 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { CatalogoIcon } from "@/shared/lib/icon-registry";
-import { requestJsonOrError } from "@/shared/lib/client-api";
-import type { Servico } from "@/shared/types/portal";
+import { useBuscarServicos } from "../hooks/use-buscar-servicos";
 
 export function BuscarServicos() {
   const sp = useSearchParams();
@@ -15,17 +13,7 @@ export function BuscarServicos() {
   const [publico, setPublico] = useState("");
   const [termo, setTermo] = useState(sp.get("q") ?? "");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["servicos", termo, publico],
-    queryFn: () => {
-      const p = new URLSearchParams();
-      if (termo) p.set("q", termo);
-      if (publico) p.set("publico", publico);
-      return requestJsonOrError<{ items: Servico[]; total: number; publicos: Record<string, string> }>(
-        `/api/servicos?${p.toString()}`,
-      );
-    },
-  });
+  const { data, isLoading } = useBuscarServicos(termo, publico);
 
   const items = data?.items ?? [];
   const publicos = data?.publicos ?? {};

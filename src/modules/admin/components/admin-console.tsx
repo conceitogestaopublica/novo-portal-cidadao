@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AdminCatalogo, AdminServico } from "@/shared/catalogo/catalogo-admin-repo";
 import type { Ambiente, CategoriaSeed } from "@/shared/catalogo/catalogo-seed";
-import { postJson, requestJsonOrError, requestNoContentOrError } from "@/shared/lib/client-api";
 import { CatalogoIcon } from "@/shared/lib/icon-registry";
+import { useCatalogoAdmin, useExcluirCatalogo, useSalvarCatalogo } from "../hooks/use-catalogo-admin";
 
 type Aba = "ambientes" | "categorias" | "servicos";
 
@@ -60,41 +60,31 @@ const labelCls = "text-xs font-semibold text-gray-600 uppercase tracking-wide";
 
 export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
   const router = useRouter();
-  const [data, setData] = useState<AdminCatalogo>(inicial);
+  const { data } = useCatalogoAdmin(inicial);
   const [aba, setAba] = useState<Aba>("servicos");
   const [editing, setEditing] = useState<{ tipo: Aba; item: Record<string, unknown> | null } | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function recarregar() {
-    setData(await requestJsonOrError<AdminCatalogo>("/api/admin/catalogo", { cache: "no-store" }));
-  }
+  const salvarMutation = useSalvarCatalogo();
+  const excluirMutation = useExcluirCatalogo();
+  const busy = salvarMutation.isPending || excluirMutation.isPending;
 
   async function enviar(url: string, body: unknown) {
-    setBusy(true);
     setErro(null);
     try {
-      await postJson(url, body, "Falha ao salvar");
-      await recarregar();
+      await salvarMutation.mutateAsync({ url, body });
       setEditing(null);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro");
-    } finally {
-      setBusy(false);
     }
   }
 
   async function excluir(url: string, aviso: string) {
     if (!window.confirm(aviso)) return;
-    setBusy(true);
     setErro(null);
     try {
-      await requestNoContentOrError(url, { method: "DELETE" }, "Falha ao excluir");
-      await recarregar();
+      await excluirMutation.mutateAsync(url);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro");
-    } finally {
-      setBusy(false);
     }
   }
 

@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -10,8 +9,8 @@ import { CheckCircle2, Unlink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { requestJsonOrError, postJson } from "@/shared/lib/client-api";
 import { redefinirFormSchema, type RedefinirFormInput } from "@/modules/auth/schemas/auth.schema";
+import { useCheckTokenRedefinir, useRedefinir } from "@/modules/auth/hooks/use-redefinir";
 
 export function RedefinirForm() {
   const router = useRouter();
@@ -30,18 +29,14 @@ export function RedefinirForm() {
 
   // Confere o link antes de mostrar o formulário: pedir a senha nova e só
   // depois dizer "link expirado" seria fazer a pessoa digitar à toa.
-  const checagem = useQuery({
-    queryKey: ["redefinir", token],
-    queryFn: () => requestJsonOrError<{ valido?: boolean }>(`/api/auth/redefinir?token=${encodeURIComponent(token)}`),
-    enabled: Boolean(token),
-    retry: false,
-  });
+  const checagem = useCheckTokenRedefinir(token);
+  const { mutateAsync: redefinir } = useRedefinir();
 
   const valido = !token ? false : checagem.isLoading ? null : (checagem.data?.valido ?? false);
 
   async function onSubmit(data: RedefinirFormInput) {
     try {
-      await postJson("/api/auth/redefinir", { token, senha: data.senha }, "Falha ao redefinir");
+      await redefinir({ token, senha: data.senha });
       setPronto(true);
     } catch (e) {
       setError("root", { message: e instanceof Error ? e.message : "Erro" });

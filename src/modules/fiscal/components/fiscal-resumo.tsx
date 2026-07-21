@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   ArrowDownWideNarrow,
@@ -27,8 +27,12 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import { AtuarComoSeletor } from "./atuar-como-seletor";
-import { requestJsonOrError } from "@/shared/lib/client-api";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { useFiscalResumo } from "../hooks/use-fiscal-resumo";
+import { useFiscalGuias } from "../hooks/use-fiscal-guias";
+import { useFiscalCaixaPostal } from "../hooks/use-fiscal-caixa-postal";
+import { useFiscalDividaAtiva } from "../hooks/use-fiscal-divida-ativa";
+import { baixarSegundaViaGuia } from "../services/fiscal-guias.service";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -54,24 +58,6 @@ function dateBR(v: unknown): string {
   return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString("pt-BR");
 }
 
-/**
- * Baixa o PDF da 2ª via. `atualizar` recalcula juros/multa; `data` (AAAA-MM-DD)
- * é o novo vencimento até quando os acréscimos são calculados (senão, hoje).
- */
-async function abrirPdfSegundaVia(id: string, atualizar: boolean, data?: string) {
-  const qs = atualizar ? `?atualizar=1${data ? `&data=${data}` : ""}` : "";
-  const res = await fetch(`/api/fiscal/guias/${id}/segunda-via${qs}`);
-  if (res.ok && (res.headers.get("content-type") ?? "").includes("pdf")) {
-    const blob = await res.blob();
-    const u = URL.createObjectURL(blob);
-    window.open(u, "_blank");
-    setTimeout(() => URL.revokeObjectURL(u), 60_000);
-    return { ok: true as const };
-  }
-  const msg = (await res.json().catch(() => null)) as { message?: string; podeAtualizar?: boolean } | null;
-  return { ok: false as const, status: res.status, msg };
-}
-
 function hojeISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -81,11 +67,11 @@ type Msg = Record<string, unknown>;
 type AlvoAtualizar = { id: string; numero: string };
 
 export function FiscalResumo() {
-  const resumo = useQuery({ queryKey: ["fiscal", "resumo"], queryFn: () => requestJsonOrError("/api/fiscal/resumo") });
+  const resumo = useFiscalResumo();
   const [verPagas, setVerPagas] = useState(false);
-  const guias = useQuery({ queryKey: ["fiscal", "guias", verPagas ? "pagas" : "abertas"], queryFn: () => requestJsonOrError(`/api/fiscal/guias${verPagas ? "?pagas=1" : ""}`) });
-  const caixa = useQuery({ queryKey: ["fiscal", "caixa"], queryFn: () => requestJsonOrError("/api/fiscal/caixa-postal") });
-  const divida = useQuery({ queryKey: ["fiscal", "divida"], queryFn: () => requestJsonOrError("/api/fiscal/divida-ativa") });
+  const guias = useFiscalGuias(verPagas);
+  const caixa = useFiscalCaixaPostal();
+  const divida = useFiscalDividaAtiva();
   const qc = useQueryClient();
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState<{ campo: "numero" | "vencimento" | "valor"; dir: "asc" | "desc" }>({ campo: "vencimento", dir: "asc" });
@@ -101,7 +87,7 @@ export function FiscalResumo() {
   async function iniciarSegundaVia(g: Guia) {
     const id = String(pick(g, "id") ?? "");
     if (!id) return;
-    const r = await abrirPdfSegundaVia(id, false);
+    const r = await baixarSegundaViaGuia(id, false);
     if (r.ok) return;
     if (r.status === 409 && r.msg?.podeAtualizar) {
       setErroModal(null);
@@ -117,7 +103,7 @@ export function FiscalResumo() {
     setErroModal(null);
     setEmitindo(true);
     try {
-      const r = await abrirPdfSegundaVia(alvo.id, true, novaData);
+      const r = await baixarSegundaViaGuia(alvo.id, true, novaData);
       if (r.ok) {
         setAlvo(null);
         qc.invalidateQueries({ queryKey: ["fiscal"] });
