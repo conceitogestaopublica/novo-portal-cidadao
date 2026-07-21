@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { getByIdDaConta } from "@/shared/repos/solicitacao-repo";
 import { protocoloConfigDe, responderProtocoloGpe2 } from "@/shared/adapters/gpe2.adapter";
-
-const schema = z.object({ texto: z.string().min(1).max(4000) });
+import { responderSolicitacaoSchema as schema } from "@/modules/solicitacoes/schemas/solicitacoes.schema";
 
 /**
  * O cidadão responde a uma exigência ("pedir mais informações") do protocolo.

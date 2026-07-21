@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { contaByDocumento, verificarSenha } from "@/shared/repos/conta-repo";
 import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
-
-const schema = z.object({ documento: z.string().min(11), senha: z.string().min(1) });
+import { loginSenhaSchema as schema } from "@/modules/auth/schemas/auth.schema";
 
 /** Login por documento + senha (conta registrada do Atendimento ao Contribuinte). */
 export async function POST(req: Request) {

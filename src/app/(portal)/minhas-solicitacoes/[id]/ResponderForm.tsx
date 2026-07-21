@@ -1,58 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useForm, useWatch } from "react-hook-form";
 import { Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { postJson } from "@/shared/lib/client-api";
+import { responderSolicitacaoSchema, type ResponderSolicitacaoInput } from "@/modules/solicitacoes/schemas/solicitacoes.schema";
 
 /** Formulário do cidadão para responder a uma exigência ("pedir mais informações"). */
 export function ResponderForm({ id }: { id: string }) {
-  const [texto, setTexto] = useState("");
-  const [enviando, setEnviando] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
   const router = useRouter();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<ResponderSolicitacaoInput>({
+    resolver: zodResolver(responderSolicitacaoSchema),
+    defaultValues: { texto: "" },
+  });
+  const texto = useWatch({ control, name: "texto" });
 
-  async function enviar(e: React.FormEvent) {
-    e.preventDefault();
-    if (!texto.trim()) return;
-    setEnviando(true);
-    setErro(null);
+  async function onSubmit(data: ResponderSolicitacaoInput) {
     try {
-      const res = await fetch(`/api/solicitacoes/${id}/responder`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texto }),
-      });
-      if (!res.ok) {
-        const d = (await res.json().catch(() => ({}))) as { message?: string };
-        setErro(d.message ?? "Não foi possível enviar sua resposta.");
-        return;
-      }
-      setTexto("");
+      await postJson(`/api/solicitacoes/${id}/responder`, data, "Não foi possível enviar sua resposta.");
+      reset();
       router.refresh();
-    } finally {
-      setEnviando(false);
+    } catch (e) {
+      setError("root", { message: e instanceof Error ? e.message : "Não foi possível enviar sua resposta." });
     }
   }
 
   return (
-    <form onSubmit={enviar} className="mt-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="mt-3" noValidate>
       <textarea
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
         rows={4}
         placeholder="Escreva aqui as informações solicitadas…"
         className="w-full px-3 py-2 text-sm rounded-lg border border-violet-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none"
+        {...register("texto")}
       />
-      {erro && <p className="text-xs text-red-600 mt-1">{erro}</p>}
+      {(errors.texto || errors.root) && (
+        <p className="text-xs text-red-600 mt-1" role="alert">
+          {errors.texto?.message ?? errors.root?.message}
+        </p>
+      )}
       <div className="flex justify-end mt-2">
-        <button
+        <Button
           type="submit"
-          disabled={enviando || !texto.trim()}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 disabled:opacity-50"
+          disabled={isSubmitting || !texto.trim()}
+          className="inline-flex items-center gap-2 px-4 py-2 h-auto text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 disabled:opacity-50"
         >
           <Send className="size-4" />
-          {enviando ? "Enviando…" : "Enviar resposta"}
-        </button>
+          {isSubmitting ? "Enviando…" : "Enviar resposta"}
+        </Button>
       </div>
     </form>
   );

@@ -1,52 +1,94 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, FlaskConical, UserLock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { postJson } from "@/shared/lib/client-api";
+import {
+  loginSenhaSchema,
+  loginStartSchema,
+  loginVerifySchema,
+  type LoginSenhaInput,
+  type LoginStartInput,
+  type LoginVerifyInput,
+} from "@/modules/auth/schemas/auth.schema";
+
+interface LoginStartResponse {
+  challengeId: string | null;
+  canalMascarado: string | null;
+  encontrado?: boolean;
+  devOtp?: string;
+}
 
 export default function EntrarPage() {
   const router = useRouter();
   const [modo, setModo] = useState<"senha" | "otp">("senha");
-  const [documento, setDocumento] = useState("");
-  const [senha, setSenha] = useState("");
-  const [otp, setOtp] = useState("");
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [canal, setCanal] = useState<string | null>(null);
   const [devOtp, setDevOtp] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  async function post(url: string, body: unknown) {
-    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.message ?? "Falha");
-    return data;
+  const formSenha = useForm<LoginSenhaInput>({
+    resolver: zodResolver(loginSenhaSchema),
+    defaultValues: { documento: "", senha: "" },
+  });
+
+  const formStart = useForm<LoginStartInput>({
+    resolver: zodResolver(loginStartSchema),
+    defaultValues: { documento: "" },
+  });
+
+  const formVerify = useForm<LoginVerifyInput>({
+    resolver: zodResolver(loginVerifySchema),
+    defaultValues: { challengeId: "", otp: "" },
+  });
+
+  async function entrarSenha(data: LoginSenhaInput) {
+    try {
+      await postJson("/api/auth/login-senha", { documento: data.documento.replace(/\D/g, ""), senha: data.senha });
+      router.push("/fiscal");
+      router.refresh();
+    } catch (e) {
+      formSenha.setError("root", { message: e instanceof Error ? e.message : "Erro" });
+    }
   }
 
-  async function entrarSenha(e: React.FormEvent) {
-    e.preventDefault(); setErro(null); setLoading(true);
+  async function iniciarOtp(data: LoginStartInput) {
     try {
-      await post("/api/auth/login-senha", { documento: documento.replace(/\D/g, ""), senha });
-      router.push("/fiscal"); router.refresh();
-    } catch (e) { setErro(e instanceof Error ? e.message : "Erro"); } finally { setLoading(false); }
+      const documento = data.documento.replace(/\D/g, "");
+      const d = await postJson<LoginStartResponse>("/api/auth/login-start", { documento });
+      if (d.encontrado === false || !d.challengeId) {
+        formStart.setError("root", { message: "Documento não encontrado neste município." });
+        return;
+      }
+      setChallengeId(d.challengeId);
+      setCanal(d.canalMascarado ?? null);
+      setDevOtp(d.devOtp ?? null);
+      formVerify.setValue("challengeId", d.challengeId);
+    } catch (e) {
+      formStart.setError("root", { message: e instanceof Error ? e.message : "Erro" });
+    }
   }
 
-  async function iniciarOtp(e: React.FormEvent) {
-    e.preventDefault(); setErro(null); setLoading(true);
+  async function verificarOtp(data: LoginVerifyInput) {
     try {
-      const d = await post("/api/auth/login-start", { documento: documento.replace(/\D/g, "") });
-      if (d.encontrado === false || !d.challengeId) { setErro("Documento não encontrado neste município."); return; }
-      setChallengeId(d.challengeId); setCanal(d.canalMascarado ?? null); setDevOtp(d.devOtp ?? null);
-    } catch (e) { setErro(e instanceof Error ? e.message : "Erro"); } finally { setLoading(false); }
+      await postJson("/api/auth/login-verify", { challengeId: data.challengeId, otp: data.otp.trim() });
+      router.push("/fiscal");
+      router.refresh();
+    } catch (e) {
+      formVerify.setError("root", { message: e instanceof Error ? e.message : "Erro" });
+    }
   }
 
-  async function verificarOtp(e: React.FormEvent) {
-    e.preventDefault(); setErro(null); setLoading(true);
-    try {
-      await post("/api/auth/login-verify", { challengeId, otp: otp.trim() });
-      router.push("/fiscal"); router.refresh();
-    } catch (e) { setErro(e instanceof Error ? e.message : "Erro"); } finally { setLoading(false); }
+  function trocarModo(novo: "senha" | "otp") {
+    setModo(novo);
+    formSenha.clearErrors("root");
+    formStart.clearErrors("root");
   }
 
   return (
@@ -60,16 +102,25 @@ export default function EntrarPage() {
           <p className="text-sm text-gray-500 mt-1">Acesse seus débitos, guias e certidões.</p>
         </div>
 
-        {erro && <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2"><AlertCircle className="size-4 mr-1.5" aria-hidden="true" />{erro}</div>}
-
         {modo === "senha" ? (
-          <form onSubmit={entrarSenha} className="space-y-4">
-            <Campo label="CPF ou CNPJ"><input autoFocus value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder="000.000.000-00" className={inputCls} /></Campo>
-            <Campo label="Senha"><input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="••••••" className={inputCls} /></Campo>
-            <button disabled={loading} className={btnCls}>{loading ? "Entrando..." : "Entrar"}</button>
+          <form onSubmit={formSenha.handleSubmit(entrarSenha)} className="space-y-4" noValidate>
+            <Erro mensagem={formSenha.formState.errors.root?.message} />
+            <Campo label="CPF ou CNPJ" erro={formSenha.formState.errors.documento?.message}>
+              <Input autoFocus placeholder="000.000.000-00" className={inputCls} {...formSenha.register("documento")} />
+            </Campo>
+            <Campo label="Senha" erro={formSenha.formState.errors.senha?.message}>
+              <Input type="password" placeholder="••••••" className={inputCls} {...formSenha.register("senha")} />
+            </Campo>
+            <Button disabled={formSenha.formState.isSubmitting} className={btnCls}>
+              {formSenha.formState.isSubmitting ? "Entrando..." : "Entrar"}
+            </Button>
             <div className="flex items-center justify-between text-xs pt-1">
-              <Link href="/cadastrar" className="text-blue-600 font-semibold hover:text-blue-700">Criar conta</Link>
-              <button type="button" onClick={() => { setModo("otp"); setErro(null); }} className="text-gray-500 hover:text-gray-700">Entrar com código</button>
+              <Link href="/cadastrar" className="text-blue-600 font-semibold hover:text-blue-700">
+                Criar conta
+              </Link>
+              <button type="button" onClick={() => trocarModo("otp")} className="text-gray-500 hover:text-gray-700">
+                Entrar com código
+              </button>
             </div>
             <p className="text-center text-xs pt-1">
               <Link href="/recuperar" className="text-gray-500 hover:text-gray-700">
@@ -78,18 +129,45 @@ export default function EntrarPage() {
             </p>
           </form>
         ) : !challengeId ? (
-          <form onSubmit={iniciarOtp} className="space-y-4">
+          <form onSubmit={formStart.handleSubmit(iniciarOtp)} className="space-y-4" noValidate>
+            <Erro mensagem={formStart.formState.errors.root?.message} />
             <p className="text-xs text-gray-500 -mt-2">Acesso rápido: enviamos um código para o seu contato cadastrado.</p>
-            <Campo label="CPF ou CNPJ"><input autoFocus value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder="000.000.000-00" className={inputCls} /></Campo>
-            <button disabled={loading} className={btnCls}>{loading ? "Enviando..." : "Enviar código"}</button>
-            <button type="button" onClick={() => { setModo("senha"); setErro(null); }} className="w-full text-xs text-gray-500 hover:text-gray-700">Entrar com senha</button>
+            <Campo label="CPF ou CNPJ" erro={formStart.formState.errors.documento?.message}>
+              <Input autoFocus placeholder="000.000.000-00" className={inputCls} {...formStart.register("documento")} />
+            </Campo>
+            <Button disabled={formStart.formState.isSubmitting} className={btnCls}>
+              {formStart.formState.isSubmitting ? "Enviando..." : "Enviar código"}
+            </Button>
+            <button type="button" onClick={() => trocarModo("senha")} className="w-full text-xs text-gray-500 hover:text-gray-700">
+              Entrar com senha
+            </button>
           </form>
         ) : (
-          <form onSubmit={verificarOtp} className="space-y-4">
-            {canal && <p className="text-xs text-gray-500 text-center">Código enviado para <strong>{canal}</strong>.</p>}
-            {devOtp && <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 text-center"><FlaskConical className="size-4 mr-1" aria-hidden="true" /> Dev: código <strong className="font-mono tracking-widest">{devOtp}</strong></div>}
-            <Campo label="Código de verificação"><input autoFocus inputMode="numeric" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="000000" className={`${inputCls} text-center text-lg font-mono tracking-[0.3em]`} /></Campo>
-            <button disabled={loading} className={btnCls}>{loading ? "Verificando..." : "Entrar"}</button>
+          <form onSubmit={formVerify.handleSubmit(verificarOtp)} className="space-y-4" noValidate>
+            <Erro mensagem={formVerify.formState.errors.root?.message} />
+            {canal && (
+              <p className="text-xs text-gray-500 text-center">
+                Código enviado para <strong>{canal}</strong>.
+              </p>
+            )}
+            {devOtp && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 text-center flex items-center justify-center gap-1">
+                <FlaskConical className="size-4" aria-hidden="true" /> Dev: código{" "}
+                <strong className="font-mono tracking-widest">{devOtp}</strong>
+              </div>
+            )}
+            <Campo label="Código de verificação" erro={formVerify.formState.errors.otp?.message}>
+              <Input
+                autoFocus
+                inputMode="numeric"
+                placeholder="000000"
+                className={`${inputCls} text-center text-lg font-mono tracking-[0.3em]`}
+                {...formVerify.register("otp")}
+              />
+            </Campo>
+            <Button disabled={formVerify.formState.isSubmitting} className={btnCls}>
+              {formVerify.formState.isSubmitting ? "Verificando..." : "Entrar"}
+            </Button>
           </form>
         )}
       </div>
@@ -98,8 +176,29 @@ export default function EntrarPage() {
   );
 }
 
-const inputCls = "mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm";
-const btnCls = "w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60";
-function Campo({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div><label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{label}</label>{children}</div>;
+const inputCls = "mt-1 w-full px-4 py-3 h-auto rounded-xl border-gray-300 focus-visible:ring-blue-500 text-sm";
+const btnCls = "w-full px-4 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60";
+
+function Campo({ label, erro, children }: { label: string; erro?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{label}</Label>
+      {children}
+      {erro && (
+        <p className="text-xs text-destructive mt-1" role="alert">
+          {erro}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Erro({ mensagem }: { mensagem?: string }) {
+  if (!mensagem) return null;
+  return (
+    <div className="mb-1 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
+      <AlertCircle className="size-4 mt-0.5 shrink-0" aria-hidden="true" />
+      {mensagem}
+    </div>
+  );
 }

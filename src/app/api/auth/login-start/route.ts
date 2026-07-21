@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { criarDesafio } from "@/shared/lib/otp-store";
-
-const schema = z.object({ documento: z.string().min(11) });
+import { loginStartSchema as schema } from "@/modules/auth/schemas/auth.schema";
 
 /**
  * Passo 1 do login: resolve o contribuinte no tributário e cria o desafio OTP.

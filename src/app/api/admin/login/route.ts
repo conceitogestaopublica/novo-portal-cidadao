@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { senhaAdminValida, writeAdminSession } from "@/shared/lib/admin-session";
 import { loginBloqueado, registrarFalha, registrarSucesso } from "@/shared/lib/admin-login-lock";
-
-const schema = z.object({ senha: z.string().min(1) });
+import { adminLoginSchema as schema } from "@/modules/admin/schemas/admin-login.schema";
 
 function chaveCliente(req: Request): string {
   return (

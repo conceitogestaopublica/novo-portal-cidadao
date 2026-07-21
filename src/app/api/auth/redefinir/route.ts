@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { z } from "zod";
 import {
   consumirTokenETrocarSenha,
   contaDoToken,
 } from "@/shared/repos/senha-reset-repo";
-
-const schema = z.object({
-  token: z.string().min(10),
-  senha: z.string().min(6),
-});
+import { redefinirSchema as schema } from "@/modules/auth/schemas/auth.schema";
 
 /** O link é válido? Usado pela tela antes de mostrar o formulário. */
 export async function GET(req: Request) {

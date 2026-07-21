@@ -1,22 +1,9 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { contaByDocumento, criarConta } from "@/shared/repos/conta-repo";
 import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
-
-const schema = z.object({
-  documento: z.string().min(11, "Informe um CPF ou CNPJ válido."),
-  nome: z.string().min(3, "Informe o nome completo."),
-  email: z.string().email("E-mail inválido.").optional().or(z.literal("")),
-  senha: z.string().min(6, "A senha deve ter ao menos 6 caracteres."),
-  /**
-   * "Sou prestador de fora e prestei serviço no município." Quem não é do
-   * município não existe no cadastro, e sem isto ficaria trancado: precisaria
-   * que um tomador declarasse por ele antes de conseguir se cadastrar.
-   */
-  prestadorExterno: z.boolean().optional(),
-});
+import { cadastroSchema as schema } from "@/modules/auth/schemas/auth.schema";
 
 /**
  * Cadastro no Atendimento ao Contribuinte: documento + senha.

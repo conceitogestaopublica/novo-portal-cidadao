@@ -1,33 +1,31 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, ShieldUser } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { postJson } from "@/shared/lib/client-api";
+import { adminLoginSchema, type AdminLoginInput } from "@/modules/admin/schemas/admin-login.schema";
 
 export default function AdminEntrarPage() {
   const router = useRouter();
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<AdminLoginInput>({ resolver: zodResolver(adminLoginSchema), defaultValues: { senha: "" } });
 
-  async function entrar(e: React.FormEvent) {
-    e.preventDefault();
-    setErro(null);
-    setLoading(true);
+  async function onSubmit(data: AdminLoginInput) {
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ senha }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.message ?? "Falha ao entrar");
+      await postJson("/api/admin/login", data, "Falha ao entrar");
       router.push("/admin");
       router.refresh();
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro");
-    } finally {
-      setLoading(false);
+      setError("root", { message: e instanceof Error ? e.message : "Erro" });
     }
   }
 
@@ -42,31 +40,32 @@ export default function AdminEntrarPage() {
           <p className="text-sm text-gray-500 mt-1">Gerenciar a Carta de Serviços.</p>
         </div>
 
-        {erro && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-            <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
-            {erro}
+        {errors.root && (
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
+            <AlertCircle className="size-4 mt-0.5 shrink-0" aria-hidden="true" />
+            {errors.root.message}
           </div>
         )}
 
-        <form onSubmit={entrar} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Senha do administrador</label>
-            <input
+            <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Senha do administrador</Label>
+            <Input
               autoFocus
               type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
               placeholder="••••••••"
-              className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm"
+              className="mt-1 w-full px-4 py-3 h-auto rounded-xl border-gray-300 focus-visible:ring-slate-500 text-sm"
+              {...register("senha")}
             />
+            {errors.senha && (
+              <p className="text-xs text-destructive mt-1" role="alert">
+                {errors.senha.message}
+              </p>
+            )}
           </div>
-          <button
-            disabled={loading}
-            className="w-full px-4 py-3 rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 disabled:opacity-60"
-          >
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
+          <Button disabled={isSubmitting} className="w-full px-4 py-3 h-auto rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 disabled:opacity-60">
+            {isSubmitting ? "Entrando..." : "Entrar"}
+          </Button>
         </form>
       </div>
     </div>

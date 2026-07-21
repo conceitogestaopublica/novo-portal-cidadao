@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { contaByDocumento } from "@/shared/repos/conta-repo";
 import { criarTokenReset } from "@/shared/repos/senha-reset-repo";
 import { enviarEmail, emailHabilitado } from "@/shared/lib/email-sender";
-
-const schema = z.object({ documento: z.string().min(11) });
+import { recuperarSchema as schema } from "@/modules/auth/schemas/auth.schema";
 
 /**
  * Passo 1 da recuperação de senha (qualquer usuário do portal).

@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { verificarDesafio } from "@/shared/lib/otp-store";
 import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
-
-const schema = z.object({
-  challengeId: z.string().min(1),
-  otp: z.string().min(4).max(8),
-});
+import { loginVerifySchema as schema } from "@/modules/auth/schemas/auth.schema";
 
 /**
  * Passo 2 do login: valida o OTP, emite o JWT CONTRIBUINTE no tributário e cria
