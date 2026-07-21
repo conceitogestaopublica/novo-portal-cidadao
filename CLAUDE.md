@@ -162,13 +162,27 @@ import { FiscalResumo } from '@/modules/fiscal/components/fiscal-resumo'
 
 - **Sempre RHF + Zod** — sem `useState` manual de campo.
 - Schema Zod único, compartilhado entre validação do form e tipagem do payload de API (reaproveitar o schema do `route.ts` quando aplicável).
-- Usar componentes `Form`/`FormField`/`FormItem`/`FormLabel`/`FormControl`/`FormMessage` do shadcn/ui.
+- O style `base-nova` **não tem** `Form`/`FormField`/`FormItem`/`FormControl`/`FormMessage` (só existem em outros styles do shadcn/ui) — use `register()` direto em `Input`/`Label`, com erro exibido a partir de `formState.errors`. `<Button type="submit">` é obrigatório (o `Button` do shadcn não herda o default nativo do HTML). Ver [ADR-0004](docs/adr/0004-rhf-zod-forms.md) e `docs/guidelines/forms-and-validation.md`.
 
 ## Multi-tenant
 
 - Município é resolvido por subdomínio (`shared/lib/extract-subdomain.ts` + `shared/lib/tenant-map.ts`), igual ao `gpd-web-tributario-front`.
 - Toda tabela do banco próprio do portal é escopada por `municipio` — nunca uma query sem esse filtro.
 - Toda chamada a backend externo propaga o município resolvido (header/subdomínio conforme o adapter) — nunca confiar em município vindo do body do client.
+
+---
+
+## Decisões Arquiteturais (ADRs)
+
+| ADR | Decisão |
+|-----|---------|
+| [ADR-0001](docs/adr/0001-prisma-orm.md) | Prisma como ORM do banco próprio do portal |
+| [ADR-0002](docs/adr/0002-shadcn-lucide.md) | shadcn/ui + lucide-react, remoção do Font Awesome |
+| [ADR-0003](docs/adr/0003-client-api-http-client.md) | Camada de fetch centralizada (http-client/client-api) |
+| [ADR-0004](docs/adr/0004-rhf-zod-forms.md) | React Hook Form + Zod em todo formulário |
+| [ADR-0005](docs/adr/0005-module-structure.md) | Reestruturação em `src/modules/<feature>` |
+| [ADR-0006](docs/adr/0006-services-hooks-layer.md) | Camada `services/` + `hooks/` por módulo |
+| [ADR-0007](docs/adr/0007-module-boundary-lint.md) | Fronteira de módulo verificada por ferramenta (ESLint) |
 
 ---
 
