@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import {
   AlertCircle,
   ArrowLeft,
@@ -16,6 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { Button } from "@/components/ui/button";
 import {
   useAbrirCompetenciaDms,
   useDmsDetalhe,
@@ -27,6 +30,11 @@ import {
   useRemoverItemDms,
 } from "../hooks/use-fiscal-dms";
 import type { Empresa } from "../services/fiscal-dms.service";
+import {
+  escriturarItemFormSchema,
+  type EscriturarItemFormInput,
+  type EscriturarItemFormOutput,
+} from "../schemas/dms.schema";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
@@ -55,11 +63,16 @@ export function FiscalDms() {
   const [ano, setAno] = useState(String(hoje.getFullYear()));
   const [mes, setMes] = useState(String(hoje.getMonth() + 1));
 
-  // Formulário do item
-  const [itemServicoId, setItemServicoId] = useState("");
-  const [base, setBase] = useState("");
-  const [retido, setRetido] = useState(false);
-  const [tomadorDoc, setTomadorDoc] = useState("");
+  // Formulário do item — RHF + Zod (dado fiscal real: valor do serviço, retenção, tomador).
+  const {
+    register: registerItem,
+    handleSubmit: handleSubmitItem,
+    reset: resetItem,
+    formState: { errors: erroItem },
+  } = useForm<EscriturarItemFormInput, unknown, EscriturarItemFormOutput>({
+    resolver: zodResolver(escriturarItemFormSchema),
+    defaultValues: { itemServicoId: "", base: "", retido: false, tomadorDoc: "" },
+  });
 
   const empresas = useEmpresasEconomico();
   const ativas = useMemo(
@@ -117,21 +130,17 @@ export function FiscalDms() {
     return r;
   }
 
-  async function escriturar() {
+  async function escriturar(dados: EscriturarItemFormOutput) {
     if (!abertaId) return;
     const ok = await acao(() =>
       escriturarItemMutation.mutateAsync({
-        itemServicoLc116Id: itemServicoId,
-        baseCalculo: Number(base.replace(",", ".")),
-        retido,
-        tomadorDocumento: tomadorDoc.replace(/\D/g, "") || null,
+        itemServicoLc116Id: dados.itemServicoId,
+        baseCalculo: Number(dados.base.replace(",", ".")),
+        retido: dados.retido,
+        tomadorDocumento: dados.tomadorDoc.replace(/\D/g, "") || null,
       }),
     );
-    if (ok) {
-      setBase("");
-      setTomadorDoc("");
-      setRetido(false);
-    }
+    if (ok) resetItem();
   }
 
   async function entregar() {
@@ -150,8 +159,6 @@ export function FiscalDms() {
   const rascunho = d?.situacao === "RASCUNHO";
   // O backend recusa entregar competência sem item — não ofereça o que ele nega.
   const vazia = (d?.itens ?? []).length === 0;
-  const podeEscriturar =
-    rascunho && !!itemServicoId && Number(base.replace(",", ".")) > 0;
 
   if (empresas.isSuccess && ativas.length === 0) {
     return (
@@ -336,35 +343,43 @@ export function FiscalDms() {
           {rascunho ? (
             <>
               {/* Escriturar */}
-              <div className="px-5 py-4 border-t border-border space-y-3">
+              <form onSubmit={handleSubmitItem(escriturar)} className="px-5 py-4 border-t border-border space-y-3" noValidate>
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   Escriturar serviço
                 </p>
-                <select value={itemServicoId} onChange={(e) => setItemServicoId(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-border text-sm">
-                  <option value="">Selecione o serviço…</option>
-                  {(itens.data ?? []).map((i) => (
-                    <option key={i.id} value={i.itemServicoId}>
-                      {i.codigo} — {i.descricao}
-                    </option>
-                  ))}
-                </select>
+                <div>
+                  <select {...registerItem("itemServicoId")} className="w-full px-3 py-2.5 rounded-xl border border-border text-sm">
+                    <option value="">Selecione o serviço…</option>
+                    {(itens.data ?? []).map((i) => (
+                      <option key={i.id} value={i.itemServicoId}>
+                        {i.codigo} — {i.descricao}
+                      </option>
+                    ))}
+                  </select>
+                  {erroItem.itemServicoId && (
+                    <p className="text-xs text-destructive mt-1" role="alert">{erroItem.itemServicoId.message}</p>
+                  )}
+                </div>
                 <div className="grid sm:grid-cols-3 gap-3">
-                  <input value={base} onChange={(e) => setBase(e.target.value)} inputMode="decimal" placeholder="Valor do serviço" className="px-3 py-2.5 rounded-xl border border-border text-sm" />
-                  <input value={tomadorDoc} onChange={(e) => setTomadorDoc(e.target.value)} inputMode="numeric" placeholder="CPF/CNPJ do tomador (opcional)" className="px-3 py-2.5 rounded-xl border border-border text-sm" />
+                  <div>
+                    <input {...registerItem("base")} inputMode="decimal" placeholder="Valor do serviço" className="w-full px-3 py-2.5 rounded-xl border border-border text-sm" />
+                    {erroItem.base && <p className="text-xs text-destructive mt-1" role="alert">{erroItem.base.message}</p>}
+                  </div>
+                  <input {...registerItem("tomadorDoc")} inputMode="numeric" placeholder="CPF/CNPJ do tomador (opcional)" className="px-3 py-2.5 rounded-xl border border-border text-sm" />
                   <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <input type="checkbox" checked={retido} onChange={(e) => setRetido(e.target.checked)} className="rounded border-border" />
+                    <input type="checkbox" {...registerItem("retido")} className="rounded border-border" />
                     ISS retido pelo tomador
                   </label>
                 </div>
-                <button onClick={() => void escriturar()} disabled={!podeEscriturar || ocupado} className="px-4 py-2 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60">
+                <Button type="submit" disabled={ocupado} className="px-4 py-2 h-auto rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60">
                   <Plus className="size-4 mr-1.5" />
                   Adicionar
-                </button>
+                </Button>
                 <p className="text-[11px] text-muted-foreground">
                   O ISS sai da alíquota vigente do serviço. Marcando <strong>retido</strong>, o
                   imposto é devido pelo tomador e não entra na sua guia.
                 </p>
-              </div>
+              </form>
 
               {/* Entregar */}
               <div className="px-5 py-4 border-t border-border">

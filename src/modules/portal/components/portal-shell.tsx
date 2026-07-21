@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ClipboardList, Home, Landmark, Mail, Phone, Search, Wallet } from "lucide-react";
 import type { Cidadao, Ug } from "@/shared/types/portal";
+import { useLogoutCidadao } from "../hooks/use-logout";
 
 export function PortalShell({
   ug,
@@ -24,6 +25,7 @@ export function PortalShell({
 }) {
   const router = useRouter();
   const [busca, setBusca] = useState("");
+  const { mutateAsync: logout } = useLogoutCidadao();
 
   const submeterBusca = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ export function PortalShell({
   };
 
   const sair = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await logout();
     router.push("/");
     router.refresh();
   };

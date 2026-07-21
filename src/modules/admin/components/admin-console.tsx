@@ -12,6 +12,7 @@ import type { AdminCatalogo, AdminServico } from "@/shared/catalogo/catalogo-adm
 import type { Ambiente, CategoriaSeed } from "@/shared/catalogo/catalogo-seed";
 import { CatalogoIcon } from "@/shared/lib/icon-registry";
 import { useCatalogoAdmin, useExcluirCatalogo, useSalvarCatalogo } from "../hooks/use-catalogo-admin";
+import { useLogoutAdmin } from "../hooks/use-logout";
 import {
   ambienteSchema,
   categoriaSchema,
@@ -85,6 +86,7 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
   const [erro, setErro] = useState<string | null>(null);
   const salvarMutation = useSalvarCatalogo();
   const excluirMutation = useExcluirCatalogo();
+  const logoutMutation = useLogoutAdmin();
   const busy = salvarMutation.isPending || excluirMutation.isPending;
 
   async function enviar(url: string, body: unknown) {
@@ -108,7 +110,7 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
   }
 
   async function sair() {
-    await fetch("/api/admin/logout", { method: "POST" });
+    await logoutMutation.mutateAsync();
     router.push("/admin/entrar");
     router.refresh();
   }
