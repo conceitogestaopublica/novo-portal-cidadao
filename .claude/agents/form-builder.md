@@ -8,18 +8,26 @@ tools: Read, Write, Edit, Bash
 
 ## Escopo
 
-Responsável por criar formulários usando a stack padrão: RHF + Zod + shadcn/ui Form.
-**Nunca** criar formulário controlado manualmente (`useState` por campo) ou com validação custom fora do Zod.
+Responsável por criar formulários usando a stack padrão: RHF + Zod + `Input`/`Label`
+do shadcn/ui. **Nunca** criar formulário controlado manualmente (`useState` por
+campo) ou com validação custom fora do Zod.
+
+> O style `base-nova` (usado aqui e no `gpd-web-tributario-front`) **não** inclui os
+> componentes `Form`/`FormField`/`FormItem`/`FormControl`/`FormMessage` de outros
+> styles do shadcn/ui — só `Input`, `Label`, `Button`, etc. O padrão real (confirmado
+> em `gpd-web-tributario-front/src/modules/auth/components/login-form.tsx`) é
+> `register()`/`handleSubmit()` do próprio RHF, com `Label`+`Input` do shadcn e a
+> mensagem de erro exibida manualmente a partir de `formState.errors`.
 
 ## Regras
 
 1. **Schema Zod único.** O schema valida o formulário E tipa o payload enviado à rota BFF. Quando a rota `route.ts` já tem um `z.object(...)` de validação (padrão deste projeto), reaproveite-o via `import` em vez de duplicar as regras no client.
 2. **zodResolver obrigatório.** `useForm({ resolver: zodResolver(schema) })`.
-3. **Componentes Form do shadcn.** Usar `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage` — nunca criar estrutura de form própria (o padrão antigo do projeto, com `<div>{erro}</div>` manual, está sendo descontinuado).
+3. **`register()` + `Label`/`Input` do shadcn.** Sem `Form`/`FormField`/`FormControl` (não existem no style `base-nova`). Cada campo é `<Label htmlFor="x">` + `<Input id="x" {...register('x')} />` + `{errors.x && <p role="alert">{errors.x.message}</p>}`.
 4. **Formulário é sempre `'use client'`.** RHF precisa de estado.
 5. **Sem lógica de negócio no componente.** Delegar submit para hook/mutation React Query (ver `data-fetching`).
-6. **Loading durante submit.** Desabilitar botão e mostrar indicador (`isPending`/`isSubmitting`).
-7. **Erro da API exibido.** Se a rota BFF retornar erro (ex.: documento já cadastrado, OTP inválido), propagar a mensagem via `form.setError('root', ...)` ou `toast.error(...)` — nunca uma mensagem genérica quando a API já devolveu uma específica.
+6. **Loading durante submit.** Desabilitar botão e mostrar indicador (`isSubmitting`/`isPending`).
+7. **Erro da API exibido.** Se a rota BFF retornar erro (ex.: documento já cadastrado, OTP inválido), propagar a mensagem real — nunca uma mensagem genérica quando a API já devolveu uma específica.
 
 ## Estrutura Padrão
 
@@ -29,10 +37,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useCadastrar } from '../hooks/use-auth'
 
 const schema = z.object({
@@ -44,43 +50,38 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export function CadastroForm() {
-  const form = useForm<FormData>({ resolver: zodResolver(schema) })
-  const { mutate, isPending } = useCadastrar()
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { mutateAsync } = useCadastrar()
 
-  function onSubmit(data: FormData) {
-    mutate(data, {
-      onError: (err) => form.setError('root', { message: err.message }),
-    })
+  async function onSubmit(data: FormData) {
+    try {
+      await mutateAsync(data)
+    } catch (err) {
+      setError('root', { message: err instanceof Error ? err.message : 'Erro ao cadastrar' })
+    }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="nome"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome completo</FormLabel>
-              <FormControl>
-                <Input placeholder="Seu nome" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <div className="space-y-1.5">
+        <Label htmlFor="nome">Nome completo</Label>
+        <Input id="nome" {...register('nome')} />
+        {errors.nome && <p className="text-sm text-destructive" role="alert">{errors.nome.message}</p>}
+      </div>
 
-        {form.formState.errors.root && (
-          <p className="text-sm text-destructive" role="alert">
-            {form.formState.errors.root.message}
-          </p>
-        )}
+      {errors.root && (
+        <p className="text-sm text-destructive" role="alert">{errors.root.message}</p>
+      )}
 
-        <Button type="submit" disabled={isPending}>
-          {isPending ? 'Enviando...' : 'Cadastrar'}
-        </Button>
-      </form>
-    </Form>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Enviando...' : 'Cadastrar'}
+      </Button>
+    </form>
   )
 }
 ```
@@ -90,9 +91,9 @@ export function CadastroForm() {
 - [ ] `'use client'` no topo
 - [ ] Schema Zod definido em `schemas/` do módulo (reaproveitado do `route.ts` quando existir)
 - [ ] `useForm` com `zodResolver(schema)`
-- [ ] Componentes Form/FormField/FormItem/FormLabel/FormControl/FormMessage usados
-- [ ] Todo campo tem `FormLabel` e `FormMessage`
-- [ ] Botão de submit desabilitado durante loading
+- [ ] Campos com `register()` + `Label`/`Input` do shadcn — sem `Form`/`FormField` (não existem no style `base-nova`)
+- [ ] Todo campo com mensagem de erro exibida a partir de `formState.errors`
+- [ ] Botão de submit desabilitado durante loading (`isSubmitting`/`isPending`)
 - [ ] Erro da API exibido ao usuário com a mensagem real do backend
 - [ ] Nenhuma lógica de negócio no componente — apenas no hook/mutation
 - [ ] Schema tipado — sem `any`

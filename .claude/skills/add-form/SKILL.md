@@ -5,6 +5,12 @@ description: Criar formulário RHF + Zod com estados de loading, tratamento de e
 
 # Skill: add-form
 
+> O style shadcn `base-nova` deste projeto não tem `Form`/`FormField`/`FormControl`/
+> `FormMessage` — só `Input`, `Label`, `Button`. O padrão real é `register()` do RHF
+> direto no `Input`, com erro exibido a partir de `formState.errors` (ver
+> `gpd-web-tributario-front/src/modules/auth/components/login-form.tsx` como
+> referência cruzada).
+
 ## Passos
 
 ### 1. Definir (ou reaproveitar) o schema Zod
@@ -37,57 +43,52 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import {
-  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { cadastroSchema, type CadastroDto } from '../schemas/cadastro.schema'
 import { useCadastrar } from '../hooks/use-auth'
 
 export function CadastroForm() {
   const router = useRouter()
-  const form = useForm<CadastroDto>({
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CadastroDto>({
     resolver: zodResolver(cadastroSchema),
     defaultValues: { documento: '', nome: '', email: '', senha: '' },
   })
 
-  const { mutate, isPending } = useCadastrar()
+  const { mutateAsync } = useCadastrar()
 
-  function onSubmit(data: CadastroDto) {
-    mutate(data, {
-      onSuccess: () => router.push('/'),
-      onError: (err) => form.setError('root', { message: err.message ?? 'Erro ao cadastrar' }),
-    })
+  async function onSubmit(data: CadastroDto) {
+    try {
+      await mutateAsync(data)
+      router.push('/')
+    } catch (err) {
+      setError('root', { message: err instanceof Error ? err.message : 'Erro ao cadastrar' })
+    }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="nome"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome completo</FormLabel>
-              <FormControl>
-                <Input placeholder="Nome completo" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {form.formState.errors.root && (
-          <p className="text-sm text-destructive" role="alert">
-            {form.formState.errors.root.message}
-          </p>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <div className="space-y-1.5">
+        <Label htmlFor="nome">Nome completo</Label>
+        <Input id="nome" placeholder="Nome completo" {...register('nome')} />
+        {errors.nome && (
+          <p className="text-sm text-destructive" role="alert">{errors.nome.message}</p>
         )}
+      </div>
 
-        <Button type="submit" disabled={isPending}>
-          {isPending ? 'Enviando...' : 'Cadastrar'}
-        </Button>
-      </form>
-    </Form>
+      {errors.root && (
+        <p className="text-sm text-destructive" role="alert">{errors.root.message}</p>
+      )}
+
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Enviando...' : 'Cadastrar'}
+      </Button>
+    </form>
   )
 }
 ```
@@ -104,28 +105,25 @@ padrão RHF+Zod acima, não um form gigante com campos condicionais.
 
 ```typescript
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Controller } from 'react-hook-form'
 
-<FormField
-  control={form.control}
-  name="tipo"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Tipo</FormLabel>
+<div className="space-y-1.5">
+  <Label htmlFor="tipo">Tipo</Label>
+  <Controller
+    control={control}
+    name="tipo"
+    render={({ field }) => (
       <Select onValueChange={field.onChange} defaultValue={field.value}>
-        <FormControl>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione" />
-          </SelectTrigger>
-        </FormControl>
+        <SelectTrigger id="tipo"><SelectValue placeholder="Selecione" /></SelectTrigger>
         <SelectContent>
           <SelectItem value="A">Opção A</SelectItem>
           <SelectItem value="B">Opção B</SelectItem>
         </SelectContent>
       </Select>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+    )}
+  />
+  {errors.tipo && <p className="text-sm text-destructive" role="alert">{errors.tipo.message}</p>}
+</div>
 ```
 
 ## Checklist
@@ -134,8 +132,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 - [ ] Schema Zod em `schemas/`, reaproveitado do `route.ts` quando ele já existir
 - [ ] `useForm` com `zodResolver`
 - [ ] `defaultValues` definidos (evita uncontrolled → controlled warning)
-- [ ] Todos os campos com `FormLabel` e `FormMessage`
-- [ ] Botão submit desabilitado com `isPending`
+- [ ] Campos com `register()` + `Label`/`Input` do shadcn — sem `Form`/`FormField`
+- [ ] Todo campo com erro exibido a partir de `formState.errors`
+- [ ] Botão submit desabilitado com `isSubmitting`/`isPending`
 - [ ] Erro geral da API exibido com `role="alert"`, com a mensagem real do backend
 - [ ] Nenhuma lógica de negócio no componente — apenas no mutation
 - [ ] Fluxo multi-etapa modelado como schemas separados por etapa, não um form condicional gigante
