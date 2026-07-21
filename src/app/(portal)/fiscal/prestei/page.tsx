@@ -4,39 +4,11 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, FilePlus2, Plus, Receipt, UserLock } from "lucide-react";
+import { postJson, requestJsonOrError } from "@/shared/lib/client-api";
+import { isSessaoExpirada } from "@/shared/lib/http-client";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
-
-async function getJson(url: string) {
-  const res = await fetch(url);
-  if (res.status === 401) throw new Error("SESSAO");
-  if (!res.ok) throw new Error("ERRO");
-  return res.json();
-}
-
-/** O 422 traz o motivo dentro de `errors`; `message` só diz "Entity Validation Error". */
-function motivo(data: unknown, padrao: string): string {
-  const d = data as { message?: string; errors?: unknown };
-  const folhas: string[] = [];
-  const colher = (v: unknown) => {
-    if (typeof v === "string") folhas.push(v);
-    else if (v && typeof v === "object") Object.values(v).forEach(colher);
-  };
-  colher(d?.errors);
-  return folhas.length > 0 ? folhas.join(" ") : (d?.message ?? padrao);
-}
-
-async function postJson(url: string, body: unknown) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(motivo(data, "Falha na operação."));
-  return data;
-}
 
 type Pendente = {
   id: string;
@@ -73,10 +45,10 @@ export default function PresteiPage() {
 
   const pendentes = useQuery<Pendentes>({
     queryKey: ["prestei", "pendentes"],
-    queryFn: () => getJson("/api/fiscal/tomadas/prestei/pendentes"),
+    queryFn: () => requestJsonOrError<Pendentes>("/api/fiscal/tomadas/prestei/pendentes"),
   });
 
-  if (pendentes.error instanceof Error && pendentes.error.message === "SESSAO") {
+  if (isSessaoExpirada(pendentes.error)) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
         <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
@@ -106,16 +78,20 @@ export default function PresteiPage() {
   async function declarar(e: React.FormEvent) {
     e.preventDefault();
     const ok = await acao(() =>
-      postJson("/api/fiscal/tomadas/prestei", {
-        tomadorDocumento: f.tomadorDocumento.replace(/\D/g, ""),
-        tomadorNome: f.tomadorNome || null,
-        numeroNota: f.numeroNota,
-        competencia: f.competencia,
-        dataEmissao: f.dataEmissao,
-        discriminacao: f.discriminacao || null,
-        valorServicos: Number(f.valorServicos.replace(",", ".")),
-        valorIss: Number(f.valorIss.replace(",", ".")),
-      }),
+      postJson(
+        "/api/fiscal/tomadas/prestei",
+        {
+          tomadorDocumento: f.tomadorDocumento.replace(/\D/g, ""),
+          tomadorNome: f.tomadorNome || null,
+          numeroNota: f.numeroNota,
+          competencia: f.competencia,
+          dataEmissao: f.dataEmissao,
+          discriminacao: f.discriminacao || null,
+          valorServicos: Number(f.valorServicos.replace(",", ".")),
+          valorIss: Number(f.valorIss.replace(",", ".")),
+        },
+        "Falha na operação.",
+      ),
     );
     if (ok) {
       setF({ ...f, numeroNota: "", valorServicos: "", valorIss: "", discriminacao: "" });
@@ -131,10 +107,14 @@ export default function PresteiPage() {
     )
       return;
     const ok = await acao(() =>
-      postJson("/api/fiscal/tomadas/prestei/guia", {
-        notaIds: ids,
-        dataVencimento: vencimentoPadrao(),
-      }),
+      postJson(
+        "/api/fiscal/tomadas/prestei/guia",
+        {
+          notaIds: ids,
+          dataVencimento: vencimentoPadrao(),
+        },
+        "Falha na operação.",
+      ),
     );
     if (ok) setSelecao([]);
   }

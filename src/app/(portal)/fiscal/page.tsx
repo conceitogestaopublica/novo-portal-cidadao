@@ -27,6 +27,8 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import AtuarComoSeletor from "./AtuarComoSeletor";
+import { requestJsonOrError } from "@/shared/lib/client-api";
+import { isSessaoExpirada } from "@/shared/lib/http-client";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -50,13 +52,6 @@ function dateBR(v: unknown): string {
   if (!v) return "—";
   const d = new Date(String(v));
   return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString("pt-BR");
-}
-
-async function getJson(url: string) {
-  const res = await fetch(url);
-  if (res.status === 401) throw new Error("SESSAO");
-  if (!res.ok) throw new Error("ERRO");
-  return res.json();
 }
 
 /**
@@ -86,11 +81,11 @@ type Msg = Record<string, unknown>;
 type AlvoAtualizar = { id: string; numero: string };
 
 export default function FiscalPage() {
-  const resumo = useQuery({ queryKey: ["fiscal", "resumo"], queryFn: () => getJson("/api/fiscal/resumo") });
+  const resumo = useQuery({ queryKey: ["fiscal", "resumo"], queryFn: () => requestJsonOrError("/api/fiscal/resumo") });
   const [verPagas, setVerPagas] = useState(false);
-  const guias = useQuery({ queryKey: ["fiscal", "guias", verPagas ? "pagas" : "abertas"], queryFn: () => getJson(`/api/fiscal/guias${verPagas ? "?pagas=1" : ""}`) });
-  const caixa = useQuery({ queryKey: ["fiscal", "caixa"], queryFn: () => getJson("/api/fiscal/caixa-postal") });
-  const divida = useQuery({ queryKey: ["fiscal", "divida"], queryFn: () => getJson("/api/fiscal/divida-ativa") });
+  const guias = useQuery({ queryKey: ["fiscal", "guias", verPagas ? "pagas" : "abertas"], queryFn: () => requestJsonOrError(`/api/fiscal/guias${verPagas ? "?pagas=1" : ""}`) });
+  const caixa = useQuery({ queryKey: ["fiscal", "caixa"], queryFn: () => requestJsonOrError("/api/fiscal/caixa-postal") });
+  const divida = useQuery({ queryKey: ["fiscal", "divida"], queryFn: () => requestJsonOrError("/api/fiscal/divida-ativa") });
   const qc = useQueryClient();
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState<{ campo: "numero" | "vencimento" | "valor"; dir: "asc" | "desc" }>({ campo: "vencimento", dir: "asc" });
@@ -134,7 +129,7 @@ export default function FiscalPage() {
     }
   }
 
-  const semSessao = [resumo, guias, caixa].some((q) => q.error instanceof Error && q.error.message === "SESSAO");
+  const semSessao = [resumo, guias, caixa].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">

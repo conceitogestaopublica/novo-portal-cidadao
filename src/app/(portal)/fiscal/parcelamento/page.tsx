@@ -16,6 +16,8 @@ import {
   Receipt,
   UserLock,
 } from "lucide-react";
+import { postJson, requestJsonOrError } from "@/shared/lib/client-api";
+import { isSessaoExpirada } from "@/shared/lib/http-client";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
@@ -23,19 +25,6 @@ const dateBR = (v: unknown) => {
   const d = new Date(String(v));
   return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR");
 };
-
-async function getJson(url: string) {
-  const res = await fetch(url);
-  if (res.status === 401) throw new Error("SESSAO");
-  if (!res.ok) throw new Error("ERRO");
-  return res.json();
-}
-async function postJson(url: string, body: unknown) {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message ?? "Falha na operação.");
-  return data;
-}
 
 type Programa = { id: string; nome: string; fundamentoLegal?: string | null; maxParcelas: number; entradaPercentual: number; valorMinimoParcela: number; textoConfissao?: string | null };
 type Debito = { inscricaoId: string; numero: string; saldoAtualizado: number; elegivel: boolean; motivoInelegivel?: string; valorPrincipal?: number; valorMulta?: number; valorJuros?: number; valorCorrecao?: number; valorEncargoLegal?: number };
@@ -55,10 +44,10 @@ export default function ParcelamentoPage() {
   const [verEntram, setVerEntram] = useState(false);
   const [verNaoEntram, setVerNaoEntram] = useState(false);
 
-  const programas = useQuery<{ programas: Programa[] }>({ queryKey: ["parc", "programas"], queryFn: () => getJson("/api/fiscal/parcelamento/programas") });
+  const programas = useQuery<{ programas: Programa[] }>({ queryKey: ["parc", "programas"], queryFn: () => requestJsonOrError<{ programas: Programa[] }>("/api/fiscal/parcelamento/programas") });
   const debitos = useQuery<DebitosResp>({
     queryKey: ["parc", "debitos", programaId],
-    queryFn: () => getJson(`/api/fiscal/parcelamento/debitos?parametroId=${programaId}`),
+    queryFn: () => requestJsonOrError<DebitosResp>(`/api/fiscal/parcelamento/debitos?parametroId=${programaId}`),
     enabled: !!programaId,
   });
 
@@ -86,7 +75,7 @@ export default function ParcelamentoPage() {
     if (novo && (parseInt(qtdStr, 10) || 1) > novo.maxParcelas) setQtdStr(String(novo.maxParcelas));
   }
 
-  if ([programas, debitos].some((q) => q.error instanceof Error && q.error.message === "SESSAO")) {
+  if ([programas, debitos].some((q) => isSessaoExpirada(q.error))) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
         <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
@@ -102,7 +91,13 @@ export default function ParcelamentoPage() {
     if (!programaId || ids.length === 0) return;
     setErro(null); setOcupado(true); setSim(null);
     try {
-      setSim(await postJson("/api/fiscal/parcelamento/simular", { parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd }));
+      setSim(
+        await postJson<Simulacao>(
+          "/api/fiscal/parcelamento/simular",
+          { parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd },
+          "Falha na operação.",
+        ),
+      );
     } catch (e) { setErro(e instanceof Error ? e.message : "Erro ao simular."); } finally { setOcupado(false); }
   }
 
@@ -111,7 +106,11 @@ export default function ParcelamentoPage() {
     if (!window.confirm(`${programa.textoConfissao ?? "Ao aderir, você confessa o débito e se compromete a pagar as parcelas."}\n\nDeseja confirmar a adesão ao ${programa.nome}?`)) return;
     setErro(null); setOcupado(true);
     try {
-      const r = (await postJson("/api/fiscal/parcelamento/aderir", { parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd })) as Resultado;
+      const r = await postJson<Resultado>(
+        "/api/fiscal/parcelamento/aderir",
+        { parametroId: programaId, inscricaoIds: ids, qtdParcelas: qtd },
+        "Falha na operação.",
+      );
       setResultado(r);
     } catch (e) { setErro(e instanceof Error ? e.message : "Erro ao aderir."); } finally { setOcupado(false); }
   }

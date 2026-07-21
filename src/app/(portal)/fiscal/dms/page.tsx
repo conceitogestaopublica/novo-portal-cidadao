@@ -16,44 +16,13 @@ import {
   UserLock,
 } from "lucide-react";
 import Link from "next/link";
+import { postJson, requestJsonOrError, requestNoContentOrError } from "@/shared/lib/client-api";
+import { isSessaoExpirada } from "@/shared/lib/http-client";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 const competenciaLabel = (ano: number, mes: number) => `${MESES[mes - 1]}/${ano}`;
-
-async function getJson(url: string) {
-  const res = await fetch(url);
-  if (res.status === 401) throw new Error("SESSAO");
-  if (!res.ok) throw new Error("ERRO");
-  return res.json();
-}
-/**
- * O 422 do backend traz o motivo útil dentro de `errors` ({campo:{regra:texto}})
- * e deixa em `message` só "Entity Validation Error" — que não diz nada a quem
- * está declarando. Colhe as folhas de texto e cai no `message` só se não houver.
- */
-function motivo(data: unknown, padrao: string): string {
-  const d = data as { message?: string; errors?: unknown };
-  const folhas: string[] = [];
-  const colher = (v: unknown) => {
-    if (typeof v === "string") folhas.push(v);
-    else if (v && typeof v === "object") Object.values(v).forEach(colher);
-  };
-  colher(d?.errors);
-  return folhas.length > 0 ? folhas.join(" ") : (d?.message ?? padrao);
-}
-
-async function send(url: string, method: string, body?: unknown) {
-  const res = await fetch(url, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(motivo(data, "Falha na operação."));
-  return data;
-}
 
 type Empresa = { economicoId: string; inscricaoMunicipal: string; ativo: boolean };
 type ItemServico = { id: string; itemServicoId: string; codigo: string; descricao: string };
@@ -110,30 +79,28 @@ export default function DmsPage() {
 
   const empresas = useQuery<Empresa[]>({
     queryKey: ["dms", "empresas"],
-    queryFn: () => getJson("/api/fiscal/nfse/economicos"),
+    queryFn: () => requestJsonOrError<Empresa[]>("/api/fiscal/nfse/economicos"),
   });
   const ativas = useMemo(() => (empresas.data ?? []).filter((e) => e.ativo), [empresas.data]);
   const empresaId = economicoId || ativas[0]?.economicoId || "";
 
   const lista = useQuery<Dms[]>({
     queryKey: ["dms", "lista", empresaId],
-    queryFn: () => getJson(`/api/fiscal/dms?economicoId=${empresaId}`),
+    queryFn: () => requestJsonOrError<Dms[]>(`/api/fiscal/dms?economicoId=${empresaId}`),
     enabled: !!empresaId,
   });
   const detalhe = useQuery<Dms>({
     queryKey: ["dms", "detalhe", abertaId],
-    queryFn: () => getJson(`/api/fiscal/dms/${abertaId}`),
+    queryFn: () => requestJsonOrError<Dms>(`/api/fiscal/dms/${abertaId}`),
     enabled: !!abertaId,
   });
   const itens = useQuery<ItemServico[]>({
     queryKey: ["dms", "itens-servico", empresaId],
-    queryFn: () => getJson(`/api/fiscal/nfse/itens-servico?economicoId=${empresaId}`),
+    queryFn: () => requestJsonOrError<ItemServico[]>(`/api/fiscal/nfse/itens-servico?economicoId=${empresaId}`),
     enabled: !!empresaId,
   });
 
-  const semSessao = [empresas, lista].some(
-    (q) => q.error instanceof Error && q.error.message === "SESSAO",
-  );
+  const semSessao = [empresas, lista].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
@@ -168,11 +135,15 @@ export default function DmsPage() {
 
   async function abrirCompetencia() {
     const r = (await acao(async () => {
-      const d = (await send("/api/fiscal/dms", "POST", {
-        economicoId: empresaId,
-        competenciaAno: Number(ano),
-        competenciaMes: Number(mes),
-      })) as { id: string };
+      const d = await postJson<{ id: string }>(
+        "/api/fiscal/dms",
+        {
+          economicoId: empresaId,
+          competenciaAno: Number(ano),
+          competenciaMes: Number(mes),
+        },
+        "Falha na operação.",
+      );
       setAbertaId(d.id);
       return d;
     })) as boolean;
@@ -182,12 +153,16 @@ export default function DmsPage() {
   async function escriturar() {
     if (!abertaId) return;
     const ok = await acao(() =>
-      send(`/api/fiscal/dms/${abertaId}/itens`, "POST", {
-        itemServicoLc116Id: itemServicoId,
-        baseCalculo: Number(base.replace(",", ".")),
-        retido,
-        tomadorDocumento: tomadorDoc.replace(/\D/g, "") || null,
-      }),
+      postJson(
+        `/api/fiscal/dms/${abertaId}/itens`,
+        {
+          itemServicoLc116Id: itemServicoId,
+          baseCalculo: Number(base.replace(",", ".")),
+          retido,
+          tomadorDocumento: tomadorDoc.replace(/\D/g, "") || null,
+        },
+        "Falha na operação.",
+      ),
     );
     if (ok) {
       setBase("");
@@ -206,9 +181,13 @@ export default function DmsPage() {
     )
       return;
     await acao(() =>
-      send(`/api/fiscal/dms/${abertaId}/entregar`, "POST", {
-        dataVencimento: vencimentoPadrao(),
-      }),
+      postJson(
+        `/api/fiscal/dms/${abertaId}/entregar`,
+        {
+          dataVencimento: vencimentoPadrao(),
+        },
+        "Falha na operação.",
+      ),
     );
   }
 
@@ -384,7 +363,15 @@ export default function DmsPage() {
                           <button
                             type="button"
                             disabled={ocupado}
-                            onClick={() => void acao(() => send(`/api/fiscal/dms/${abertaId}/itens/${i.id}`, "DELETE"))}
+                            onClick={() =>
+                              void acao(() =>
+                                requestNoContentOrError(
+                                  `/api/fiscal/dms/${abertaId}/itens/${i.id}`,
+                                  { method: "DELETE" },
+                                  "Falha na operação.",
+                                ),
+                              )
+                            }
                             className="text-gray-300 hover:text-red-600"
                             title="Remover"
                           >

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { baixarArquivo } from "@/shared/lib/baixar-arquivo";
+import { postJson, requestJsonOrError } from "@/shared/lib/client-api";
+import { isSessaoExpirada } from "@/shared/lib/http-client";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
@@ -22,23 +24,6 @@ const dateBR = (v: unknown) => {
   const d = new Date(String(v));
   return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 };
-
-async function getJson(url: string) {
-  const res = await fetch(url);
-  if (res.status === 401) throw new Error("SESSAO");
-  if (!res.ok) throw new Error("ERRO");
-  return res.json();
-}
-async function postJson(url: string, body: unknown) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.message ?? "Falha ao emitir.");
-  return data;
-}
 
 type Empresa = {
   economicoId: string;
@@ -99,7 +84,7 @@ export default function NfsePage() {
 
   const empresas = useQuery<Empresa[]>({
     queryKey: ["nfse", "empresas"],
-    queryFn: () => getJson("/api/fiscal/nfse/economicos"),
+    queryFn: () => requestJsonOrError<Empresa[]>("/api/fiscal/nfse/economicos"),
   });
 
   // A empresa escolhida vale o que o usuário selecionou; sem seleção, cai na
@@ -112,18 +97,16 @@ export default function NfsePage() {
 
   const itens = useQuery<ItemServico[]>({
     queryKey: ["nfse", "itens", empresaId],
-    queryFn: () => getJson(`/api/fiscal/nfse/itens-servico?economicoId=${empresaId}`),
+    queryFn: () => requestJsonOrError<ItemServico[]>(`/api/fiscal/nfse/itens-servico?economicoId=${empresaId}`),
     enabled: !!empresaId,
   });
   const notas = useQuery<Notas>({
     queryKey: ["nfse", "notas", empresaId],
-    queryFn: () => getJson(`/api/fiscal/nfse?economicoId=${empresaId}&perPage=50`),
+    queryFn: () => requestJsonOrError<Notas>(`/api/fiscal/nfse?economicoId=${empresaId}&perPage=50`),
     enabled: !!empresaId,
   });
 
-  const semSessao = [empresas, itens, notas].some(
-    (q) => q.error instanceof Error && q.error.message === "SESSAO",
-  );
+  const semSessao = [empresas, itens, notas].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
@@ -156,17 +139,21 @@ export default function NfsePage() {
     setErro(null);
     setOcupado(true);
     try {
-      const r = (await postJson("/api/fiscal/nfse", {
-        economicoId: empresaId,
-        itemServicoId,
-        discriminacao: discriminacao.trim(),
-        valorServicos: Number(valor.replace(",", ".")),
-        issRetido,
-        tomador: {
-          nome: tomadorNome.trim(),
-          documento: tomadorDoc.replace(/\D/g, "") || null,
+      const r = await postJson<Emitida>(
+        "/api/fiscal/nfse",
+        {
+          economicoId: empresaId,
+          itemServicoId,
+          discriminacao: discriminacao.trim(),
+          valorServicos: Number(valor.replace(",", ".")),
+          issRetido,
+          tomador: {
+            nome: tomadorNome.trim(),
+            documento: tomadorDoc.replace(/\D/g, "") || null,
+          },
         },
-      })) as Emitida;
+        "Falha ao emitir.",
+      );
       setEmitida(r);
       setEmitindo(false);
       limpar();

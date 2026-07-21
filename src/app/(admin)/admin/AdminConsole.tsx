@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AdminCatalogo, AdminServico } from "@/shared/catalogo/catalogo-admin-repo";
 import type { Ambiente, CategoriaSeed } from "@/shared/catalogo/catalogo-seed";
+import { postJson, requestJsonOrError, requestNoContentOrError } from "@/shared/lib/client-api";
 import { CatalogoIcon } from "@/shared/lib/icon-registry";
 
 type Aba = "ambientes" | "categorias" | "servicos";
@@ -66,21 +67,14 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
   const [busy, setBusy] = useState(false);
 
   async function recarregar() {
-    const res = await fetch("/api/admin/catalogo", { cache: "no-store" });
-    if (res.ok) setData((await res.json()) as AdminCatalogo);
+    setData(await requestJsonOrError<AdminCatalogo>("/api/admin/catalogo", { cache: "no-store" }));
   }
 
   async function enviar(url: string, body: unknown) {
     setBusy(true);
     setErro(null);
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(d?.message ?? "Falha ao salvar");
+      await postJson(url, body, "Falha ao salvar");
       await recarregar();
       setEditing(null);
     } catch (e) {
@@ -95,9 +89,7 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
     setBusy(true);
     setErro(null);
     try {
-      const res = await fetch(url, { method: "DELETE" });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(d?.message ?? "Falha ao excluir");
+      await requestNoContentOrError(url, { method: "DELETE" }, "Falha ao excluir");
       await recarregar();
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro");

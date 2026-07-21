@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { CatalogoIcon } from "@/shared/lib/icon-registry";
+import { requestJsonOrError } from "@/shared/lib/client-api";
 import type { Servico } from "@/shared/types/portal";
 
 function BuscarInner() {
@@ -16,12 +17,13 @@ function BuscarInner() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["servicos", termo, publico],
-    queryFn: async () => {
+    queryFn: () => {
       const p = new URLSearchParams();
       if (termo) p.set("q", termo);
       if (publico) p.set("publico", publico);
-      const res = await fetch(`/api/servicos?${p.toString()}`);
-      return res.json() as Promise<{ items: Servico[]; total: number; publicos: Record<string, string> }>;
+      return requestJsonOrError<{ items: Servico[]; total: number; publicos: Record<string, string> }>(
+        `/api/servicos?${p.toString()}`,
+      );
     },
   });
 

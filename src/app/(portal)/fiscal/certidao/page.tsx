@@ -4,18 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CheckCircle2, FileSignature, Receipt, ShieldUser, TriangleAlert, UserLock } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { requestJsonOrError } from "@/shared/lib/client-api";
+import { isSessaoExpirada } from "@/shared/lib/http-client";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 function money(v: unknown): string {
   const n = Number(v);
   return Number.isFinite(n) ? BRL.format(n) : "—";
-}
-
-async function getJson(url: string) {
-  const res = await fetch(url);
-  if (res.status === 401) throw new Error("SESSAO");
-  if (!res.ok) throw new Error("ERRO");
-  return res.json();
 }
 
 type Apuracao = {
@@ -28,10 +23,10 @@ export default function CertidaoPage() {
   const [emitindo, setEmitindo] = useState(false);
   const q = useQuery<Apuracao>({
     queryKey: ["fiscal", "certidao", "apurar"],
-    queryFn: () => getJson("/api/fiscal/certidao/apurar"),
+    queryFn: () => requestJsonOrError<Apuracao>("/api/fiscal/certidao/apurar"),
   });
 
-  if (q.error instanceof Error && q.error.message === "SESSAO") {
+  if (isSessaoExpirada(q.error)) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
         <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
