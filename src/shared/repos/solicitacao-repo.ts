@@ -1,6 +1,7 @@
 import "server-only";
 import { randomInt } from "crypto";
-import { db } from "@/shared/lib/db";
+import { Prisma, type PortalSolicitacao } from "@prisma/client";
+import { prisma } from "@/shared/lib/prisma";
 
 /**
  * Solicitação do Portal (Lei 13.460) — espelho leve no banco do portal. A
@@ -26,23 +27,23 @@ export interface Solicitacao {
   criadoEm: string;
 }
 
-function map(r: Record<string, unknown>): Solicitacao {
+function map(s: PortalSolicitacao): Solicitacao {
   return {
-    id: r.id as string,
-    protocolo: r.protocolo as string,
-    municipio: r.municipio as string,
-    contaId: (r.conta_id as string) ?? null,
-    documento: (r.documento as string) ?? null,
-    nome: r.nome as string,
-    contato: (r.contato as string) ?? null,
-    servicoSlug: r.servico_slug as string,
-    servicoTitulo: r.servico_titulo as string,
-    mensagem: (r.mensagem as string) ?? null,
-    situacao: r.situacao as string,
-    protocoloSistema: (r.protocolo_sistema as string) ?? null,
-    protocoloId: (r.protocolo_id as string) ?? null,
-    protocoloNumero: (r.protocolo_numero as string) ?? null,
-    criadoEm: (r.criado_em as Date)?.toISOString?.() ?? String(r.criado_em),
+    id: s.id,
+    protocolo: s.protocolo,
+    municipio: s.municipio,
+    contaId: s.contaId,
+    documento: s.documento,
+    nome: s.nome,
+    contato: s.contato,
+    servicoSlug: s.servicoSlug,
+    servicoTitulo: s.servicoTitulo,
+    mensagem: s.mensagem,
+    situacao: s.situacao,
+    protocoloSistema: s.protocoloSistema,
+    protocoloId: s.protocoloId,
+    protocoloNumero: s.protocoloNumero,
+    criadoEm: s.criadoEm.toISOString(),
   };
 }
 
@@ -51,33 +52,41 @@ export async function vincularProtocolo(
   id: string,
   info: { sistema: string; protocoloId: string; numero: string },
 ): Promise<void> {
-  await db().query(
-    "UPDATE portal_solicitacoes SET protocolo_sistema=$2, protocolo_id=$3, protocolo_numero=$4, atualizado_em=now() WHERE id=$1",
-    [id, info.sistema, info.protocoloId, info.numero],
-  );
+  await prisma.portalSolicitacao.update({
+    where: { id },
+    data: {
+      protocoloSistema: info.sistema,
+      protocoloId: info.protocoloId,
+      protocoloNumero: info.numero,
+      atualizadoEm: new Date(),
+    },
+  });
 }
 
 /**
  * Atualiza a situação (e protocolo, se ainda faltando) de uma solicitação a partir
  * do webhook do sistema de destino, localizando-a pelo `protocolo` (origem_ref)
  * dentro do município. Retorna quantas linhas foram afetadas.
+ *
+ * Usa SQL cru (via `$executeRaw`, ainda client Prisma — não `pg`) porque o
+ * COALESCE precisa ler o valor ATUAL da linha dentro do mesmo UPDATE atômico;
+ * um find-então-update em dois passos teria uma janela de corrida entre
+ * chamadas concorrentes do webhook.
  */
 export async function atualizarPorOrigemRef(
   municipio: string,
   origemRef: string,
   info: { situacao?: string | null; protocoloId?: string | null; numero?: string | null },
 ): Promise<number> {
-  const r = await db().query(
-    `UPDATE portal_solicitacoes SET
-       situacao = COALESCE($3, situacao),
-       protocolo_id = COALESCE($4, protocolo_id),
-       protocolo_numero = COALESCE($5, protocolo_numero),
-       protocolo_sistema = COALESCE(protocolo_sistema, 'gpe2'),
-       atualizado_em = now()
-     WHERE municipio=$1 AND protocolo=$2`,
-    [municipio, origemRef, info.situacao ?? null, info.protocoloId ?? null, info.numero ?? null],
-  );
-  return r.rowCount ?? 0;
+  return prisma.$executeRaw`
+    UPDATE portal_solicitacoes SET
+      situacao = COALESCE(${info.situacao ?? null}, situacao),
+      protocolo_id = COALESCE(${info.protocoloId ?? null}, protocolo_id),
+      protocolo_numero = COALESCE(${info.numero ?? null}, protocolo_numero),
+      protocolo_sistema = COALESCE(protocolo_sistema, 'gpe2'),
+      atualizado_em = now()
+    WHERE municipio = ${municipio} AND protocolo = ${origemRef}
+  `;
 }
 
 function gerarProtocolo(): string {
@@ -91,7 +100,6 @@ function gerarProtocolo(): string {
   return `SOL${ymd}-${rnd}`;
 }
 
-const PG_UNIQUE_VIOLATION = "23505";
 const MAX_TENTATIVAS_PROTOCOLO = 3;
 
 export async function criarSolicitacao(input: {
@@ -106,27 +114,24 @@ export async function criarSolicitacao(input: {
 }): Promise<Solicitacao> {
   for (let tentativa = 1; tentativa <= MAX_TENTATIVAS_PROTOCOLO; tentativa++) {
     try {
-      const r = await db().query(
-        `INSERT INTO portal_solicitacoes
-           (protocolo, municipio, conta_id, documento, nome, contato, servico_slug, servico_titulo, mensagem)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-        [
-          gerarProtocolo(),
-          input.municipio,
-          input.contaId,
-          input.documento,
-          input.nome,
-          input.contato,
-          input.servicoSlug,
-          input.servicoTitulo,
-          input.mensagem,
-        ],
-      );
-      return map(r.rows[0]);
+      const s = await prisma.portalSolicitacao.create({
+        data: {
+          protocolo: gerarProtocolo(),
+          municipio: input.municipio,
+          contaId: input.contaId,
+          documento: input.documento,
+          nome: input.nome,
+          contato: input.contato,
+          servicoSlug: input.servicoSlug,
+          servicoTitulo: input.servicoTitulo,
+          mensagem: input.mensagem,
+        },
+      });
+      return map(s);
     } catch (err) {
-      const codigo = (err as { code?: string } | null)?.code;
+      const colisao = err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
       const ultimaTentativa = tentativa === MAX_TENTATIVAS_PROTOCOLO;
-      if (codigo !== PG_UNIQUE_VIOLATION || ultimaTentativa) throw err;
+      if (!colisao || ultimaTentativa) throw err;
       // Colisão de protocolo no mesmo dia/município — gera outro e tenta de novo.
     }
   }
@@ -136,18 +141,15 @@ export async function criarSolicitacao(input: {
 
 /** Solicitações de uma conta (as "minhas solicitações"). */
 export async function listByConta(contaId: string, municipio: string): Promise<Solicitacao[]> {
-  const r = await db().query(
-    "SELECT * FROM portal_solicitacoes WHERE conta_id=$1 AND municipio=$2 ORDER BY criado_em DESC",
-    [contaId, municipio],
-  );
-  return r.rows.map(map);
+  const rows = await prisma.portalSolicitacao.findMany({
+    where: { contaId, municipio },
+    orderBy: { criadoEm: "desc" },
+  });
+  return rows.map(map);
 }
 
 /** Uma solicitação, escopada à conta (posse). */
 export async function getByIdDaConta(id: string, contaId: string, municipio: string): Promise<Solicitacao | null> {
-  const r = await db().query(
-    "SELECT * FROM portal_solicitacoes WHERE id=$1 AND conta_id=$2 AND municipio=$3",
-    [id, contaId, municipio],
-  );
-  return r.rows[0] ? map(r.rows[0]) : null;
+  const s = await prisma.portalSolicitacao.findFirst({ where: { id, contaId, municipio } });
+  return s ? map(s) : null;
 }

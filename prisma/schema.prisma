@@ -1,0 +1,118 @@
+// Schema do banco PRÓPRIO do Portal do Cidadão (`portal_cidadao`).
+//
+// Este arquivo é a única fonte de verdade do schema — nunca alterar uma tabela
+// direto via psql. Toda mudança passa por `npx prisma migrate dev --name ...`
+// (ver `.claude/skills/add-prisma-model/SKILL.md`).
+//
+// Dados de OUTROS sistemas (tributário, GED, gpe2) NÃO são modelados aqui — esse
+// mundo é acessado via `shared/adapters/*`, nunca por este schema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Vitrine da Carta de Serviços — grande área do portal (mapeia um sistema/domínio).
+model PortalAmbiente {
+  municipio String @db.Text
+  slug      String @db.Text
+  ordem     Int    @default(0)
+  dados     Json
+
+  @@id([municipio, slug])
+  @@map("portal_ambientes")
+}
+
+/// Categoria dentro de um ambiente.
+model PortalCategoria {
+  municipio    String @db.Text
+  slug         String @db.Text
+  ambienteSlug String @map("ambiente_slug") @db.Text
+  ordem        Int    @default(0)
+  dados        Json
+
+  @@id([municipio, slug])
+  @@index([municipio, ambienteSlug], map: "idx_portal_cat_ambiente")
+  @@map("portal_categorias")
+}
+
+/// Serviço oferecido dentro de uma categoria.
+model PortalServico {
+  municipio     String  @db.Text
+  slug          String  @db.Text
+  categoriaSlug String  @map("categoria_slug") @db.Text
+  publicado     Boolean @default(true)
+  ordem         Int     @default(0)
+  dados         Json
+
+  @@id([municipio, slug])
+  @@index([municipio, categoriaSlug], map: "idx_portal_serv_categoria")
+  @@map("portal_servicos")
+}
+
+/// Conta registrada do portal (documento + senha), vinculada ao contribuinte do tributário.
+model PortalConta {
+  id             String   @id @default(uuid()) @db.Uuid
+  documento      String   @db.VarChar(14)
+  nome           String   @db.VarChar(200)
+  email          String?  @db.VarChar(150)
+  telefone       String?  @db.VarChar(30)
+  senhaHash      String?  @map("senha_hash") @db.VarChar(255)
+  contribuinteId String?  @map("contribuinte_id") @db.Uuid
+  municipio      String   @db.VarChar(60)
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  @@unique([documento, municipio], map: "uq_conta_doc_municipio")
+  @@map("portal_contas")
+}
+
+/// Espelho leve do Portal (Lei 13.460) — a tramitação real acontece no PROTOCOLO/PAE (gpe2).
+model PortalSolicitacao {
+  id               String   @id @default(uuid()) @db.Uuid
+  protocolo        String   @db.Text
+  municipio        String   @db.Text
+  contaId          String?  @map("conta_id") @db.Uuid
+  documento        String?  @db.Text
+  nome             String   @db.Text
+  contato          String?  @db.Text
+  servicoSlug      String   @map("servico_slug") @db.Text
+  servicoTitulo    String   @map("servico_titulo") @db.Text
+  mensagem         String?  @db.Text
+  situacao         String   @default("ABERTA") @db.Text
+  protocoloNumero  String?  @map("protocolo_numero") @db.Text
+  criadoEm         DateTime @default(now()) @map("criado_em") @db.Timestamptz
+  atualizadoEm     DateTime @default(now()) @map("atualizado_em") @db.Timestamptz
+  protocoloId      String?  @map("protocolo_id") @db.Text
+  protocoloSistema String?  @map("protocolo_sistema") @db.Text
+
+  @@unique([municipio, protocolo], map: "uq_portal_solic_protocolo")
+  @@index([contaId, criadoEm(sort: Desc)], map: "idx_portal_solic_conta")
+  @@map("portal_solicitacoes")
+}
+
+/// Registro de qual linha da semente do catálogo já foi oferecida a cada município —
+/// garante que rotina nova chegue a quem já subiu o portal, sem ressuscitar o que foi excluído.
+model PortalSeedAplicado {
+  chave      String   @id @db.Text
+  aplicadoEm DateTime @default(now()) @map("aplicado_em") @db.Timestamptz
+
+  @@map("portal_seed_aplicado")
+}
+
+/// Pedidos de recuperação de senha (qualquer usuário do portal). Guarda o HASH do
+/// token, nunca o token em si — mesma razão de não guardar senha em texto.
+model PortalSenhaReset {
+  id        String    @id @default(uuid()) @db.Uuid
+  contaId   String    @map("conta_id") @db.Uuid
+  tokenHash String    @map("token_hash") @db.VarChar(255)
+  expiraEm  DateTime  @map("expira_em") @db.Timestamptz
+  usadoEm   DateTime? @map("usado_em") @db.Timestamptz
+  criadoEm  DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+
+  @@index([tokenHash], map: "idx_portal_senha_reset_token")
+  @@index([contaId], map: "idx_portal_senha_reset_conta")
+  @@map("portal_senha_reset")
+}

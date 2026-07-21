@@ -1,5 +1,6 @@
 import "server-only";
-import { db } from "@/shared/lib/db";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/shared/lib/prisma";
 import {
   AMBIENTES_SEED,
   CATEGORIAS_SEED,
@@ -27,6 +28,10 @@ function cache(): Map<string, CatalogoData> {
   return g.__portalCatalogo;
 }
 
+async function marcarAplicado(chave: string): Promise<void> {
+  await prisma.portalSeedAplicado.createMany({ data: [{ chave }], skipDuplicates: true });
+}
+
 /**
  * Semeia o catálogo. A semente cresce a cada rotina nova (a DMS é um exemplo),
  * e o antigo "só semeia se o banco estiver vazio" fazia com que **nada novo
@@ -43,54 +48,70 @@ function cache(): Map<string, CatalogoData> {
  * fica de pé.
  */
 async function semearNovidades(municipio: string): Promise<void> {
-  await db().query(`
-    CREATE TABLE IF NOT EXISTS portal_seed_aplicado (
-      chave TEXT PRIMARY KEY,
-      aplicado_em TIMESTAMPTZ NOT NULL DEFAULT now()
-    )`);
-
   // Reconciliação (por município): o que já existe conta como semeado (não
   // reinsere, não ressuscita). A chave é prefixada pelo município — senão a
   // semente de um município marcaria a de outro como "já aplicada" sem nunca
   // ter rodado lá.
-  await db().query(
-    `
-    INSERT INTO portal_seed_aplicado (chave)
-    SELECT $1 || ':ambiente:' || slug FROM portal_ambientes WHERE municipio = $1
-    UNION ALL SELECT $1 || ':categoria:' || slug FROM portal_categorias WHERE municipio = $1
-    UNION ALL SELECT $1 || ':servico:' || slug FROM portal_servicos WHERE municipio = $1
-    ON CONFLICT (chave) DO NOTHING`,
-    [municipio],
-  );
+  const [ambientesExistentes, categoriasExistentes, servicosExistentes] = await Promise.all([
+    prisma.portalAmbiente.findMany({ where: { municipio }, select: { slug: true } }),
+    prisma.portalCategoria.findMany({ where: { municipio }, select: { slug: true } }),
+    prisma.portalServico.findMany({ where: { municipio }, select: { slug: true } }),
+  ]);
+  await prisma.portalSeedAplicado.createMany({
+    data: [
+      ...ambientesExistentes.map((a) => ({ chave: `${municipio}:ambiente:${a.slug}` })),
+      ...categoriasExistentes.map((c) => ({ chave: `${municipio}:categoria:${c.slug}` })),
+      ...servicosExistentes.map((s) => ({ chave: `${municipio}:servico:${s.slug}` })),
+    ],
+    skipDuplicates: true,
+  });
 
-  const { rows } = await db().query(
-    "SELECT chave FROM portal_seed_aplicado WHERE chave LIKE $1",
-    [`${municipio}:%`],
-  );
-  const aplicado = new Set<string>(rows.map((r: { chave: string }) => r.chave));
-  const marcar = (chave: string) =>
-    db().query("INSERT INTO portal_seed_aplicado (chave) VALUES ($1) ON CONFLICT DO NOTHING", [chave]);
+  const aplicadoRows = await prisma.portalSeedAplicado.findMany({
+    where: { chave: { startsWith: `${municipio}:` } },
+    select: { chave: true },
+  });
+  const aplicado = new Set(aplicadoRows.map((r) => r.chave));
 
   for (let i = 0; i < AMBIENTES_SEED.length; i++) {
     const a = AMBIENTES_SEED[i];
     const chave = `${municipio}:ambiente:${a.slug}`;
     if (aplicado.has(chave)) continue;
-    await db().query("INSERT INTO portal_ambientes (municipio, slug, ordem, dados) VALUES ($1,$2,$3,$4) ON CONFLICT (municipio, slug) DO NOTHING", [municipio, a.slug, i, JSON.stringify(a)]);
-    await marcar(chave);
+    await prisma.portalAmbiente.createMany({
+      data: [{ municipio, slug: a.slug, ordem: i, dados: a as unknown as Prisma.InputJsonValue }],
+      skipDuplicates: true,
+    });
+    await marcarAplicado(chave);
   }
   for (let i = 0; i < CATEGORIAS_SEED.length; i++) {
     const c = CATEGORIAS_SEED[i];
     const chave = `${municipio}:categoria:${c.slug}`;
     if (aplicado.has(chave)) continue;
-    await db().query("INSERT INTO portal_categorias (municipio, slug, ambiente_slug, ordem, dados) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (municipio, slug) DO NOTHING", [municipio, c.slug, c.ambienteSlug, i, JSON.stringify(c)]);
-    await marcar(chave);
+    await prisma.portalCategoria.createMany({
+      data: [
+        { municipio, slug: c.slug, ambienteSlug: c.ambienteSlug, ordem: i, dados: c as unknown as Prisma.InputJsonValue },
+      ],
+      skipDuplicates: true,
+    });
+    await marcarAplicado(chave);
   }
   for (let i = 0; i < SERVICOS_SEED.length; i++) {
     const s = SERVICOS_SEED[i];
     const chave = `${municipio}:servico:${s.slug}`;
     if (aplicado.has(chave)) continue;
-    await db().query("INSERT INTO portal_servicos (municipio, slug, categoria_slug, publicado, ordem, dados) VALUES ($1,$2,$3,true,$4,$5) ON CONFLICT (municipio, slug) DO NOTHING", [municipio, s.slug, s.categoriaSlug, i, JSON.stringify(s)]);
-    await marcar(chave);
+    await prisma.portalServico.createMany({
+      data: [
+        {
+          municipio,
+          slug: s.slug,
+          categoriaSlug: s.categoriaSlug,
+          publicado: true,
+          ordem: i,
+          dados: s as unknown as Prisma.InputJsonValue,
+        },
+      ],
+      skipDuplicates: true,
+    });
+    await marcarAplicado(chave);
   }
 
   await aplicarCorrecoes(municipio, aplicado);
@@ -102,14 +123,17 @@ async function semearNovidades(municipio: string): Promise<void> {
  * tem o valor errado, então uma correção já feita pelo município fica de pé.
  *
  * `nfse` foi semeado com `fiscal_acao: "debitos"` — a página do serviço mandava
- * o prestador para "Meus Débitos" em vez de para a emissão da nota.
+ * o prestador para "Meus Débitos" em vez de para a emissão da nota. O
+ * `jsonb_set` condicional exige SQL cru (via `$executeRaw`, client Prisma).
  */
-const CORRECOES: ReadonlyArray<{ chave: string; sql: string; params: (municipio: string) => unknown[] }> = [
+const CORRECOES: ReadonlyArray<{ chave: string; aplicar: (municipio: string) => Promise<unknown> }> = [
   {
     chave: "fix:nfse-fiscal-acao",
-    sql: `UPDATE portal_servicos SET dados = jsonb_set(dados::jsonb, '{fiscal_acao}', '"nfse"')
-          WHERE municipio = $1 AND slug = 'nfse' AND dados->>'fiscal_acao' = 'debitos'`,
-    params: (municipio) => [municipio],
+    aplicar: (municipio) =>
+      prisma.$executeRaw`
+        UPDATE portal_servicos SET dados = jsonb_set(dados::jsonb, '{fiscal_acao}', '"nfse"')
+        WHERE municipio = ${municipio} AND slug = 'nfse' AND dados->>'fiscal_acao' = 'debitos'
+      `,
   },
 ];
 
@@ -117,8 +141,8 @@ async function aplicarCorrecoes(municipio: string, aplicado: Set<string>): Promi
   for (const c of CORRECOES) {
     const chave = `${municipio}:${c.chave}`;
     if (aplicado.has(chave)) continue;
-    await db().query(c.sql, c.params(municipio));
-    await db().query("INSERT INTO portal_seed_aplicado (chave) VALUES ($1) ON CONFLICT DO NOTHING", [chave]);
+    await c.aplicar(municipio);
+    await marcarAplicado(chave);
   }
 }
 
@@ -134,14 +158,17 @@ export async function carregarCatalogo(municipio: string): Promise<CatalogoData>
   try {
     await semearNovidades(municipio);
     const [amb, cat, ser] = await Promise.all([
-      db().query("SELECT dados FROM portal_ambientes WHERE municipio = $1 ORDER BY ordem, slug", [municipio]),
-      db().query("SELECT dados FROM portal_categorias WHERE municipio = $1 ORDER BY ordem, slug", [municipio]),
-      db().query("SELECT dados FROM portal_servicos WHERE municipio = $1 AND publicado ORDER BY ordem, slug", [municipio]),
+      prisma.portalAmbiente.findMany({ where: { municipio }, orderBy: [{ ordem: "asc" }, { slug: "asc" }] }),
+      prisma.portalCategoria.findMany({ where: { municipio }, orderBy: [{ ordem: "asc" }, { slug: "asc" }] }),
+      prisma.portalServico.findMany({
+        where: { municipio, publicado: true },
+        orderBy: [{ ordem: "asc" }, { slug: "asc" }],
+      }),
     ]);
     const data: CatalogoData = {
-      ambientes: amb.rows.map((r) => r.dados as Ambiente),
-      categorias: cat.rows.map((r) => r.dados as CategoriaSeed),
-      servicos: ser.rows.map((r) => r.dados as ServicoSeed),
+      ambientes: amb.map((r) => r.dados as unknown as Ambiente),
+      categorias: cat.map((r) => r.dados as unknown as CategoriaSeed),
+      servicos: ser.map((r) => r.dados as unknown as ServicoSeed),
     };
     if (data.ambientes.length) {
       cache().set(municipio, data);

@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { db } from "@/shared/lib/db";
+import { prisma } from "@/shared/lib/prisma";
 
 /**
  * Recuperação de senha do portal — vale para QUALQUER usuário, não só o
@@ -25,62 +25,43 @@ function hashDoToken(token: string): string {
 export async function criarTokenReset(contaId: string): Promise<string> {
   // Quem pede de novo invalida o pedido anterior: dois links vivos para a mesma
   // conta é superfície de ataque sem ganho nenhum.
-  await db().query(
-    "UPDATE portal_senha_reset SET usado_em = now() WHERE conta_id = $1 AND usado_em IS NULL",
-    [contaId],
-  );
+  await prisma.portalSenhaReset.updateMany({
+    where: { contaId, usadoEm: null },
+    data: { usadoEm: new Date() },
+  });
 
   const token = randomBytes(32).toString("hex");
-  await db().query(
-    "INSERT INTO portal_senha_reset (conta_id, token_hash, expira_em) VALUES ($1, $2, $3)",
-    [contaId, hashDoToken(token), new Date(Date.now() + VALIDADE_MS)],
-  );
+  await prisma.portalSenhaReset.create({
+    data: { contaId, tokenHash: hashDoToken(token), expiraEm: new Date(Date.now() + VALIDADE_MS) },
+  });
   return token;
 }
 
 /** Conta do token, se ele existe, não expirou e não foi usado. */
 export async function contaDoToken(token: string): Promise<string | null> {
-  const { rows } = await db().query(
-    `SELECT conta_id FROM portal_senha_reset
-      WHERE token_hash = $1 AND usado_em IS NULL AND expira_em > now()`,
-    [hashDoToken(token)],
-  );
-  return (rows[0]?.conta_id as string) ?? null;
+  const reset = await prisma.portalSenhaReset.findFirst({
+    where: { tokenHash: hashDoToken(token), usadoEm: null, expiraEm: { gt: new Date() } },
+  });
+  return reset?.contaId ?? null;
 }
 
 /** Uso único: consome o token e troca a senha na mesma transação. */
-export async function consumirTokenETrocarSenha(
-  token: string,
-  senhaHash: string,
-): Promise<boolean> {
-  const client = await db().connect();
-  try {
-    await client.query("BEGIN");
+export async function consumirTokenETrocarSenha(token: string, senhaHash: string): Promise<boolean> {
+  const tokenHash = hashDoToken(token);
+  return prisma.$transaction(async (tx) => {
+    const reset = await tx.portalSenhaReset.findFirst({ where: { tokenHash } });
+    if (!reset) return false;
 
-    // O UPDATE condicional é a trava: se dois cliques chegarem juntos, só um
-    // acha o token não-usado. Sem isso o mesmo link trocaria a senha duas vezes.
-    const { rows } = await client.query(
-      `UPDATE portal_senha_reset SET usado_em = now()
-        WHERE token_hash = $1 AND usado_em IS NULL AND expira_em > now()
-        RETURNING conta_id`,
-      [hashDoToken(token)],
-    );
-    const contaId = rows[0]?.conta_id as string | undefined;
-    if (!contaId) {
-      await client.query("ROLLBACK");
-      return false;
-    }
+    // O UPDATE condicional (por id + usadoEm ainda nulo) é a trava: sob a mesma
+    // transação, dois cliques concorrentes só deixam um passar — o segundo
+    // reavalia a condição depois de esperar o lock da linha soltar e vê 0 linhas.
+    const atualizado = await tx.portalSenhaReset.updateMany({
+      where: { id: reset.id, usadoEm: null, expiraEm: { gt: new Date() } },
+      data: { usadoEm: new Date() },
+    });
+    if (atualizado.count === 0) return false;
 
-    await client.query("UPDATE portal_contas SET senha_hash = $1 WHERE id = $2", [
-      senhaHash,
-      contaId,
-    ]);
-    await client.query("COMMIT");
+    await tx.portalConta.update({ where: { id: reset.contaId }, data: { senhaHash } });
     return true;
-  } catch (e) {
-    await client.query("ROLLBACK");
-    throw e;
-  } finally {
-    client.release();
-  }
+  });
 }

@@ -7,7 +7,6 @@ services:
       - "5434:5432"
     volumes:
       - portal_cidadao_data:/var/lib/postgresql/data
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     environment:
       - POSTGRES_PASSWORD=docker
       - POSTGRES_DB=portal_cidadao

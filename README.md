@@ -24,29 +24,22 @@ npm run dev                    # http://localhost:3001
 O portal tem **database próprio** (`portal_cidadao`). Pode viver no mesmo
 servidor PostgreSQL do tributário — são bancos separados, não servidores.
 
-O acesso é por **SQL cru** (`pg`), sem ORM. A estrutura versionada está em
-[`db/schema.sql`](db/schema.sql), que é a fonte da verdade:
+O acesso é via **Prisma** (`prisma/schema.prisma` é a fonte da verdade do
+schema — nunca alterar uma tabela direto via `psql`). Subir o banco e aplicar
+as migrations:
 
 ```bash
-createdb portal_cidadao
-psql -d portal_cidadao -f db/schema.sql
+docker compose up -d           # Postgres local, porta 5434
+npx prisma migrate dev         # cria/atualiza as tabelas
 ```
 
-Com o PostgreSQL em container (ex.: o `tributario_db` do backend tributário):
+Em produção/CI, aplicar migrations já geradas (nunca gerar migration em produção):
 
 ```bash
-docker exec -i tributario_db psql -U postgres -c "CREATE DATABASE portal_cidadao;"
-docker exec -i tributario_db psql -U postgres -d portal_cidadao < db/schema.sql
+npx prisma migrate deploy
 ```
 
-> **Ao alterar tabelas, regenere o dump** — senão o repositório passa a mentir:
->
-> ```bash
-> docker exec tributario_db pg_dump -U postgres -d portal_cidadao \
->   --schema-only --no-owner --no-privileges > db/schema.sql
-> ```
->
-> (preserve o cabeçalho explicativo do arquivo).
+Para alterar o schema, ver `.claude/skills/add-prisma-model/SKILL.md`.
 
 O **catálogo** (ambientes → categorias → serviços) nasce vazio e é semeado no
 primeiro acesso. Para cadastrar/editar pelo navegador, use o `/admin`.
