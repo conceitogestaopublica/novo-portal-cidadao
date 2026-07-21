@@ -31,17 +31,17 @@ export function AdminLoginForm() {
 
   return (
     <div className="max-w-sm mx-auto">
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+      <div className="bg-card rounded-2xl border border-border p-6 lg:p-8 shadow-sm">
         <div className="text-center mb-6">
           <div className="w-14 h-14 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
             <ShieldUser className="text-white size-5" aria-hidden="true" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Área administrativa</h1>
-          <p className="text-sm text-gray-500 mt-1">Gerenciar a Carta de Serviços.</p>
+          <h1 className="text-xl font-bold text-foreground">Área administrativa</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gerenciar a Carta de Serviços.</p>
         </div>
 
         {errors.root && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
+          <div className="mb-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
             <AlertCircle className="size-4 mt-0.5 shrink-0" aria-hidden="true" />
             {errors.root.message}
           </div>
@@ -49,12 +49,12 @@ export function AdminLoginForm() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
-            <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Senha do administrador</Label>
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Senha do administrador</Label>
             <Input
               autoFocus
               type="password"
               placeholder="••••••••"
-              className="mt-1 w-full px-4 py-3 h-auto rounded-xl border-gray-300 focus-visible:ring-slate-500 text-sm"
+              className="mt-1 w-full px-4 py-3 h-auto rounded-xl border-border focus-visible:ring-slate-500 text-sm"
               {...register("senha")}
             />
             {errors.senha && (

@@ -38,51 +38,51 @@ export function PortalShell({
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] flex flex-col">
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-card border-b border-border">
         <div className="max-w-6xl mx-auto px-4 lg:px-6 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 group">
             {ug?.brasao ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={ug.brasao} alt="" className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
+              <img src={ug.brasao} alt="" className="w-12 h-12 rounded-lg object-cover bg-muted" />
             ) : (
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
                 <Landmark className="size-5 text-white" aria-hidden="true" />
               </div>
             )}
             <div className="leading-tight">
-              <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Portal do Cidadão</p>
-              <p className="text-base font-bold text-gray-800 group-hover:text-blue-700 transition-colors">{ug?.nome || "Carta de Serviços"}</p>
-              {ug?.cidade && <p className="text-[11px] text-gray-500">{ug.cidade}{ug.uf ? ` — ${ug.uf}` : ""}</p>}
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Portal do Cidadão</p>
+              <p className="text-base font-bold text-foreground group-hover:text-blue-700 transition-colors">{ug?.nome || "Carta de Serviços"}</p>
+              {ug?.cidade && <p className="text-[11px] text-muted-foreground">{ug.cidade}{ug.uf ? ` — ${ug.uf}` : ""}</p>}
             </div>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 text-sm">
-            <Link href="/" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
+            <Link href="/" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
               <Home className="size-3 mr-1.5" /> Início
             </Link>
-            <Link href="/buscar" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
+            <Link href="/buscar" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
               <Search className="size-3 mr-1.5" /> Todos os Serviços
             </Link>
             {cidadao ? (
               <>
-                <Link href="/fiscal" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
+                <Link href="/fiscal" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
                   <Wallet className="size-3 mr-1.5" /> Meus Débitos
                 </Link>
-                <Link href="/minhas-solicitacoes" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
+                <Link href="/minhas-solicitacoes" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
                   <ClipboardList className="size-3 mr-1.5" /> Minhas Solicitações
                 </Link>
-                <div className="ml-2 flex items-center gap-2 pl-3 border-l border-gray-200">
+                <div className="ml-2 flex items-center gap-2 pl-3 border-l border-border">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     {(cidadao.nome || "C").substring(0, 2).toUpperCase()}
                   </div>
                   <div className="leading-tight">
-                    <p className="text-xs font-semibold text-gray-700 max-w-[120px] truncate">{cidadao.nome}</p>
-                    <button onClick={sair} className="text-[10px] text-gray-400 hover:text-red-600">Sair</button>
+                    <p className="text-xs font-semibold text-foreground max-w-[120px] truncate">{cidadao.nome}</p>
+                    <button onClick={sair} className="text-[10px] text-muted-foreground hover:text-red-600">Sair</button>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="ml-2 flex items-center gap-2 pl-3 border-l border-gray-200">
+              <div className="ml-2 flex items-center gap-2 pl-3 border-l border-border">
                 <Link href="/entrar" className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700">
                   Entrar
                 </Link>
@@ -96,13 +96,13 @@ export function PortalShell({
             <div className="max-w-6xl mx-auto px-4 lg:px-6">
               <form onSubmit={submeterBusca} className="flex gap-2 max-w-3xl mx-auto">
                 <div className="flex-1 relative">
-                  <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                  <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                   <input
                     type="text"
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     placeholder="Busque por serviço, palavra-chave ou categoria..."
-                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white text-gray-800 placeholder-gray-500 shadow-md focus:outline-none focus:ring-2 focus:ring-white/60 text-sm"
+                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-card text-foreground placeholder-gray-500 shadow-md focus:outline-none focus:ring-2 focus:ring-white/60 text-sm"
                   />
                 </div>
                 <button type="submit" className="px-6 py-3 rounded-xl bg-white/20 backdrop-blur-sm text-white font-bold border-2 border-white hover:bg-white/30 transition-colors">

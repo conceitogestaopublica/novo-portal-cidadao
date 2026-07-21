@@ -53,17 +53,17 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <nav className="text-xs text-gray-500">
+      <nav className="text-xs text-muted-foreground">
         <Link href="/minhas-solicitacoes" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Minhas Solicitações</Link>
       </nav>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <div className="flex items-start justify-between gap-3 pb-4 border-b border-gray-100">
+      <div className="bg-card rounded-2xl border border-border p-6">
+        <div className="flex items-start justify-between gap-3 pb-4 border-b border-border">
           <div>
-            <h1 className="text-lg font-bold text-gray-800">{s.servicoTitulo}</h1>
-            <p className="text-xs text-gray-400 mt-1">
-              Protocolo <strong className="text-gray-600">{s.protocolo}</strong>
-              {s.protocoloNumero && <> · Processo <strong className="text-gray-600">{s.protocoloNumero}</strong></>}
+            <h1 className="text-lg font-bold text-foreground">{s.servicoTitulo}</h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              Protocolo <strong className="text-muted-foreground">{s.protocolo}</strong>
+              {s.protocoloNumero && <> · Processo <strong className="text-muted-foreground">{s.protocoloNumero}</strong></>}
               {" "}· aberta em {new Date(s.criadoEm).toLocaleDateString("pt-BR")}
             </p>
           </div>
@@ -91,16 +91,16 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
       )}
 
       {/* Linha do tempo do processo */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-sm font-bold text-gray-700 mb-4"><ClipboardList className="size-4 mr-2 text-gray-400" />Andamento do processo</h2>
+      <div className="bg-card rounded-2xl border border-border p-6">
+        <h2 className="text-sm font-bold text-foreground mb-4"><ClipboardList className="size-4 mr-2 text-muted-foreground" />Andamento do processo</h2>
         {eventos.length === 0 ? (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             {s.protocoloNumero
               ? "Ainda não há movimentações registradas."
               : "Solicitação registrada. Assim que for protocolada, o andamento aparece aqui."}
           </p>
         ) : (
-          <ol className="relative border-l-2 border-gray-100 ml-3 space-y-5">
+          <ol className="relative border-l-2 border-border ml-3 space-y-5">
             {eventos.map((e, i) => {
               const st = ESTILO[e.tipo] ?? ESTILO.parecer;
               return (
@@ -109,15 +109,15 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
                     <st.Icon className="size-3" aria-hidden="true" />
                   </span>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-gray-800">{e.titulo}</p>
-                    {e.data && <span className="text-[11px] text-gray-400">{fmt(e.data)}</span>}
+                    <p className="text-sm font-semibold text-foreground">{e.titulo}</p>
+                    {e.data && <span className="text-[11px] text-muted-foreground">{fmt(e.data)}</span>}
                   </div>
                   {e.tipo === "tramite" && (e.de || e.para) && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {e.de ?? "—"} <ArrowRight className="size-3 mx-1 text-gray-300 inline" aria-hidden="true" /> {e.para ?? "—"}
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {e.de ?? "—"} <ArrowRight className="size-3 mx-1 text-muted-foreground inline" aria-hidden="true" /> {e.para ?? "—"}
                     </p>
                   )}
-                  {e.texto && <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{e.texto}</p>}
+                  {e.texto && <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">{e.texto}</p>}
                 </li>
               );
             })}
@@ -125,7 +125,7 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      <p className="text-[11px] text-gray-400"><Info className="size-4 mr-1" />A tramitação e a decisão do processo acontecem no sistema de processos do município.</p>
+      <p className="text-[11px] text-muted-foreground"><Info className="size-4 mr-1" />A tramitação e a decisão do processo acontecem no sistema de processos do município.</p>
     </div>
   );
 }
@@ -133,8 +133,8 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
 function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{rotulo}</dt>
-      <dd className="text-gray-700 whitespace-pre-line mt-0.5">{valor}</dd>
+      <dt className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{rotulo}</dt>
+      <dd className="text-foreground whitespace-pre-line mt-0.5">{valor}</dd>
     </div>
   );
 }

@@ -8,8 +8,8 @@ export default function RedefinirPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-md mx-auto bg-white rounded-2xl border border-gray-200 p-8">
-          <p className="text-sm text-gray-500">Carregando…</p>
+        <div className="max-w-md mx-auto bg-card rounded-2xl border border-border p-8">
+          <p className="text-sm text-muted-foreground">Carregando…</p>
         </div>
       }
     >

@@ -44,14 +44,14 @@ export function AtuarComoSeletor() {
   const ativo = representados.find((r) => r.id === ativoId);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-4">
+    <div className="bg-card rounded-2xl border border-border p-4">
       <div className="flex items-center gap-2 mb-3">
         <Tag className="size-4 text-blue-600" aria-hidden="true" />
-        <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Atuando como</p>
+        <p className="text-xs font-bold text-foreground uppercase tracking-wide">Atuando como</p>
         {ativo && (
-          <span className="text-xs text-gray-500">
-            — <strong className="text-gray-700">{ativo.nome}</strong>{" "}
-            <span className="text-gray-400">{docFmt(ativo.documento)}</span>
+          <span className="text-xs text-muted-foreground">
+            — <strong className="text-foreground">{ativo.nome}</strong>{" "}
+            <span className="text-muted-foreground">{docFmt(ativo.documento)}</span>
           </span>
         )}
       </div>
@@ -67,23 +67,23 @@ export function AtuarComoSeletor() {
               className={`text-left px-3 py-2 rounded-xl border text-sm transition-colors ${
                 ativoR
                   ? "border-blue-500 bg-blue-50 ring-1 ring-blue-200"
-                  : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                  : "border-border hover:border-blue-300 hover:bg-muted/50"
               } disabled:opacity-70`}
             >
               <span className="flex items-center gap-2">
                 {r.tipo === "titular" ? (
-                  <User className={`size-3 ${ativoR ? "text-blue-600" : "text-gray-400"}`} aria-hidden="true" />
+                  <User className={`size-3 ${ativoR ? "text-blue-600" : "text-muted-foreground"}`} aria-hidden="true" />
                 ) : (
-                  <Building className={`size-3 ${ativoR ? "text-blue-600" : "text-gray-400"}`} aria-hidden="true" />
+                  <Building className={`size-3 ${ativoR ? "text-blue-600" : "text-muted-foreground"}`} aria-hidden="true" />
                 )}
-                <span className="font-semibold text-gray-800">{r.nome}</span>
+                <span className="font-semibold text-foreground">{r.nome}</span>
                 {r.tipo === "empresa" && r.papel && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{r.papel}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">{r.papel}</span>
                 )}
                 {trocando === r.id && <Loader2 className="size-3 text-blue-500 animate-spin" aria-hidden="true" />}
                 {ativoR && <Check className="size-3 text-blue-600" aria-hidden="true" />}
               </span>
-              <span className="block text-[11px] text-gray-400 mt-0.5">{docFmt(r.documento)}</span>
+              <span className="block text-[11px] text-muted-foreground mt-0.5">{docFmt(r.documento)}</span>
             </button>
           );
         })}

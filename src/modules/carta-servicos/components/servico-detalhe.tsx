@@ -44,37 +44,37 @@ export async function ServicoDetalhe({ params }: { params: Promise<{ slug: strin
 
   return (
     <>
-      <nav className="text-xs text-gray-500 mb-4">
+      <nav className="text-xs text-muted-foreground mb-4">
         <Link href="/" className="hover:text-blue-600">Início</Link>
         <ChevronRight className="size-3 mx-2 inline" aria-hidden="true" />
         {cat && (<><Link href={`/categoria/${cat.slug}`} className="hover:text-blue-600">{cat.nome}</Link><ChevronRight className="size-3 mx-2 inline" aria-hidden="true" /></>)}
-        <span className="text-gray-700 font-medium">{servico.titulo}</span>
+        <span className="text-foreground font-medium">{servico.titulo}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <article className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 lg:p-8">
-          <div className="flex items-start gap-4 mb-6 pb-6 border-b border-gray-100">
+        <article className="lg:col-span-2 bg-card rounded-2xl border border-border p-6 lg:p-8">
+          <div className="flex items-start gap-4 mb-6 pb-6 border-b border-border">
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${corCat}`}>
               <CatalogoIcon nome={servico.icone} className="size-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-2">
                 {cat && <Link href={`/categoria/${cat.slug}`} className="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-semibold hover:bg-blue-100">{cat.nome}</Link>}
-                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-semibold">Para {publicos[servico.publico_alvo] || servico.publico_alvo}</span>
+                <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-semibold">Para {publicos[servico.publico_alvo] || servico.publico_alvo}</span>
               </div>
-              <h1 className="text-2xl font-bold text-gray-800 leading-tight">{servico.titulo}</h1>
-              {servico.descricao_curta && <p className="text-sm text-gray-600 mt-2">{servico.descricao_curta}</p>}
+              <h1 className="text-2xl font-bold text-foreground leading-tight">{servico.titulo}</h1>
+              {servico.descricao_curta && <p className="text-sm text-muted-foreground mt-2">{servico.descricao_curta}</p>}
             </div>
           </div>
 
-          {servico.descricao_completa && <Section titulo="Sobre o serviço" Icon={Info}><p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{servico.descricao_completa}</p></Section>}
-          {servico.requisitos && <Section titulo="Quem pode solicitar" Icon={UserCheck}><p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{servico.requisitos}</p></Section>}
+          {servico.descricao_completa && <Section titulo="Sobre o serviço" Icon={Info}><p className="text-sm text-foreground whitespace-pre-line leading-relaxed">{servico.descricao_completa}</p></Section>}
+          {servico.requisitos && <Section titulo="Quem pode solicitar" Icon={UserCheck}><p className="text-sm text-foreground whitespace-pre-line leading-relaxed">{servico.requisitos}</p></Section>}
           {Array.isArray(servico.documentos_necessarios) && servico.documentos_necessarios.length > 0 && (
             <Section titulo="Documentos necessários" Icon={Folder}>
-              <ul className="space-y-2">{servico.documentos_necessarios.map((doc, i) => (<li key={i} className="flex items-start gap-2 text-sm text-gray-700"><CheckCircle2 className="size-4 text-blue-600 mt-0.5 shrink-0" aria-hidden="true" /><span>{doc}</span></li>))}</ul>
+              <ul className="space-y-2">{servico.documentos_necessarios.map((doc, i) => (<li key={i} className="flex items-start gap-2 text-sm text-foreground"><CheckCircle2 className="size-4 text-blue-600 mt-0.5 shrink-0" aria-hidden="true" /><span>{doc}</span></li>))}</ul>
             </Section>
           )}
-          {servico.legislacao && <Section titulo="Legislação de referência" Icon={Scale}><p className="text-sm text-gray-700 whitespace-pre-line italic">{servico.legislacao}</p></Section>}
+          {servico.legislacao && <Section titulo="Legislação de referência" Icon={Scale}><p className="text-sm text-foreground whitespace-pre-line italic">{servico.legislacao}</p></Section>}
         </article>
 
         <aside className="space-y-4">
@@ -105,8 +105,8 @@ export async function ServicoDetalhe({ params }: { params: Promise<{ slug: strin
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-200 p-5">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Resumo</h3>
+          <div className="bg-card rounded-2xl border border-border p-5">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Resumo</h3>
             <div className="space-y-3">
               <Resumo Icon={Clock} titulo="Prazo" valor={servico.prazo_entrega || "Não informado"} />
               <Resumo Icon={DollarSign} titulo="Custo" valor={servico.custo || "Gratuito"} highlight={!servico.custo || /gratuito|sem custo/i.test(servico.custo)} />
@@ -115,9 +115,9 @@ export async function ServicoDetalhe({ params }: { params: Promise<{ slug: strin
           </div>
 
           {Array.isArray(servico.palavras_chave) && servico.palavras_chave.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-200 p-5">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Tags</h3>
-              <div className="flex flex-wrap gap-1.5">{servico.palavras_chave.map((tag, i) => (<span key={i} className="text-[11px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">#{tag}</span>))}</div>
+            <div className="bg-card rounded-2xl border border-border p-5">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Tags</h3>
+              <div className="flex flex-wrap gap-1.5">{servico.palavras_chave.map((tag, i) => (<span key={i} className="text-[11px] px-2 py-0.5 bg-muted text-muted-foreground rounded-full">#{tag}</span>))}</div>
             </div>
           )}
         </aside>
@@ -125,14 +125,14 @@ export async function ServicoDetalhe({ params }: { params: Promise<{ slug: strin
 
       {relacionados.length > 0 && (
         <div className="mt-10">
-          <h2 className="text-lg font-bold text-gray-800 mb-3">Serviços relacionados</h2>
+          <h2 className="text-lg font-bold text-foreground mb-3">Serviços relacionados</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {relacionados.map((rel: Servico) => (
-              <Link key={String(rel.id)} href={`/servico/${rel.slug}`} className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 transition-all flex items-start gap-3 group">
+              <Link key={String(rel.id)} href={`/servico/${rel.slug}`} className="bg-card rounded-xl border border-border p-4 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 transition-all flex items-start gap-3 group">
                 <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0"><CatalogoIcon nome={rel.icone} className="size-3.5" /></div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700">{rel.titulo}</p>
-                  <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{rel.descricao_curta}</p>
+                  <p className="text-sm font-semibold text-foreground group-hover:text-blue-700">{rel.titulo}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{rel.descricao_curta}</p>
                 </div>
               </Link>
             ))}
@@ -146,7 +146,7 @@ export async function ServicoDetalhe({ params }: { params: Promise<{ slug: strin
 function Section({ titulo, Icon, children }: { titulo: string; Icon: LucideIcon; children: React.ReactNode }) {
   return (
     <section className="mb-6 last:mb-0">
-      <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2"><Icon className="size-4 text-blue-600" aria-hidden="true" />{titulo}</h2>
+      <h2 className="text-sm font-bold text-foreground mb-2 flex items-center gap-2"><Icon className="size-4 text-blue-600" aria-hidden="true" />{titulo}</h2>
       <div className="pl-6">{children}</div>
     </section>
   );
@@ -155,10 +155,10 @@ function Section({ titulo, Icon, children }: { titulo: string; Icon: LucideIcon;
 function Resumo({ Icon, titulo, valor, highlight }: { Icon: LucideIcon; titulo: string; valor: string; highlight?: boolean }) {
   return (
     <div className="flex items-start gap-3">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${highlight ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}><Icon className="size-3" aria-hidden="true" /></div>
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${highlight ? "bg-blue-100 text-blue-600" : "bg-muted text-muted-foreground"}`}><Icon className="size-3" aria-hidden="true" /></div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{titulo}</p>
-        <p className={`text-sm font-medium ${highlight ? "text-blue-700" : "text-gray-800"}`}>{valor}</p>
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{titulo}</p>
+        <p className={`text-sm font-medium ${highlight ? "text-blue-700" : "text-foreground"}`}>{valor}</p>
       </div>
     </div>
   );

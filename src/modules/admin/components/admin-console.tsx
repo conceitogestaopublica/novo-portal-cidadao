@@ -74,8 +74,8 @@ const ACOES_FISCAIS = [
   { v: "prestei", label: "Prestei serviço aqui (outro município)" },
 ];
 
-const inputCls = "mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm";
-const labelCls = "text-xs font-semibold text-gray-600 uppercase tracking-wide";
+const inputCls = "mt-1 w-full px-3 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm";
+const labelCls = "text-xs font-semibold text-muted-foreground uppercase tracking-wide";
 
 export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
   const router = useRouter();
@@ -120,12 +120,12 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Carta de Serviços</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-foreground">Carta de Serviços</h1>
+          <p className="text-sm text-muted-foreground">
             {data.ambientes.length} ambientes · {data.categorias.length} categorias · {data.servicos.length} serviços
           </p>
         </div>
-        <button onClick={sair} className="text-xs text-gray-500 hover:text-red-600">
+        <button onClick={sair} className="text-xs text-muted-foreground hover:text-red-600">
           <UserCheck className="size-4 mr-1" /> Sair
         </button>
       </div>
@@ -137,13 +137,13 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
         </div>
       )}
 
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-border">
         {(["servicos", "categorias", "ambientes"] as Aba[]).map((t) => (
           <button
             key={t}
             onClick={() => setAba(t)}
             className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors ${
-              aba === t ? "border-slate-800 text-slate-900" : "border-transparent text-gray-500 hover:text-gray-700"
+              aba === t ? "border-slate-800 text-slate-900" : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {t === "servicos" ? "Serviços" : t === "categorias" ? "Categorias" : "Ambientes"}
@@ -232,25 +232,25 @@ interface Linha {
 }
 
 function Lista({ linhas, vazio }: { linhas: Linha[]; vazio: string }) {
-  if (!linhas.length) return <p className="text-sm text-gray-400 py-8 text-center">{vazio}</p>;
+  if (!linhas.length) return <p className="text-sm text-muted-foreground py-8 text-center">{vazio}</p>;
   return (
-    <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+    <div className="bg-card rounded-xl border border-border divide-y divide-border">
       {linhas.map((l) => (
         <div key={l.key} className="flex items-center gap-3 px-4 py-3">
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${COR_ICON[l.cor] ?? COR_ICON.slate}`}>
             <CatalogoIcon nome={l.icone} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-gray-800 truncate">
+            <p className="text-sm font-semibold text-foreground truncate">
               {l.titulo}
               {l.badge && <span className="ml-2 text-[10px] uppercase font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">{l.badge}</span>}
             </p>
-            <p className="text-xs text-gray-500 truncate">{l.sub}</p>
+            <p className="text-xs text-muted-foreground truncate">{l.sub}</p>
           </div>
           <button onClick={l.onEdit} className="px-2 py-1 text-xs text-slate-600 hover:text-slate-900" title="Editar">
             <FileSignature className="size-4" aria-hidden="true" />
           </button>
-          <button onClick={l.onDel} className="px-2 py-1 text-xs text-gray-400 hover:text-red-600" title="Excluir">
+          <button onClick={l.onDel} className="px-2 py-1 text-xs text-muted-foreground hover:text-red-600" title="Excluir">
             <Trash2 className="size-4" aria-hidden="true" />
           </button>
         </div>
@@ -264,10 +264,10 @@ function Lista({ linhas, vazio }: { linhas: Linha[]; vazio: string }) {
 function Modal({ titulo, children, onCancel }: { titulo: string; children: React.ReactNode; onCancel: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center overflow-y-auto p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl my-8">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-          <h2 className="font-bold text-gray-800">{titulo}</h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-700">
+      <div className="bg-card rounded-2xl shadow-xl w-full max-w-2xl my-8">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+          <h2 className="font-bold text-foreground">{titulo}</h2>
+          <button onClick={onCancel} className="text-muted-foreground hover:text-foreground">
             <X className="size-4" aria-hidden="true" />
           </button>
         </div>
@@ -280,7 +280,7 @@ function Modal({ titulo, children, onCancel }: { titulo: string; children: React
 function Acoes({ busy, onCancel }: { busy: boolean; onCancel: () => void }) {
   return (
     <div className="flex justify-end gap-2 pt-2">
-      <Button type="button" variant="ghost" onClick={onCancel} className="px-4 py-2 h-auto rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+      <Button type="button" variant="ghost" onClick={onCancel} className="px-4 py-2 h-auto rounded-lg text-sm text-muted-foreground hover:bg-muted">
         Cancelar
       </Button>
       <Button type="submit" disabled={busy} className="px-4 py-2 h-auto rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 disabled:opacity-60">
@@ -333,7 +333,7 @@ function AmbienteForm({ item, busy, onCancel, onSave }: { item: Ambiente | null;
               {SISTEMAS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
             </select>
           </div>
-          <label className="flex items-center gap-2 mt-6 text-sm text-gray-700">
+          <label className="flex items-center gap-2 mt-6 text-sm text-foreground">
             <input type="checkbox" {...register("disponivel")} />
             Disponível (visível no portal)
           </label>
@@ -505,11 +505,11 @@ function ServicoForm({ item, categorias, busy, onCancel, onSave }: { item: Admin
         </div>
         <Controller control={control} name="icone" render={({ field }) => <IconePicker valor={field.value ?? ""} onChange={field.onChange} />} />
         <div className="flex flex-wrap gap-5 pt-1">
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input type="checkbox" {...register("publicado")} />
             Publicado (visível no portal)
           </label>
-          <label className="flex items-center gap-2 text-sm text-gray-700">
+          <label className="flex items-center gap-2 text-sm text-foreground">
             <input type="checkbox" {...register("permite_anonimo")} />
             Permite solicitação anônima
           </label>
@@ -546,7 +546,7 @@ function IconePicker({ valor, onChange }: { valor: string; onChange: (v: string)
     <div>
       <label className={labelCls}>Ícone (classe FontAwesome)</label>
       <div className="mt-1 flex items-center gap-2">
-        <span className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 shrink-0">
+        <span className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground shrink-0">
           <CatalogoIcon nome={valor} />
         </span>
         <input value={valor} onChange={(e) => onChange(e.target.value)} className={inputCls.replace("mt-1 ", "")} placeholder="fas fa-file-invoice" />

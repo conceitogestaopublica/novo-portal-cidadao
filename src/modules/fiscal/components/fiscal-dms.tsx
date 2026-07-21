@@ -36,7 +36,7 @@ const competenciaLabel = (ano: number, mes: number) => `${MESES[mes - 1]}/${ano}
 const SITUACAO_COR: Record<string, string> = {
   RASCUNHO: "bg-amber-100 text-amber-700",
   ENTREGUE: "bg-green-100 text-green-700",
-  CANCELADA: "bg-gray-100 text-gray-600",
+  CANCELADA: "bg-muted text-muted-foreground",
 };
 
 /** Vencimento sugerido: dia 10 do mês seguinte ao de hoje. */
@@ -80,9 +80,9 @@ export function FiscalDms() {
   const semSessao = [empresas, lista].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
     return (
-      <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
-        <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
-        <p className="text-sm text-gray-600 mb-4">Sua sessão expirou. Entre novamente.</p>
+      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
+        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
+        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente.</p>
         <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
           Entrar
         </Link>
@@ -157,12 +157,12 @@ export function FiscalDms() {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <Cabecalho />
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-          <FileWarning className="size-8 text-gray-300 mb-3" aria-hidden="true" />
-          <p className="text-sm text-gray-600">
+        <div className="bg-card rounded-2xl border border-border p-8 text-center">
+          <FileWarning className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">
             Você não tem empresa ativa no cadastro econômico do município.
           </p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Se você é contador, use <strong>&quot;atuar como&quot;</strong> para escolher o cliente.
           </p>
         </div>
@@ -175,15 +175,15 @@ export function FiscalDms() {
       <Cabecalho />
 
       {erro && (
-        <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2">
           <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
           {erro}
         </div>
       )}
 
       {ativas.length > 1 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             Empresa
           </label>
           <select
@@ -192,7 +192,7 @@ export function FiscalDms() {
               setEconomicoId(e.target.value);
               setAbertaId(null);
             }}
-            className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full px-3 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {ativas.map((e) => (
               <option key={e.economicoId} value={e.economicoId}>
@@ -204,62 +204,62 @@ export function FiscalDms() {
       )}
 
       {/* Abrir competência */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5">
-        <h2 className="text-sm font-bold text-gray-800 mb-3">
+      <div className="bg-card rounded-2xl border border-border p-5">
+        <h2 className="text-sm font-bold text-foreground mb-3">
           <CalendarPlus className="size-4 text-blue-600 mr-2" />
           Abrir competência
         </h2>
         <div className="flex flex-wrap items-end gap-2">
           <div className="w-28">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Mês</label>
-            <select value={mes} onChange={(e) => setMes(e.target.value)} className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mês</label>
+            <select value={mes} onChange={(e) => setMes(e.target.value)} className="mt-1 w-full px-3 py-2.5 rounded-xl border border-border text-sm">
               {MESES.map((m, i) => (
                 <option key={m} value={i + 1}>{m}</option>
               ))}
             </select>
           </div>
           <div className="w-28">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Ano</label>
-            <input value={ano} onChange={(e) => setAno(e.target.value)} inputMode="numeric" className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm" />
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ano</label>
+            <input value={ano} onChange={(e) => setAno(e.target.value)} inputMode="numeric" className="mt-1 w-full px-3 py-2.5 rounded-xl border border-border text-sm" />
           </div>
           <button onClick={() => void abrirCompetencia()} disabled={ocupado} className="px-5 py-2.5 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60">
             Abrir
           </button>
         </div>
-        <p className="text-[11px] text-gray-400 mt-2">
+        <p className="text-[11px] text-muted-foreground mt-2">
           Abra a competência, escriture os serviços prestados e entregue.
         </p>
       </div>
 
       {/* Declarações */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-bold text-gray-800">
-            <ClipboardList className="size-4 text-gray-400 mr-2" />
+      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+        <div className="px-5 py-4 border-b border-border">
+          <h2 className="text-sm font-bold text-foreground">
+            <ClipboardList className="size-4 text-muted-foreground mr-2" />
             Minhas declarações
           </h2>
         </div>
         {lista.isLoading ? (
-          <p className="px-5 py-6 text-sm text-gray-400">Carregando…</p>
+          <p className="px-5 py-6 text-sm text-muted-foreground">Carregando…</p>
         ) : (lista.data ?? []).length === 0 ? (
-          <p className="px-5 py-6 text-sm text-gray-500">Nenhuma declaração ainda.</p>
+          <p className="px-5 py-6 text-sm text-muted-foreground">Nenhuma declaração ainda.</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-border">
             {(lista.data ?? []).map((x) => (
               <li key={x.id}>
                 <button
                   type="button"
                   onClick={() => setAbertaId(x.id === abertaId ? null : x.id)}
-                  className={`w-full flex items-center justify-between px-5 py-3 text-sm hover:bg-gray-50 ${x.id === abertaId ? "bg-blue-50/40" : ""}`}
+                  className={`w-full flex items-center justify-between px-5 py-3 text-sm hover:bg-muted/50 ${x.id === abertaId ? "bg-blue-50/40" : ""}`}
                 >
                   <span className="flex items-center gap-3">
-                    <strong className="text-gray-800">{competenciaLabel(x.competenciaAno, x.competenciaMes)}</strong>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${SITUACAO_COR[x.situacao] ?? "bg-gray-100 text-gray-600"}`}>
+                    <strong className="text-foreground">{competenciaLabel(x.competenciaAno, x.competenciaMes)}</strong>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${SITUACAO_COR[x.situacao] ?? "bg-muted text-muted-foreground"}`}>
                       {x.situacao}
                     </span>
-                    <span className="text-xs text-gray-400">{x.qtdItens ?? 0} serviço(s)</span>
+                    <span className="text-xs text-muted-foreground">{x.qtdItens ?? 0} serviço(s)</span>
                   </span>
-                  <span className="text-gray-700">
+                  <span className="text-foreground">
                     base {money(x.totalBase)} · ISS <strong>{money(x.totalIss)}</strong>
                   </span>
                 </button>
@@ -271,16 +271,16 @@ export function FiscalDms() {
 
       {/* Detalhe da declaração aberta */}
       {abertaId && d && (
-        <div className="bg-white rounded-2xl border border-blue-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 bg-blue-50/50 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-gray-800">
+        <div className="bg-card rounded-2xl border border-blue-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-border bg-blue-50/50 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-foreground">
               <FileText className="size-4 text-blue-600 mr-2" />
               {competenciaLabel(d.competenciaAno, d.competenciaMes)}
               <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${SITUACAO_COR[d.situacao] ?? ""}`}>
                 {d.situacao}
               </span>
             </h2>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               ISS <strong>{money(d.totalIss)}</strong>
             </span>
           </div>
@@ -288,12 +288,12 @@ export function FiscalDms() {
           {/* Itens */}
           <div className="px-5 py-3">
             {(d.itens ?? []).length === 0 ? (
-              <p className="text-sm text-gray-500 py-2">
+              <p className="text-sm text-muted-foreground py-2">
                 Nenhum serviço escriturado{rascunho ? " — adicione abaixo para poder entregar." : "."}
               </p>
             ) : (
               <table className="w-full text-sm">
-                <thead className="text-gray-400 text-xs uppercase">
+                <thead className="text-muted-foreground text-xs uppercase">
                   <tr>
                     <th className="text-left py-1">Serviço</th>
                     <th className="text-right py-1">Base</th>
@@ -302,24 +302,24 @@ export function FiscalDms() {
                     <th className="py-1" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {(d.itens ?? []).map((i) => (
                     <tr key={i.id}>
-                      <td className="py-2 text-gray-700">
+                      <td className="py-2 text-foreground">
                         {i.codigo}
-                        <span className="text-gray-400 text-xs"> — {i.descricao}</span>
+                        <span className="text-muted-foreground text-xs"> — {i.descricao}</span>
                         {i.retido && <span className="ml-1 text-[10px] text-amber-600">retido</span>}
                       </td>
-                      <td className="py-2 text-right text-gray-600">{money(i.baseCalculo)}</td>
-                      <td className="py-2 text-right text-gray-500">{i.aliquota}%</td>
-                      <td className="py-2 text-right font-semibold text-gray-800">{money(i.valorIss)}</td>
+                      <td className="py-2 text-right text-muted-foreground">{money(i.baseCalculo)}</td>
+                      <td className="py-2 text-right text-muted-foreground">{i.aliquota}%</td>
+                      <td className="py-2 text-right font-semibold text-foreground">{money(i.valorIss)}</td>
                       <td className="py-2 text-right">
                         {rascunho && (
                           <button
                             type="button"
                             disabled={ocupado}
                             onClick={() => void acao(() => removerItemMutation.mutateAsync(i.id))}
-                            className="text-gray-300 hover:text-red-600"
+                            className="text-muted-foreground hover:text-red-600"
                             title="Remover"
                           >
                             <Trash2 className="size-3" aria-hidden="true" />
@@ -336,11 +336,11 @@ export function FiscalDms() {
           {rascunho ? (
             <>
               {/* Escriturar */}
-              <div className="px-5 py-4 border-t border-gray-100 space-y-3">
-                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              <div className="px-5 py-4 border-t border-border space-y-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   Escriturar serviço
                 </p>
-                <select value={itemServicoId} onChange={(e) => setItemServicoId(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm">
+                <select value={itemServicoId} onChange={(e) => setItemServicoId(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-border text-sm">
                   <option value="">Selecione o serviço…</option>
                   {(itens.data ?? []).map((i) => (
                     <option key={i.id} value={i.itemServicoId}>
@@ -349,10 +349,10 @@ export function FiscalDms() {
                   ))}
                 </select>
                 <div className="grid sm:grid-cols-3 gap-3">
-                  <input value={base} onChange={(e) => setBase(e.target.value)} inputMode="decimal" placeholder="Valor do serviço" className="px-3 py-2.5 rounded-xl border border-gray-300 text-sm" />
-                  <input value={tomadorDoc} onChange={(e) => setTomadorDoc(e.target.value)} inputMode="numeric" placeholder="CPF/CNPJ do tomador (opcional)" className="px-3 py-2.5 rounded-xl border border-gray-300 text-sm" />
-                  <label className="flex items-center gap-2 text-sm text-gray-600">
-                    <input type="checkbox" checked={retido} onChange={(e) => setRetido(e.target.checked)} className="rounded border-gray-300" />
+                  <input value={base} onChange={(e) => setBase(e.target.value)} inputMode="decimal" placeholder="Valor do serviço" className="px-3 py-2.5 rounded-xl border border-border text-sm" />
+                  <input value={tomadorDoc} onChange={(e) => setTomadorDoc(e.target.value)} inputMode="numeric" placeholder="CPF/CNPJ do tomador (opcional)" className="px-3 py-2.5 rounded-xl border border-border text-sm" />
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input type="checkbox" checked={retido} onChange={(e) => setRetido(e.target.checked)} className="rounded border-border" />
                     ISS retido pelo tomador
                   </label>
                 </div>
@@ -360,19 +360,19 @@ export function FiscalDms() {
                   <Plus className="size-4 mr-1.5" />
                   Adicionar
                 </button>
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-muted-foreground">
                   O ISS sai da alíquota vigente do serviço. Marcando <strong>retido</strong>, o
                   imposto é devido pelo tomador e não entra na sua guia.
                 </p>
               </div>
 
               {/* Entregar */}
-              <div className="px-5 py-4 border-t border-gray-100">
+              <div className="px-5 py-4 border-t border-border">
                 <button onClick={() => void entregar()} disabled={ocupado || vazia} className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
                   <Send className="size-4 mr-2" />
                   {ocupado ? "Entregando…" : "Entregar declaração"}
                 </button>
-                <p className="text-[11px] text-gray-400 mt-2 text-center">
+                <p className="text-[11px] text-muted-foreground mt-2 text-center">
                   {vazia
                     ? "Escriture ao menos um serviço para entregar a competência."
                     : "Depois de entregue não dá para alterar. A guia do ISS é gerada na hora e aparece em Meus Débitos."}
@@ -380,7 +380,7 @@ export function FiscalDms() {
               </div>
             </>
           ) : (
-            <div className="px-5 py-4 border-t border-gray-100 text-sm text-gray-600">
+            <div className="px-5 py-4 border-t border-border text-sm text-muted-foreground">
               <CheckCircle2 className="size-4 text-green-600 mr-1.5" />
               Entregue{d.dataEntrega ? ` em ${new Date(d.dataEntrega).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}` : ""}. A
               guia do ISS está em <Link href="/fiscal" className="text-blue-600 font-semibold">Meus Débitos</Link>.
@@ -395,15 +395,15 @@ export function FiscalDms() {
 function Cabecalho() {
   return (
     <>
-      <nav className="text-xs text-gray-500">
+      <nav className="text-xs text-muted-foreground">
         <Link href="/fiscal" className="hover:text-blue-600">
           <ArrowLeft className="size-4 mr-1.5" />
           Área fiscal
         </Link>
       </nav>
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Declaração mensal (DMS)</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-foreground">Declaração mensal (DMS)</h1>
+        <p className="text-sm text-muted-foreground">
           Escriture os serviços prestados no mês e entregue a competência — a guia do
           ISS é gerada na entrega.
         </p>

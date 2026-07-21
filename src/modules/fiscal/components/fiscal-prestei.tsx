@@ -39,9 +39,9 @@ export function FiscalPrestei() {
 
   if (isSessaoExpirada(pendentes.error)) {
     return (
-      <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
-        <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
-        <p className="text-sm text-gray-600 mb-4">Sua sessão expirou. Entre novamente.</p>
+      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
+        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
+        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente.</p>
         <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
           Entrar
         </Link>
@@ -108,33 +108,33 @@ export function FiscalPrestei() {
     Number(f.valorServicos.replace(",", ".")) > 0;
 
   const inputCls =
-    "w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full px-3 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <nav className="text-xs text-gray-500">
+      <nav className="text-xs text-muted-foreground">
         <Link href="/fiscal" className="hover:text-blue-600">
           <ArrowLeft className="size-4 mr-1.5" />
           Área fiscal
         </Link>
       </nav>
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Serviços que prestei no município</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-foreground">Serviços que prestei no município</h1>
+        <p className="text-sm text-muted-foreground">
           Você é de outro município e prestou serviço aqui. Declare a nota e gere
           a guia do ISS — junto ou uma a uma.
         </p>
       </div>
 
       {erro && (
-        <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2">
           <AlertCircle className="size-4 mr-1.5" />
           {erro}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-5">
-        <h2 className="text-sm font-bold text-gray-800 mb-3">
+      <div className="bg-card rounded-2xl border border-border p-5">
+        <h2 className="text-sm font-bold text-foreground mb-3">
           <FilePlus2 className="size-4 text-blue-600 mr-2" />
           Declarar nota
         </h2>
@@ -152,7 +152,7 @@ export function FiscalPrestei() {
               <Plus className="size-4 mr-1.5" />
               Declarar
             </button>
-            <p className="text-[11px] text-gray-400 mt-2">
+            <p className="text-[11px] text-muted-foreground mt-2">
               Declare aqui só o serviço em que o contratante <strong>não reteve</strong> o
               ISS. Se ele reteve, quem declara é ele — o imposto já saiu do seu
               pagamento.
@@ -161,13 +161,13 @@ export function FiscalPrestei() {
         </form>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-800">
-            <Receipt className="size-4 text-gray-400 mr-2" />
+      <div className="bg-card rounded-2xl border border-border overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <h2 className="text-sm font-bold text-foreground">
+            <Receipt className="size-4 text-muted-foreground mr-2" />
             A pagar
             {p && p.total > 0 ? (
-              <span className="ml-2 font-normal text-gray-500">
+              <span className="ml-2 font-normal text-muted-foreground">
                 {p.total} nota(s) · {money(p.valorIss)}
               </span>
             ) : null}
@@ -175,7 +175,7 @@ export function FiscalPrestei() {
           {p && p.total > 0 && (
             <div className="flex gap-2">
               {selecao.length > 0 && (
-                <button onClick={() => void gerarGuia(selecao)} disabled={ocupado} className="px-3 py-1.5 rounded-xl border border-gray-300 text-xs font-semibold hover:bg-gray-50 disabled:opacity-60">
+                <button onClick={() => void gerarGuia(selecao)} disabled={ocupado} className="px-3 py-1.5 rounded-xl border border-border text-xs font-semibold hover:bg-muted/50 disabled:opacity-60">
                   Gerar das {selecao.length} escolhida(s)
                 </button>
               )}
@@ -187,14 +187,14 @@ export function FiscalPrestei() {
         </div>
 
         {pendentes.isLoading ? (
-          <p className="px-5 py-6 text-sm text-gray-400">Carregando…</p>
+          <p className="px-5 py-6 text-sm text-muted-foreground">Carregando…</p>
         ) : !p || p.total === 0 ? (
-          <p className="px-5 py-6 text-sm text-gray-500">
+          <p className="px-5 py-6 text-sm text-muted-foreground">
             Nada a pagar. O que você declarar aparece aqui até virar guia.
           </p>
         ) : (
           <table className="w-full text-sm">
-            <thead className="text-gray-400 text-xs uppercase">
+            <thead className="text-muted-foreground text-xs uppercase">
               <tr>
                 <th className="py-2 pl-5 w-8" />
                 <th className="text-left py-2">Nota</th>
@@ -202,7 +202,7 @@ export function FiscalPrestei() {
                 <th className="text-right py-2 pr-5">ISS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {p.notas.map((n) => (
                 <tr key={n.id}>
                   <td className="py-2 pl-5">
@@ -214,12 +214,12 @@ export function FiscalPrestei() {
                           e.target.checked ? [...s, n.id] : s.filter((x) => x !== n.id),
                         )
                       }
-                      className="rounded border-gray-300"
+                      className="rounded border-border"
                     />
                   </td>
-                  <td className="py-2 text-gray-700">{n.numeroNota ?? "—"}</td>
-                  <td className="py-2 text-gray-600">{n.competencia ?? "—"}</td>
-                  <td className="py-2 pr-5 text-right font-semibold text-gray-800">
+                  <td className="py-2 text-foreground">{n.numeroNota ?? "—"}</td>
+                  <td className="py-2 text-muted-foreground">{n.competencia ?? "—"}</td>
+                  <td className="py-2 pr-5 text-right font-semibold text-foreground">
                     {money(n.valorIss)}
                   </td>
                 </tr>

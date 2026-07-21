@@ -72,9 +72,9 @@ export function FiscalParcelamento() {
 
   if ([programas, debitos].some((q) => isSessaoExpirada(q.error))) {
     return (
-      <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
-        <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
-        <p className="text-sm text-gray-600 mb-4">Sua sessão expirou. Entre novamente.</p>
+      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
+        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
+        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente.</p>
         <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Entrar</Link>
       </div>
     );
@@ -105,15 +105,15 @@ export function FiscalParcelamento() {
   if (resultado) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
-        <div className="bg-white rounded-2xl border border-green-200 p-8 text-center">
+        <div className="bg-card rounded-2xl border border-green-200 p-8 text-center">
           <div className="w-16 h-16 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4"><CheckCircle2 className="size-6" aria-hidden="true" /></div>
-          <h1 className="text-xl font-bold text-gray-800">Parcelamento efetivado!</h1>
-          <p className="text-sm text-gray-500 mt-1">Termo <strong>{resultado.numero}</strong> — total {money(resultado.valorTotal)}.</p>
+          <h1 className="text-xl font-bold text-foreground">Parcelamento efetivado!</h1>
+          <p className="text-sm text-muted-foreground mt-1">Termo <strong>{resultado.numero}</strong> — total {money(resultado.valorTotal)}.</p>
           <div className="flex gap-2 justify-center mt-5">
             <a href={parcelamentoTermoUrl(resultado.id)} target="_blank" rel="noreferrer" className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700"><FileSignature className="size-4 mr-2" />Baixar termo (PDF)</a>
-            <Link href="/fiscal" className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50">Ver meus débitos</Link>
+            <Link href="/fiscal" className="px-5 py-2.5 rounded-xl border border-border text-muted-foreground font-semibold text-sm hover:bg-muted/50">Ver meus débitos</Link>
           </div>
-          <p className="text-[11px] text-gray-400 mt-4">As guias das parcelas já estão disponíveis em “Meus Débitos”.</p>
+          <p className="text-[11px] text-muted-foreground mt-4">As guias das parcelas já estão disponíveis em “Meus Débitos”.</p>
         </div>
       </div>
     );
@@ -121,44 +121,44 @@ export function FiscalParcelamento() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <nav className="text-xs text-gray-500"><Link href="/fiscal" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Meus Débitos</Link></nav>
+      <nav className="text-xs text-muted-foreground"><Link href="/fiscal" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Meus Débitos</Link></nav>
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Parcelamento de débitos</h1>
-        <p className="text-sm text-gray-500">Parcele sua dívida ativa online: escolha o programa, simule e adira.</p>
+        <h1 className="text-2xl font-bold text-foreground">Parcelamento de débitos</h1>
+        <p className="text-sm text-muted-foreground">Parcele sua dívida ativa online: escolha o programa, simule e adira.</p>
       </div>
 
-      {erro && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2"><AlertCircle className="size-4 mr-1.5" />{erro}</div>}
+      {erro && <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2"><AlertCircle className="size-4 mr-1.5" />{erro}</div>}
 
       {/* Programa */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4">
+      <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
         <div>
-          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Programa</label>
-          <select value={programaId} onChange={(e) => trocarPrograma(e.target.value)} className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Programa</label>
+          <select value={programaId} onChange={(e) => trocarPrograma(e.target.value)} className="mt-1 w-full px-3 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">Selecione um programa…</option>
             {programas.data?.programas.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
           </select>
-          {programa?.fundamentoLegal && <p className="text-[11px] text-gray-400 mt-1">{programa.fundamentoLegal}</p>}
+          {programa?.fundamentoLegal && <p className="text-[11px] text-muted-foreground mt-1">{programa.fundamentoLegal}</p>}
         </div>
 
         {programaId && (
           debitos.isLoading ? (
-            <p className="text-sm text-gray-400">Buscando seus débitos parceláveis…</p>
+            <p className="text-sm text-muted-foreground">Buscando seus débitos parceláveis…</p>
           ) : elegiveis.length === 0 ? (
-            <p className="text-sm text-gray-500"><InfoIcon className="size-4 mr-1.5 text-blue-500" />Você não tem débitos elegíveis para este programa.</p>
+            <p className="text-sm text-muted-foreground"><InfoIcon className="size-4 mr-1.5 text-blue-500" />Você não tem débitos elegíveis para este programa.</p>
           ) : (
             <>
               {/* O que ENTRA no parcelamento */}
               <div className="rounded-xl bg-green-50 border border-green-200 overflow-hidden">
                 <button type="button" onClick={() => setVerEntram((v) => !v)} className="w-full flex items-center justify-between px-3 py-2.5 text-sm">
-                  <span className="text-gray-700"><CheckCircle2 className="size-4 text-green-600 mr-1.5" /><strong>{elegiveis.length}</strong> inscrição(ões) entram — saldo atualizado <strong>{money(totalElegivel)}</strong></span>
-                  {verEntram ? <ChevronUp className="size-3 text-gray-400" aria-hidden="true" /> : <ChevronDown className="size-3 text-gray-400" aria-hidden="true" />}
+                  <span className="text-foreground"><CheckCircle2 className="size-4 text-green-600 mr-1.5" /><strong>{elegiveis.length}</strong> inscrição(ões) entram — saldo atualizado <strong>{money(totalElegivel)}</strong></span>
+                  {verEntram ? <ChevronUp className="size-3 text-muted-foreground" aria-hidden="true" /> : <ChevronDown className="size-3 text-muted-foreground" aria-hidden="true" />}
                 </button>
                 {verEntram && (
-                  <div className="max-h-52 overflow-y-auto border-t border-green-100 divide-y divide-green-100 bg-white">
+                  <div className="max-h-52 overflow-y-auto border-t border-green-100 divide-y divide-green-100 bg-card">
                     {elegiveis.map((d) => (
                       <div key={d.inscricaoId} className="flex items-center justify-between px-3 py-1.5 text-xs">
-                        <span className="text-gray-600">Inscrição <strong className="text-gray-800">{d.numero}</strong></span>
-                        <span className="font-semibold text-gray-800">{money(d.saldoAtualizado)}</span>
+                        <span className="text-muted-foreground">Inscrição <strong className="text-foreground">{d.numero}</strong></span>
+                        <span className="font-semibold text-foreground">{money(d.saldoAtualizado)}</span>
                       </div>
                     ))}
                   </div>
@@ -169,31 +169,31 @@ export function FiscalParcelamento() {
               {(inelegiveis.length > 0 || (jaParceladas?.quantidade ?? 0) > 0 || (ajuizadas?.quantidade ?? 0) > 0) && (
                 <div className="rounded-xl bg-amber-50 border border-amber-200 overflow-hidden">
                   <button type="button" onClick={() => setVerNaoEntram((v) => !v)} className="w-full flex items-center justify-between px-3 py-2.5 text-sm">
-                    <span className="text-gray-700"><InfoIcon className="size-4 text-amber-600 mr-1.5" />Débitos em aberto que <strong>não entram</strong> neste parcelamento</span>
-                    {verNaoEntram ? <ChevronUp className="size-3 text-gray-400" aria-hidden="true" /> : <ChevronDown className="size-3 text-gray-400" aria-hidden="true" />}
+                    <span className="text-foreground"><InfoIcon className="size-4 text-amber-600 mr-1.5" />Débitos em aberto que <strong>não entram</strong> neste parcelamento</span>
+                    {verNaoEntram ? <ChevronUp className="size-3 text-muted-foreground" aria-hidden="true" /> : <ChevronDown className="size-3 text-muted-foreground" aria-hidden="true" />}
                   </button>
                   {verNaoEntram && (
-                    <div className="border-t border-amber-100 bg-white text-xs">
+                    <div className="border-t border-amber-100 bg-card text-xs">
                       {(jaParceladas?.quantidade ?? 0) > 0 && (
                         <div className="flex items-center justify-between px-3 py-2 border-b border-amber-50">
-                          <span className="text-gray-600"><FileSignature className="size-4 text-amber-500 mr-1.5" />Já em parcelamento ({jaParceladas!.quantidade}) — não pode parcelar de novo</span>
-                          <span className="font-semibold text-gray-800">{money(jaParceladas!.valorInscrito)}</span>
+                          <span className="text-muted-foreground"><FileSignature className="size-4 text-amber-500 mr-1.5" />Já em parcelamento ({jaParceladas!.quantidade}) — não pode parcelar de novo</span>
+                          <span className="font-semibold text-foreground">{money(jaParceladas!.valorInscrito)}</span>
                         </div>
                       )}
                       {(ajuizadas?.quantidade ?? 0) > 0 && (
                         <div className="flex items-center justify-between px-3 py-2 border-b border-amber-50">
-                          <span className="text-gray-600"><Gavel className="size-4 text-amber-500 mr-1.5" />Em execução fiscal ({ajuizadas!.quantidade})</span>
-                          <span className="font-semibold text-gray-800">{money(ajuizadas!.valorInscrito)}</span>
+                          <span className="text-muted-foreground"><Gavel className="size-4 text-amber-500 mr-1.5" />Em execução fiscal ({ajuizadas!.quantidade})</span>
+                          <span className="font-semibold text-foreground">{money(ajuizadas!.valorInscrito)}</span>
                         </div>
                       )}
                       {inelegiveis.map((d) => (
                         <div key={d.inscricaoId} className="flex items-center justify-between px-3 py-2 border-b border-amber-50">
-                          <span className="text-gray-600">Inscrição <strong className="text-gray-800">{d.numero}</strong> — {d.motivoInelegivel ?? "não elegível"}</span>
-                          <span className="font-semibold text-gray-800">{money(d.saldoAtualizado)}</span>
+                          <span className="text-muted-foreground">Inscrição <strong className="text-foreground">{d.numero}</strong> — {d.motivoInelegivel ?? "não elegível"}</span>
+                          <span className="font-semibold text-foreground">{money(d.saldoAtualizado)}</span>
                         </div>
                       ))}
                       {totalInelegivel > 0 && inelegiveis.length > 1 && (
-                        <div className="px-3 py-1.5 text-[11px] text-gray-400 text-right">Subtotal inelegíveis ativas: {money(totalInelegivel)}</div>
+                        <div className="px-3 py-1.5 text-[11px] text-muted-foreground text-right">Subtotal inelegíveis ativas: {money(totalInelegivel)}</div>
                       )}
                     </div>
                   )}
@@ -201,7 +201,7 @@ export function FiscalParcelamento() {
                 </div>
               )}
               <div>
-                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Número de parcelas (até {programa?.maxParcelas})</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Número de parcelas (até {programa?.maxParcelas})</label>
                 <input
                   type="number"
                   min={1}
@@ -209,9 +209,9 @@ export function FiscalParcelamento() {
                   value={qtdStr}
                   onChange={(e) => { setQtdStr(e.target.value); setSim(null); }}
                   onBlur={() => setQtdStr(String(qtd))}
-                  className="mt-1 w-32 px-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="mt-1 w-32 px-3 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {programa && programa.entradaPercentual > 0 && <p className="text-[11px] text-gray-400 mt-1">Entrada de {programa.entradaPercentual}%. Parcela mínima {money(programa.valorMinimoParcela)}.</p>}
+                {programa && programa.entradaPercentual > 0 && <p className="text-[11px] text-muted-foreground mt-1">Entrada de {programa.entradaPercentual}%. Parcela mínima {money(programa.valorMinimoParcela)}.</p>}
               </div>
               <button onClick={simular} disabled={ocupado} className="px-5 py-2.5 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60"><Calculator className="size-4 mr-2" />{ocupado && !sim ? "Simulando…" : "Simular"}</button>
             </>
@@ -221,13 +221,13 @@ export function FiscalParcelamento() {
 
       {/* Simulação */}
       {sim && (
-        <div className="bg-white rounded-2xl border border-blue-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 bg-blue-50/50">
-            <h2 className="text-sm font-bold text-gray-800"><Receipt className="size-4 text-blue-600 mr-2" />Simulação — {sim.parametroNome}</h2>
+        <div className="bg-card rounded-2xl border border-blue-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-border bg-blue-50/50">
+            <h2 className="text-sm font-bold text-foreground"><Receipt className="size-4 text-blue-600 mr-2" />Simulação — {sim.parametroNome}</h2>
           </div>
           {/* Deixa explícito que o débito foi ATUALIZADO na consolidação. */}
           <div className="px-5 pt-4 text-sm">
-            <div className="rounded-xl border border-gray-100 divide-y divide-gray-100">
+            <div className="rounded-xl border border-border divide-y divide-border">
               <Linha rotulo="Valor inscrito (original)" valor={money(inscritoElegivel)} />
               <Linha rotulo="Atualização (juros, multa e correção até hoje)" valor={`+ ${money(atualizacaoConsolidado)}`} destaque />
               <Linha rotulo="Valor consolidado" valor={money(sim.valorConsolidado)} negrito />
@@ -243,18 +243,18 @@ export function FiscalParcelamento() {
           </div>
           <div className="px-5 pb-2 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-gray-400 text-xs uppercase"><tr><th className="text-left py-1">Parcela</th><th className="text-left py-1">Vencimento</th><th className="text-right py-1">Valor</th></tr></thead>
-              <tbody className="divide-y divide-gray-100">
+              <thead className="text-muted-foreground text-xs uppercase"><tr><th className="text-left py-1">Parcela</th><th className="text-left py-1">Vencimento</th><th className="text-right py-1">Valor</th></tr></thead>
+              <tbody className="divide-y divide-border">
                 {(sim.parcelas ?? []).map((p) => (
-                  <tr key={p.numero}><td className="py-2 font-medium text-gray-700">{p.numero === 0 ? "Entrada" : `${p.numero}ª`}</td><td className="py-2 text-gray-600">{dateBR(p.dataVencimento)}</td><td className="py-2 text-right font-semibold text-gray-800">{money(p.valor)}</td></tr>
+                  <tr key={p.numero}><td className="py-2 font-medium text-foreground">{p.numero === 0 ? "Entrada" : `${p.numero}ª`}</td><td className="py-2 text-muted-foreground">{dateBR(p.dataVencimento)}</td><td className="py-2 text-right font-semibold text-foreground">{money(p.valor)}</td></tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-4 border-t border-gray-100">
-            {erro && <div className="mb-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs px-3 py-2"><AlertCircle className="size-4 mr-1.5" />{erro}</div>}
+          <div className="px-5 py-4 border-t border-border">
+            {erro && <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs px-3 py-2"><AlertCircle className="size-4 mr-1.5" />{erro}</div>}
             <button onClick={aderir} disabled={ocupado} className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60"><FileSignature className="size-4 mr-2" />{ocupado ? "Processando… (pode levar alguns segundos)" : "Aderir ao parcelamento"}</button>
-            <p className="text-[11px] text-gray-400 mt-2 text-center">Ao aderir, você confessa o débito e gera o termo + as guias das parcelas.</p>
+            <p className="text-[11px] text-muted-foreground mt-2 text-center">Ao aderir, você confessa o débito e gera o termo + as guias das parcelas.</p>
           </div>
         </div>
       )}
@@ -265,17 +265,17 @@ export function FiscalParcelamento() {
 function Linha({ rotulo, valor, destaque, negrito }: { rotulo: string; valor: string; destaque?: boolean; negrito?: boolean }) {
   return (
     <div className="flex items-center justify-between px-3 py-2">
-      <span className={`text-xs ${destaque ? "text-amber-700" : "text-gray-500"}`}>{rotulo}</span>
-      <span className={`text-sm ${negrito ? "font-bold text-gray-900" : destaque ? "font-semibold text-amber-700" : "text-gray-700"}`}>{valor}</span>
+      <span className={`text-xs ${destaque ? "text-amber-700" : "text-muted-foreground"}`}>{rotulo}</span>
+      <span className={`text-sm ${negrito ? "font-bold text-foreground" : destaque ? "font-semibold text-amber-700" : "text-foreground"}`}>{valor}</span>
     </div>
   );
 }
 
 function Info({ titulo, valor, destaque }: { titulo: string; valor: string; destaque?: boolean }) {
   return (
-    <div className={`rounded-xl p-3 ${destaque ? "bg-blue-600 text-white" : "bg-gray-50"}`}>
-      <p className={`text-[10px] uppercase tracking-wider font-semibold ${destaque ? "text-blue-100" : "text-gray-400"}`}>{titulo}</p>
-      <p className={`text-sm font-bold ${destaque ? "text-white" : "text-gray-800"}`}>{valor}</p>
+    <div className={`rounded-xl p-3 ${destaque ? "bg-blue-600 text-white" : "bg-muted/50"}`}>
+      <p className={`text-[10px] uppercase tracking-wider font-semibold ${destaque ? "text-blue-100" : "text-muted-foreground"}`}>{titulo}</p>
+      <p className={`text-sm font-bold ${destaque ? "text-white" : "text-foreground"}`}>{valor}</p>
     </div>
   );
 }

@@ -48,7 +48,7 @@ export async function CategoriaDetalhe({ params }: { params: Promise<{ slug: str
 
       {acoes.length > 0 && (
         <div className="mb-8">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
             Fazer agora
           </p>
           <div className="flex flex-wrap gap-2">
@@ -56,7 +56,7 @@ export async function CategoriaDetalhe({ params }: { params: Promise<{ slug: str
               <Link
                 key={a.href}
                 href={a.href}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700 hover:shadow-sm transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card border border-border text-sm font-semibold text-foreground hover:border-blue-300 hover:text-blue-700 hover:shadow-sm transition-all"
               >
                 <CatalogoIcon nome={a.icone} className="text-blue-600" />
                 {a.rotulo}
@@ -66,21 +66,21 @@ export async function CategoriaDetalhe({ params }: { params: Promise<{ slug: str
         </div>
       )}
 
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
         {acoes.length > 0 ? "Sobre estes serviços" : "Serviços"}
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {servicos.map((s: Servico) => (
-          <Link key={String(s.id)} href={`/servico/${s.slug}`} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 hover:shadow-md transition-all flex items-start gap-3 group">
+          <Link key={String(s.id)} href={`/servico/${s.slug}`} className="bg-card rounded-xl border border-border p-5 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 hover:shadow-md transition-all flex items-start gap-3 group">
             <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-blue-100"><CatalogoIcon nome={s.icone} /></div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700">{s.titulo}</p>
-                <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">{publicos[s.publico_alvo] || s.publico_alvo}</span>
+                <p className="text-sm font-semibold text-foreground group-hover:text-blue-700">{s.titulo}</p>
+                <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 bg-muted text-muted-foreground rounded-full">{publicos[s.publico_alvo] || s.publico_alvo}</span>
               </div>
-              <p className="text-xs text-gray-500 line-clamp-2 mt-1">{s.descricao_curta}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{s.descricao_curta}</p>
             </div>
-            <ArrowRight className="size-4 text-gray-300 group-hover:text-blue-600 mt-1" aria-hidden="true" />
+            <ArrowRight className="size-4 text-muted-foreground group-hover:text-blue-600 mt-1" aria-hidden="true" />
           </Link>
         ))}
       </div>

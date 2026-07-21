@@ -20,21 +20,21 @@ export function BuscarServicos() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-gray-800 mb-1">Todos os serviços</h1>
-      <p className="text-sm text-gray-500 mb-6">Encontre o serviço que você precisa.</p>
+      <h1 className="text-2xl font-bold text-foreground mb-1">Todos os serviços</h1>
+      <p className="text-sm text-muted-foreground mb-6">Encontre o serviço que você precisa.</p>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6 flex flex-col sm:flex-row gap-3">
+      <div className="bg-card rounded-2xl border border-border p-4 mb-6 flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
-          <Search className="size-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+          <Search className="size-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && setTermo(q)}
             placeholder="Busque por serviço ou palavra-chave..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
-        <select value={publico} onChange={(e) => setPublico(e.target.value)} className="px-3 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-700">
+        <select value={publico} onChange={(e) => setPublico(e.target.value)} className="px-3 py-2.5 rounded-xl border border-border text-sm text-foreground">
           <option value="">Todos os públicos</option>
           <option value="cidadao">Cidadão</option>
           <option value="empresa">Empresa</option>
@@ -44,24 +44,24 @@ export function BuscarServicos() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-16 text-gray-400 text-sm">Carregando…</div>
+        <div className="text-center py-16 text-muted-foreground text-sm">Carregando…</div>
       ) : items.length === 0 ? (
-        <div className="text-center py-16 text-gray-500"><Search className="size-8 text-gray-300 mb-3" aria-hidden="true" /><p className="text-sm">Nenhum serviço encontrado.</p></div>
+        <div className="text-center py-16 text-muted-foreground"><Search className="size-8 text-muted-foreground mb-3" aria-hidden="true" /><p className="text-sm">Nenhum serviço encontrado.</p></div>
       ) : (
         <>
-          <p className="text-xs text-gray-400 mb-3">{items.length} serviço(s)</p>
+          <p className="text-xs text-muted-foreground mb-3">{items.length} serviço(s)</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {items.map((s) => (
-              <Link key={String(s.id)} href={`/servico/${s.slug}`} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 hover:shadow-md transition-all flex items-start gap-3 group">
+              <Link key={String(s.id)} href={`/servico/${s.slug}`} className="bg-card rounded-xl border border-border p-5 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 hover:shadow-md transition-all flex items-start gap-3 group">
                 <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-blue-100"><CatalogoIcon nome={s.icone} /></div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700">{s.titulo}</p>
+                    <p className="text-sm font-semibold text-foreground group-hover:text-blue-700">{s.titulo}</p>
                     {s.categoria && <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full">{s.categoria.nome}</span>}
                   </div>
-                  <p className="text-xs text-gray-500 line-clamp-2 mt-1">{s.descricao_curta}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{s.descricao_curta}</p>
                 </div>
-                <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full self-start">{publicos[s.publico_alvo] || s.publico_alvo}</span>
+                <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 bg-muted text-muted-foreground rounded-full self-start">{publicos[s.publico_alvo] || s.publico_alvo}</span>
               </Link>
             ))}
           </div>

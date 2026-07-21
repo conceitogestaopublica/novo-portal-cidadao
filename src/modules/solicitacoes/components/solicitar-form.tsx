@@ -43,19 +43,19 @@ export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
 
   if (protocolo) {
     return (
-      <div className="bg-white rounded-2xl border border-green-200 p-8 text-center">
+      <div className="bg-card rounded-2xl border border-green-200 p-8 text-center">
         <div className="w-16 h-16 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 className="size-6" aria-hidden="true" />
         </div>
-        <h2 className="text-lg font-bold text-gray-800">Solicitação registrada!</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Protocolo <strong className="text-gray-800">{protocolo}</strong>. Acompanhe pelo menu “Minhas Solicitações”.
+        <h2 className="text-lg font-bold text-foreground">Solicitação registrada!</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Protocolo <strong className="text-foreground">{protocolo}</strong>. Acompanhe pelo menu “Minhas Solicitações”.
         </p>
         <div className="flex gap-2 justify-center mt-5">
           <Link href="/minhas-solicitacoes" className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
             Minhas solicitações
           </Link>
-          <Link href="/" className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50">
+          <Link href="/" className="px-5 py-2.5 rounded-xl border border-border text-muted-foreground font-semibold text-sm hover:bg-muted/50">
             Início
           </Link>
         </div>
@@ -64,26 +64,26 @@ export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="bg-card rounded-2xl border border-border p-6 space-y-4" noValidate>
       {errors.root && (
-        <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
           <AlertCircle className="size-4 mt-0.5 shrink-0" />
           {errors.root.message}
         </div>
       )}
-      <p className="text-xs text-gray-500">
-        Solicitante: <strong className="text-gray-700">{nome}</strong>
+      <p className="text-xs text-muted-foreground">
+        Solicitante: <strong className="text-foreground">{nome}</strong>
       </p>
       <div>
-        <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Contato (e-mail ou telefone)</Label>
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contato (e-mail ou telefone)</Label>
         <Input placeholder="para retorno" className={inputCls} {...register("contato")} />
       </div>
       <div>
-        <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Descreva sua solicitação</Label>
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Descreva sua solicitação</Label>
         <textarea
           rows={5}
           placeholder="Detalhe o que você precisa…"
-          className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 w-full px-3 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           {...register("mensagem")}
         />
       </div>
@@ -91,9 +91,9 @@ export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
         <Send className="size-4 mr-2" />
         {isPending ? "Enviando…" : "Enviar solicitação"}
       </Button>
-      <p className="text-[11px] text-gray-400 text-center">Sua solicitação gera um protocolo e será encaminhada para tramitação.</p>
+      <p className="text-[11px] text-muted-foreground text-center">Sua solicitação gera um protocolo e será encaminhada para tramitação.</p>
     </form>
   );
 }
 
-const inputCls = "mt-1 w-full px-3 py-2.5 h-auto rounded-xl border-gray-300 text-sm focus-visible:ring-blue-500";
+const inputCls = "mt-1 w-full px-3 py-2.5 h-auto rounded-xl border-border text-sm focus-visible:ring-blue-500";

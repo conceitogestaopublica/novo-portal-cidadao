@@ -44,17 +44,17 @@ export function CadastroForm() {
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+      <div className="bg-card rounded-2xl border border-border p-6 lg:p-8 shadow-sm">
         <div className="text-center mb-6">
           <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
             <UserPlus className="text-white size-5" aria-hidden="true" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Criar conta</h1>
-          <p className="text-sm text-gray-500 mt-1">Cadastre-se para acessar o Atendimento ao Contribuinte.</p>
+          <h1 className="text-xl font-bold text-foreground">Criar conta</h1>
+          <p className="text-sm text-muted-foreground mt-1">Cadastre-se para acessar o Atendimento ao Contribuinte.</p>
         </div>
 
         {errors.root && (
-          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
+          <div className="mb-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
             <AlertCircle className="size-4 mt-0.5 shrink-0" aria-hidden="true" />
             {errors.root.message}
           </div>
@@ -78,11 +78,11 @@ export function CadastroForm() {
               <Input type="password" className={inputCls} {...register("senha2")} />
             </Campo>
           </div>
-          <label className="flex items-start gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 cursor-pointer">
-            <input type="checkbox" className="mt-0.5 rounded border-gray-300" {...register("prestadorExterno")} />
-            <span className="text-sm text-gray-700">
+          <label className="flex items-start gap-2 rounded-xl border border-border bg-muted/50 p-3 cursor-pointer">
+            <input type="checkbox" className="mt-0.5 rounded border-border" {...register("prestadorExterno")} />
+            <span className="text-sm text-foreground">
               <strong>Sou de outro município</strong> e prestei serviço aqui
-              <span className="block text-xs text-gray-500 mt-0.5">
+              <span className="block text-xs text-muted-foreground mt-0.5">
                 Marque para declarar o serviço que você prestou no município e
                 pagar o ISS. Seu cadastro é criado agora.
               </span>
@@ -92,13 +92,13 @@ export function CadastroForm() {
             {isSubmitting ? "Criando..." : "Criar conta"}
           </Button>
         </form>
-        <p className="text-center text-xs text-gray-500 mt-4">
+        <p className="text-center text-xs text-muted-foreground mt-4">
           Já tem conta?{" "}
           <Link href="/entrar" className="text-blue-600 font-semibold hover:text-blue-700">
             Entrar
           </Link>
         </p>
-        <p className="text-center text-[11px] text-gray-400 mt-2">
+        <p className="text-center text-[11px] text-muted-foreground mt-2">
           {prestadorExterno
             ? "Seu CPF/CNPJ é validado e passa a constar no cadastro do município."
             : "O cadastro é validado no cadastro de contribuintes do município."}
@@ -108,12 +108,12 @@ export function CadastroForm() {
   );
 }
 
-const inputCls = "mt-1 w-full px-4 py-3 h-auto rounded-xl border-gray-300 focus-visible:ring-blue-500 text-sm";
+const inputCls = "mt-1 w-full px-4 py-3 h-auto rounded-xl border-border focus-visible:ring-blue-500 text-sm";
 const btnCls = "w-full px-4 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60";
 function Campo({ label, erro, children }: { label: string; erro?: string; children: React.ReactNode }) {
   return (
     <div>
-      <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{label}</Label>
+      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</Label>
       {children}
       {erro && (
         <p className="text-xs text-destructive mt-1" role="alert">

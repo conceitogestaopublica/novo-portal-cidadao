@@ -90,13 +90,13 @@ export function EntrarForm() {
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 shadow-sm">
+      <div className="bg-card rounded-2xl border border-border p-6 lg:p-8 shadow-sm">
         <div className="text-center mb-6">
           <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
             <UserLock className="text-white size-5" aria-hidden="true" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Entrar no Atendimento</h1>
-          <p className="text-sm text-gray-500 mt-1">Acesse seus débitos, guias e certidões.</p>
+          <h1 className="text-xl font-bold text-foreground">Entrar no Atendimento</h1>
+          <p className="text-sm text-muted-foreground mt-1">Acesse seus débitos, guias e certidões.</p>
         </div>
 
         {modo === "senha" ? (
@@ -115,12 +115,12 @@ export function EntrarForm() {
               <Link href="/cadastrar" className="text-blue-600 font-semibold hover:text-blue-700">
                 Criar conta
               </Link>
-              <button type="button" onClick={() => trocarModo("otp")} className="text-gray-500 hover:text-gray-700">
+              <button type="button" onClick={() => trocarModo("otp")} className="text-muted-foreground hover:text-gray-700">
                 Entrar com código
               </button>
             </div>
             <p className="text-center text-xs pt-1">
-              <Link href="/recuperar" className="text-gray-500 hover:text-gray-700">
+              <Link href="/recuperar" className="text-muted-foreground hover:text-gray-700">
                 Esqueci minha senha
               </Link>
             </p>
@@ -128,14 +128,14 @@ export function EntrarForm() {
         ) : !challengeId ? (
           <form onSubmit={formStart.handleSubmit(iniciarOtp)} className="space-y-4" noValidate>
             <Erro mensagem={formStart.formState.errors.root?.message} />
-            <p className="text-xs text-gray-500 -mt-2">Acesso rápido: enviamos um código para o seu contato cadastrado.</p>
+            <p className="text-xs text-muted-foreground -mt-2">Acesso rápido: enviamos um código para o seu contato cadastrado.</p>
             <Campo label="CPF ou CNPJ" erro={formStart.formState.errors.documento?.message}>
               <Input autoFocus placeholder="000.000.000-00" className={inputCls} {...formStart.register("documento")} />
             </Campo>
             <Button type="submit" disabled={formStart.formState.isSubmitting} className={btnCls}>
               {formStart.formState.isSubmitting ? "Enviando..." : "Enviar código"}
             </Button>
-            <button type="button" onClick={() => trocarModo("senha")} className="w-full text-xs text-gray-500 hover:text-gray-700">
+            <button type="button" onClick={() => trocarModo("senha")} className="w-full text-xs text-muted-foreground hover:text-gray-700">
               Entrar com senha
             </button>
           </form>
@@ -143,7 +143,7 @@ export function EntrarForm() {
           <form onSubmit={formVerify.handleSubmit(verificarOtp)} className="space-y-4" noValidate>
             <Erro mensagem={formVerify.formState.errors.root?.message} />
             {canal && (
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-muted-foreground text-center">
                 Código enviado para <strong>{canal}</strong>.
               </p>
             )}
@@ -168,18 +168,18 @@ export function EntrarForm() {
           </form>
         )}
       </div>
-      <p className="text-center text-[11px] text-gray-400 mt-4">Em breve: Login Único gov.br.</p>
+      <p className="text-center text-[11px] text-muted-foreground mt-4">Em breve: Login Único gov.br.</p>
     </div>
   );
 }
 
-const inputCls = "mt-1 w-full px-4 py-3 h-auto rounded-xl border-gray-300 focus-visible:ring-blue-500 text-sm";
+const inputCls = "mt-1 w-full px-4 py-3 h-auto rounded-xl border-border focus-visible:ring-blue-500 text-sm";
 const btnCls = "w-full px-4 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60";
 
 function Campo({ label, erro, children }: { label: string; erro?: string; children: React.ReactNode }) {
   return (
     <div>
-      <Label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{label}</Label>
+      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</Label>
       {children}
       {erro && (
         <p className="text-xs text-destructive mt-1" role="alert">
@@ -193,7 +193,7 @@ function Campo({ label, erro, children }: { label: string; erro?: string; childr
 function Erro({ mensagem }: { mensagem?: string }) {
   if (!mensagem) return null;
   return (
-    <div className="mb-1 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
+    <div className="mb-1 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 flex items-start gap-1.5" role="alert">
       <AlertCircle className="size-4 mt-0.5 shrink-0" aria-hidden="true" />
       {mensagem}
     </div>
