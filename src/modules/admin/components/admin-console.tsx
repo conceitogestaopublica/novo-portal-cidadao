@@ -1,12 +1,28 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, FileSignature, Plus, Trash2, UserCheck, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { AdminCatalogo, AdminServico } from "@/shared/catalogo/catalogo-admin-repo";
 import type { Ambiente, CategoriaSeed } from "@/shared/catalogo/catalogo-seed";
 import { CatalogoIcon } from "@/shared/lib/icon-registry";
 import { useCatalogoAdmin, useExcluirCatalogo, useSalvarCatalogo } from "../hooks/use-catalogo-admin";
+import {
+  ambienteSchema,
+  categoriaSchema,
+  servicoFormSchema,
+  type AmbienteFormInput,
+  type AmbienteOutput,
+  type CategoriaFormInput,
+  type CategoriaOutput,
+  type ServicoFormInput,
+  type ServicoFormOutput,
+} from "../schemas/catalogo-admin.schema";
 
 type Aba = "ambientes" | "categorias" | "servicos";
 
@@ -53,6 +69,9 @@ const ACOES_FISCAIS = [
   { v: "certidao", label: "Certidão (CND/CPEN)" },
   { v: "parcelamento", label: "Parcelamento" },
   { v: "caixa_postal", label: "Caixa postal (DTE)" },
+  { v: "nfse", label: "NFS-e (emitir/consultar)" },
+  { v: "dms", label: "DMS (declaração mensal)" },
+  { v: "prestei", label: "Prestei serviço aqui (outro município)" },
 ];
 
 const inputCls = "mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm";
@@ -261,52 +280,61 @@ function Modal({ titulo, children, onCancel }: { titulo: string; children: React
 function Acoes({ busy, onCancel }: { busy: boolean; onCancel: () => void }) {
   return (
     <div className="flex justify-end gap-2 pt-2">
-      <button type="button" onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100">
+      <Button type="button" variant="ghost" onClick={onCancel} className="px-4 py-2 h-auto rounded-lg text-sm text-gray-600 hover:bg-gray-100">
         Cancelar
-      </button>
-      <button disabled={busy} className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 disabled:opacity-60">
+      </Button>
+      <Button type="submit" disabled={busy} className="px-4 py-2 h-auto rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 disabled:opacity-60">
         {busy ? "Salvando..." : "Salvar"}
-      </button>
+      </Button>
     </div>
   );
 }
 
 /* ---------- Formulários ---------- */
 
-function AmbienteForm({ item, busy, onCancel, onSave }: { item: Ambiente | null; busy: boolean; onCancel: () => void; onSave: (b: unknown) => void }) {
-  const [f, setF] = useState({
-    slug: item?.slug ?? "",
-    nome: item?.nome ?? "",
-    descricao: item?.descricao ?? "",
-    icone: item?.icone ?? "fas fa-folder-open",
-    cor: item?.cor ?? "blue",
-    sistema: item?.sistema ?? "ged",
-    disponivel: item?.disponivel ?? true,
+function AmbienteForm({ item, busy, onCancel, onSave }: { item: Ambiente | null; busy: boolean; onCancel: () => void; onSave: (b: AmbienteOutput) => void }) {
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<AmbienteFormInput, unknown, AmbienteOutput>({
+    resolver: zodResolver(ambienteSchema),
+    defaultValues: {
+      slug: item?.slug ?? "",
+      nome: item?.nome ?? "",
+      descricao: item?.descricao ?? "",
+      icone: item?.icone ?? "fas fa-folder-open",
+      cor: item?.cor ?? "blue",
+      sistema: item?.sistema ?? "ged",
+      disponivel: item?.disponivel ?? true,
+    },
   });
   return (
     <Modal titulo={item ? "Editar ambiente" : "Novo ambiente"} onCancel={onCancel}>
-      <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="space-y-4">
+      <form onSubmit={handleSubmit(onSave)} className="space-y-4" noValidate>
         <div>
-          <label className={labelCls}>Nome *</label>
-          <input required value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} className={inputCls} />
+          <Label className={labelCls}>Nome *</Label>
+          <Input className={inputCls} {...register("nome")} />
+          {errors.nome && <p className="text-xs text-destructive mt-1" role="alert">{errors.nome.message}</p>}
         </div>
         <div>
-          <label className={labelCls}>Descrição</label>
-          <textarea value={f.descricao} onChange={(e) => setF({ ...f, descricao: e.target.value })} rows={2} className={inputCls} />
+          <Label className={labelCls}>Descrição</Label>
+          <textarea rows={2} className={inputCls} {...register("descricao")} />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <IconePicker valor={f.icone} onChange={(v) => setF({ ...f, icone: v })} />
-          <CorPicker valor={f.cor} onChange={(v) => setF({ ...f, cor: v })} />
+          <Controller control={control} name="icone" render={({ field }) => <IconePicker valor={field.value ?? "fas fa-folder-open"} onChange={field.onChange} />} />
+          <Controller control={control} name="cor" render={({ field }) => <CorPicker valor={field.value ?? "blue"} onChange={field.onChange} />} />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Sistema</label>
-            <select value={f.sistema} onChange={(e) => setF({ ...f, sistema: e.target.value as Ambiente["sistema"] })} className={inputCls}>
+            <Label className={labelCls}>Sistema</Label>
+            <select className={inputCls} {...register("sistema")}>
               {SISTEMAS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
             </select>
           </div>
           <label className="flex items-center gap-2 mt-6 text-sm text-gray-700">
-            <input type="checkbox" checked={f.disponivel} onChange={(e) => setF({ ...f, disponivel: e.target.checked })} />
+            <input type="checkbox" {...register("disponivel")} />
             Disponível (visível no portal)
           </label>
         </div>
@@ -316,38 +344,48 @@ function AmbienteForm({ item, busy, onCancel, onSave }: { item: Ambiente | null;
   );
 }
 
-function CategoriaForm({ item, ambientes, busy, onCancel, onSave }: { item: CategoriaSeed | null; ambientes: Ambiente[]; busy: boolean; onCancel: () => void; onSave: (b: unknown) => void }) {
-  const [f, setF] = useState({
-    id: item?.id,
-    slug: item?.slug ?? "",
-    ambienteSlug: item?.ambienteSlug ?? ambientes[0]?.slug ?? "",
-    nome: item?.nome ?? "",
-    descricao: item?.descricao ?? "",
-    icone: item?.icone ?? "fas fa-folder",
-    cor: item?.cor ?? "blue",
+function CategoriaForm({ item, ambientes, busy, onCancel, onSave }: { item: CategoriaSeed | null; ambientes: Ambiente[]; busy: boolean; onCancel: () => void; onSave: (b: CategoriaOutput) => void }) {
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<CategoriaFormInput, unknown, CategoriaOutput>({
+    resolver: zodResolver(categoriaSchema),
+    defaultValues: {
+      id: item?.id,
+      slug: item?.slug ?? "",
+      ambienteSlug: item?.ambienteSlug ?? ambientes[0]?.slug ?? "",
+      nome: item?.nome ?? "",
+      descricao: item?.descricao ?? "",
+      icone: item?.icone ?? "fas fa-folder",
+      cor: item?.cor ?? "blue",
+    },
   });
   return (
     <Modal titulo={item ? "Editar categoria" : "Nova categoria"} onCancel={onCancel}>
-      <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="space-y-4">
+      <form onSubmit={handleSubmit(onSave)} className="space-y-4" noValidate>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Nome *</label>
-            <input required value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} className={inputCls} />
+            <Label className={labelCls}>Nome *</Label>
+            <Input className={inputCls} {...register("nome")} />
+            {errors.nome && <p className="text-xs text-destructive mt-1" role="alert">{errors.nome.message}</p>}
           </div>
           <div>
-            <label className={labelCls}>Ambiente *</label>
-            <select value={f.ambienteSlug} onChange={(e) => setF({ ...f, ambienteSlug: e.target.value })} className={inputCls}>
+            <Label className={labelCls}>Ambiente *</Label>
+            <select className={inputCls} {...register("ambienteSlug")}>
               {ambientes.map((a) => <option key={a.slug} value={a.slug}>{a.nome}</option>)}
             </select>
+            {errors.ambienteSlug && <p className="text-xs text-destructive mt-1" role="alert">{errors.ambienteSlug.message}</p>}
           </div>
         </div>
         <div>
-          <label className={labelCls}>Descrição</label>
-          <textarea value={f.descricao ?? ""} onChange={(e) => setF({ ...f, descricao: e.target.value })} rows={2} className={inputCls} />
+          <Label className={labelCls}>Descrição</Label>
+          <textarea rows={2} className={inputCls} {...register("descricao")} />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <IconePicker valor={f.icone ?? ""} onChange={(v) => setF({ ...f, icone: v })} />
-          <CorPicker valor={f.cor ?? "blue"} onChange={(v) => setF({ ...f, cor: v })} />
+          <Controller control={control} name="icone" render={({ field }) => <IconePicker valor={field.value ?? ""} onChange={field.onChange} />} />
+          <Controller control={control} name="cor" render={({ field }) => <CorPicker valor={field.value ?? "blue"} onChange={field.onChange} />} />
         </div>
         <Acoes busy={busy} onCancel={onCancel} />
       </form>
@@ -356,112 +394,123 @@ function CategoriaForm({ item, ambientes, busy, onCancel, onSave }: { item: Cate
 }
 
 function ServicoForm({ item, categorias, busy, onCancel, onSave }: { item: AdminServico | null; categorias: CategoriaSeed[]; busy: boolean; onCancel: () => void; onSave: (b: unknown) => void }) {
-  const [f, setF] = useState({
-    id: item?.id,
-    slug: item?.slug ?? "",
-    categoriaSlug: item?.categoriaSlug ?? categorias[0]?.slug ?? "",
-    titulo: item?.titulo ?? "",
-    publico_alvo: item?.publico_alvo ?? "cidadao",
-    tipo_fluxo: item?.tipo_fluxo ?? "processo_ged",
-    fiscal_acao: item?.fiscal_acao ?? "debitos",
-    descricao_curta: item?.descricao_curta ?? "",
-    descricao_completa: item?.descricao_completa ?? "",
-    orgao_responsavel: item?.orgao_responsavel ?? "",
-    prazo_entrega: item?.prazo_entrega ?? "Imediato",
-    custo: item?.custo ?? "Gratuito",
-    legislacao: item?.legislacao ?? "",
-    palavras: (item?.palavras_chave ?? []).join(", "),
-    icone: item?.icone ?? "fas fa-file-lines",
-    publicado: item?.publicado ?? true,
-    permite_anonimo: item?.permite_anonimo ?? false,
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<ServicoFormInput, unknown, ServicoFormOutput>({
+    resolver: zodResolver(servicoFormSchema),
+    defaultValues: {
+      id: item?.id,
+      slug: item?.slug ?? "",
+      categoriaSlug: item?.categoriaSlug ?? categorias[0]?.slug ?? "",
+      titulo: item?.titulo ?? "",
+      publico_alvo: item?.publico_alvo ?? "cidadao",
+      tipo_fluxo: item?.tipo_fluxo ?? "processo_ged",
+      fiscal_acao: item?.fiscal_acao ?? "debitos",
+      descricao_curta: item?.descricao_curta ?? "",
+      descricao_completa: item?.descricao_completa ?? "",
+      orgao_responsavel: item?.orgao_responsavel ?? "",
+      prazo_entrega: item?.prazo_entrega ?? "Imediato",
+      custo: item?.custo ?? "Gratuito",
+      legislacao: item?.legislacao ?? "",
+      palavras: (item?.palavras_chave ?? []).join(", "),
+      icone: item?.icone ?? "fas fa-file-lines",
+      publicado: item?.publicado ?? true,
+      permite_anonimo: item?.permite_anonimo ?? false,
+    },
   });
+  const tipoFluxo = useWatch({ control, name: "tipo_fluxo" });
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
+  function submit(f: ServicoFormOutput) {
+    const { palavras, ...resto } = f;
     onSave({
-      ...f,
-      palavras_chave: f.palavras.split(",").map((s) => s.trim()).filter(Boolean),
-      fiscal_acao: f.tipo_fluxo === "self_service_fiscal" ? f.fiscal_acao : null,
+      ...resto,
+      palavras_chave: palavras.split(",").map((s) => s.trim()).filter(Boolean),
+      fiscal_acao: resto.tipo_fluxo === "self_service_fiscal" ? resto.fiscal_acao : null,
     });
   }
 
   return (
     <Modal titulo={item ? "Editar serviço" : "Novo serviço"} onCancel={onCancel}>
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
         <div>
-          <label className={labelCls}>Título *</label>
-          <input required value={f.titulo} onChange={(e) => setF({ ...f, titulo: e.target.value })} className={inputCls} />
+          <Label className={labelCls}>Título *</Label>
+          <Input className={inputCls} {...register("titulo")} />
+          {errors.titulo && <p className="text-xs text-destructive mt-1" role="alert">{errors.titulo.message}</p>}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Categoria *</label>
-            <select value={f.categoriaSlug} onChange={(e) => setF({ ...f, categoriaSlug: e.target.value })} className={inputCls}>
+            <Label className={labelCls}>Categoria *</Label>
+            <select className={inputCls} {...register("categoriaSlug")}>
               {categorias.map((c) => <option key={c.slug} value={c.slug}>{c.nome}</option>)}
             </select>
+            {errors.categoriaSlug && <p className="text-xs text-destructive mt-1" role="alert">{errors.categoriaSlug.message}</p>}
           </div>
           <div>
-            <label className={labelCls}>Público-alvo</label>
-            <select value={f.publico_alvo} onChange={(e) => setF({ ...f, publico_alvo: e.target.value as AdminServico["publico_alvo"] })} className={inputCls}>
+            <Label className={labelCls}>Público-alvo</Label>
+            <select className={inputCls} {...register("publico_alvo")}>
               {PUBLICOS.map((p) => <option key={p.v} value={p.v}>{p.label}</option>)}
             </select>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Tipo de fluxo</label>
-            <select value={f.tipo_fluxo} onChange={(e) => setF({ ...f, tipo_fluxo: e.target.value as NonNullable<AdminServico["tipo_fluxo"]> })} className={inputCls}>
+            <Label className={labelCls}>Tipo de fluxo</Label>
+            <select className={inputCls} {...register("tipo_fluxo")}>
               {FLUXOS.map((x) => <option key={x.v} value={x.v}>{x.label}</option>)}
             </select>
           </div>
-          {f.tipo_fluxo === "self_service_fiscal" && (
+          {tipoFluxo === "self_service_fiscal" && (
             <div>
-              <label className={labelCls}>Ação fiscal</label>
-              <select value={f.fiscal_acao ?? "debitos"} onChange={(e) => setF({ ...f, fiscal_acao: e.target.value as NonNullable<AdminServico["fiscal_acao"]> })} className={inputCls}>
+              <Label className={labelCls}>Ação fiscal</Label>
+              <select className={inputCls} {...register("fiscal_acao")}>
                 {ACOES_FISCAIS.map((x) => <option key={x.v} value={x.v}>{x.label}</option>)}
               </select>
             </div>
           )}
         </div>
         <div>
-          <label className={labelCls}>Descrição curta</label>
-          <input value={f.descricao_curta ?? ""} onChange={(e) => setF({ ...f, descricao_curta: e.target.value })} className={inputCls} placeholder="Uma linha que aparece no card do serviço" />
+          <Label className={labelCls}>Descrição curta</Label>
+          <Input className={inputCls} placeholder="Uma linha que aparece no card do serviço" {...register("descricao_curta")} />
         </div>
         <div>
-          <label className={labelCls}>Descrição completa</label>
-          <textarea value={f.descricao_completa ?? ""} onChange={(e) => setF({ ...f, descricao_completa: e.target.value })} rows={3} className={inputCls} />
+          <Label className={labelCls}>Descrição completa</Label>
+          <textarea rows={3} className={inputCls} {...register("descricao_completa")} />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Órgão responsável</label>
-            <input value={f.orgao_responsavel ?? ""} onChange={(e) => setF({ ...f, orgao_responsavel: e.target.value })} className={inputCls} />
+            <Label className={labelCls}>Órgão responsável</Label>
+            <Input className={inputCls} {...register("orgao_responsavel")} />
           </div>
           <div>
-            <label className={labelCls}>Prazo de entrega</label>
-            <input value={f.prazo_entrega ?? ""} onChange={(e) => setF({ ...f, prazo_entrega: e.target.value })} className={inputCls} />
+            <Label className={labelCls}>Prazo de entrega</Label>
+            <Input className={inputCls} {...register("prazo_entrega")} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Custo</label>
-            <input value={f.custo ?? ""} onChange={(e) => setF({ ...f, custo: e.target.value })} className={inputCls} />
+            <Label className={labelCls}>Custo</Label>
+            <Input className={inputCls} {...register("custo")} />
           </div>
           <div>
-            <label className={labelCls}>Legislação</label>
-            <input value={f.legislacao ?? ""} onChange={(e) => setF({ ...f, legislacao: e.target.value })} className={inputCls} placeholder="Ex.: Lei 13.460/2017" />
+            <Label className={labelCls}>Legislação</Label>
+            <Input className={inputCls} placeholder="Ex.: Lei 13.460/2017" {...register("legislacao")} />
           </div>
         </div>
         <div>
-          <label className={labelCls}>Palavras-chave (separadas por vírgula)</label>
-          <input value={f.palavras} onChange={(e) => setF({ ...f, palavras: e.target.value })} className={inputCls} placeholder="certidão, cnd, negativa" />
+          <Label className={labelCls}>Palavras-chave (separadas por vírgula)</Label>
+          <Input className={inputCls} placeholder="certidão, cnd, negativa" {...register("palavras")} />
         </div>
-        <IconePicker valor={f.icone ?? ""} onChange={(v) => setF({ ...f, icone: v })} />
+        <Controller control={control} name="icone" render={({ field }) => <IconePicker valor={field.value ?? ""} onChange={field.onChange} />} />
         <div className="flex flex-wrap gap-5 pt-1">
           <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" checked={f.publicado} onChange={(e) => setF({ ...f, publicado: e.target.checked })} />
+            <input type="checkbox" {...register("publicado")} />
             Publicado (visível no portal)
           </label>
           <label className="flex items-center gap-2 text-sm text-gray-700">
-            <input type="checkbox" checked={f.permite_anonimo} onChange={(e) => setF({ ...f, permite_anonimo: e.target.checked })} />
+            <input type="checkbox" {...register("permite_anonimo")} />
             Permite solicitação anônima
           </label>
         </div>

@@ -1,31 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { isAdmin } from "@/shared/lib/admin-session";
 import { salvarServico } from "@/shared/catalogo/catalogo-admin-repo";
 import { currentTenant } from "@/shared/lib/tenant-map";
-
-const schema = z.object({
-  id: z.union([z.string(), z.number()]).optional(),
-  slug: z.string().optional().default(""),
-  categoriaSlug: z.string().min(1, "Escolha a categoria"),
-  titulo: z.string().min(1, "Informe o título"),
-  publico_alvo: z.enum(["cidadao", "empresa", "servidor"]).default("cidadao"),
-  permite_anonimo: z.boolean().optional(),
-  descricao_curta: z.string().default(""),
-  descricao_completa: z.string().default(""),
-  requisitos: z.string().optional(),
-  documentos_necessarios: z.array(z.string()).optional(),
-  prazo_entrega: z.string().default(""),
-  custo: z.string().default("Gratuito"),
-  orgao_responsavel: z.string().default(""),
-  legislacao: z.string().optional(),
-  palavras_chave: z.array(z.string()).optional(),
-  icone: z.string().default("fas fa-file-lines"),
-  tipo_fluxo: z.enum(["processo_ged", "self_service_fiscal", "protocolo_gpe2"]).default("processo_ged"),
-  fiscal_acao: z.enum(["segunda_via", "certidao", "parcelamento", "debitos", "caixa_postal"]).nullable().optional(),
-  publicado: z.boolean().default(true),
-  ordem: z.number().int().optional(),
-});
+import { servicoSchema as schema } from "@/modules/admin/schemas/catalogo-admin.schema";
 
 /** Cria/atualiza um serviço da Carta de Serviços. */
 export async function POST(req: Request) {

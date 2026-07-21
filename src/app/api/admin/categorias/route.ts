@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { isAdmin } from "@/shared/lib/admin-session";
 import { salvarCategoria } from "@/shared/catalogo/catalogo-admin-repo";
 import { currentTenant } from "@/shared/lib/tenant-map";
-
-const schema = z.object({
-  id: z.union([z.string(), z.number()]).optional(),
-  slug: z.string().optional().default(""),
-  ambienteSlug: z.string().min(1, "Escolha o ambiente"),
-  nome: z.string().min(1, "Informe o nome"),
-  descricao: z.string().default(""),
-  icone: z.string().default("fas fa-folder"),
-  cor: z.string().default("blue"),
-  ordem: z.number().int().optional(),
-});
+import { categoriaSchema as schema } from "@/modules/admin/schemas/catalogo-admin.schema";
 
 /** Cria/atualiza uma categoria. */
 export async function POST(req: Request) {

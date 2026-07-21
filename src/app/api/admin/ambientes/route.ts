@@ -1,19 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { isAdmin } from "@/shared/lib/admin-session";
 import { salvarAmbiente } from "@/shared/catalogo/catalogo-admin-repo";
 import { currentTenant } from "@/shared/lib/tenant-map";
-
-const schema = z.object({
-  slug: z.string().optional().default(""),
-  nome: z.string().min(1, "Informe o nome"),
-  descricao: z.string().default(""),
-  icone: z.string().default("fas fa-folder-open"),
-  cor: z.string().default("blue"),
-  sistema: z.enum(["tributario", "ged", "gpe2"]).default("ged"),
-  disponivel: z.boolean().default(true),
-  ordem: z.number().int().optional(),
-});
+import { ambienteSchema as schema } from "@/modules/admin/schemas/catalogo-admin.schema";
 
 /** Cria/atualiza um ambiente. */
 export async function POST(req: Request) {
