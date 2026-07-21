@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: portal_cidadao_db
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    volumes:
+      - portal_cidadao_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    environment:
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=portal_cidadao
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d portal_cidadao"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  portal_cidadao_data:

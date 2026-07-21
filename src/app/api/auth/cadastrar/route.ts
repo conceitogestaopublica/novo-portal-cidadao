@@ -6,10 +6,10 @@ import { contaByDocumento, criarConta } from "@/shared/repos/conta-repo";
 import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
 
 const schema = z.object({
-  documento: z.string().min(11),
-  nome: z.string().min(3),
-  email: z.string().email().optional().or(z.literal("")),
-  senha: z.string().min(6),
+  documento: z.string().min(11, "Informe um CPF ou CNPJ válido."),
+  nome: z.string().min(3, "Informe o nome completo."),
+  email: z.string().email("E-mail inválido.").optional().or(z.literal("")),
+  senha: z.string().min(6, "A senha deve ter ao menos 6 caracteres."),
   /**
    * "Sou prestador de fora e prestei serviço no município." Quem não é do
    * município não existe no cadastro, e sem isto ficaria trancado: precisaria
@@ -31,7 +31,12 @@ export async function POST(req: Request) {
   if (!tenant) return NextResponse.json({ message: "Município não encontrado" }, { status: 404 });
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ message: "Dados inválidos (senha mín. 6)." }, { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json(
+      { message: parsed.error.issues[0]?.message ?? "Dados inválidos." },
+      { status: 400 },
+    );
+  }
   const documento = parsed.data.documento.replace(/\D/g, "");
 
   if (await contaByDocumento(documento, tenant.municipio)) {

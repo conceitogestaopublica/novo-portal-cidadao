@@ -16,6 +16,9 @@ export default function CadastrarPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setErro(null);
+    const doc = f.documento.replace(/\D/g, "");
+    if (doc.length < 11) return setErro("Informe um CPF ou CNPJ válido.");
+    if (f.nome.trim().length < 3) return setErro("Informe o nome completo.");
     if (f.senha.length < 6) return setErro("A senha deve ter ao menos 6 caracteres.");
     if (f.senha !== f.senha2) return setErro("As senhas não conferem.");
     setLoading(true);
