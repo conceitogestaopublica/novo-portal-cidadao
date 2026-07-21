@@ -90,7 +90,7 @@ export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
           {...register("mensagem")}
         />
       </div>
-      <Button disabled={isSubmitting} className="w-full px-5 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
+      <Button type="submit" disabled={isSubmitting} className="w-full px-5 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
         <Send className="size-4 mr-2" />
         {isSubmitting ? "Enviando…" : "Enviar solicitação"}
       </Button>

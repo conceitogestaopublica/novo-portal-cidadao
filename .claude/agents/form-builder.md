@@ -21,6 +21,7 @@ campo) ou com validação custom fora do Zod.
 
 ## Regras
 
+0. **`<Button>` dentro de `<form>` exige `type="submit"` explícito.** O `Button` do shadcn (`base-nova`, sobre `@base-ui/react`) **não** herda o default nativo do HTML (`<button>` sem `type` dentro de um form é `submit`) — o primitivo do base-ui renderiza `type="button"` por padrão. Sem `type="submit"` explícito, o clique não dispara `handleSubmit` — só o Enter no input funciona, e isso passa batido em typecheck/lint/curl. Foi um bug real neste projeto, pego só por teste de componente (RTL) simulando o clique — sempre escreva esse teste para todo formulário novo.
 1. **Schema Zod único.** O schema valida o formulário E tipa o payload enviado à rota BFF. Quando a rota `route.ts` já tem um `z.object(...)` de validação (padrão deste projeto), reaproveite-o via `import` em vez de duplicar as regras no client.
 2. **zodResolver obrigatório.** `useForm({ resolver: zodResolver(schema) })`.
 3. **`register()` + `Label`/`Input` do shadcn.** Sem `Form`/`FormField`/`FormControl` (não existem no style `base-nova`). Cada campo é `<Label htmlFor="x">` + `<Input id="x" {...register('x')} />` + `{errors.x && <p role="alert">{errors.x.message}</p>}`.
@@ -92,6 +93,8 @@ export function CadastroForm() {
 - [ ] Schema Zod definido em `schemas/` do módulo (reaproveitado do `route.ts` quando existir)
 - [ ] `useForm` com `zodResolver(schema)`
 - [ ] Campos com `register()` + `Label`/`Input` do shadcn — sem `Form`/`FormField` (não existem no style `base-nova`)
+- [ ] `<Button type="submit">` explícito em todo botão que deve submeter o form (o Button do shadcn não herda o default nativo)
+- [ ] Teste de componente (RTL) simulando o clique no botão de submit, não só a renderização
 - [ ] Todo campo com mensagem de erro exibida a partir de `formState.errors`
 - [ ] Botão de submit desabilitado durante loading (`isSubmitting`/`isPending`)
 - [ ] Erro da API exibido ao usuário com a mensagem real do backend

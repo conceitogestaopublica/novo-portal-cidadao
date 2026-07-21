@@ -11,6 +11,15 @@ description: Criar formulário RHF + Zod com estados de loading, tratamento de e
 > `gpd-web-tributario-front/src/modules/auth/components/login-form.tsx` como
 > referência cruzada).
 
+## ⚠️ Antes de tudo: `<Button type="submit">` é obrigatório
+
+O `Button` do shadcn (style `base-nova`, sobre `@base-ui/react`) renderiza `type="button"`
+por padrão — diferente do `<button>` nativo, que dentro de um `<form>` já é `submit` por
+default. Todo `<Button>` que deveria submeter o formulário precisa de `type="submit"`
+explícito, senão o clique não faz nada (só Enter no input funciona) e nem typecheck, nem
+lint, nem um teste de rota via `curl` pegam isso — só um teste de componente que simula o
+clique. Escreva esse teste (passo 5) para qualquer formulário novo.
+
 ## Passos
 
 ### 1. Definir (ou reaproveitar) o schema Zod
@@ -133,6 +142,8 @@ import { Controller } from 'react-hook-form'
 - [ ] `useForm` com `zodResolver`
 - [ ] `defaultValues` definidos (evita uncontrolled → controlled warning)
 - [ ] Campos com `register()` + `Label`/`Input` do shadcn — sem `Form`/`FormField`
+- [ ] `<Button type="submit">` explícito no botão de submit (sem isso o clique não faz nada)
+- [ ] Teste de componente (RTL) clicando no botão de submit — não só verificando a renderização
 - [ ] Todo campo com erro exibido a partir de `formState.errors`
 - [ ] Botão submit desabilitado com `isSubmitting`/`isPending`
 - [ ] Erro geral da API exibido com `role="alert"`, com a mensagem real do backend

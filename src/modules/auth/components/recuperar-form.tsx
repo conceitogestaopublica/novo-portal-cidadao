@@ -100,7 +100,7 @@ export function RecuperarForm() {
             </p>
           )}
         </div>
-        <Button disabled={isSubmitting || documento.replace(/\D/g, "").length < 11} className={btnCls}>
+        <Button type="submit" disabled={isSubmitting || documento.replace(/\D/g, "").length < 11} className={btnCls}>
           {isSubmitting ? "Enviando…" : "Enviar link"}
         </Button>
       </form>

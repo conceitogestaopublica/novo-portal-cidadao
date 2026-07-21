@@ -63,7 +63,7 @@ export function AdminLoginForm() {
               </p>
             )}
           </div>
-          <Button disabled={isSubmitting} className="w-full px-4 py-3 h-auto rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 disabled:opacity-60">
+          <Button type="submit" disabled={isSubmitting} className="w-full px-4 py-3 h-auto rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 disabled:opacity-60">
             {isSubmitting ? "Entrando..." : "Entrar"}
           </Button>
         </form>

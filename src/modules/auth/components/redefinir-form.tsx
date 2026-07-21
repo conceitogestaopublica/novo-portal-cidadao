@@ -117,7 +117,7 @@ export function RedefinirForm() {
             </p>
           )}
         </div>
-        <Button disabled={isSubmitting} className="w-full px-5 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
+        <Button type="submit" disabled={isSubmitting} className="w-full px-5 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
           {isSubmitting ? "Salvando…" : "Salvar nova senha"}
         </Button>
       </form>

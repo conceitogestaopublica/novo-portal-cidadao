@@ -87,7 +87,7 @@ export function CadastroForm() {
               </span>
             </span>
           </label>
-          <Button disabled={isSubmitting} className={btnCls}>
+          <Button type="submit" disabled={isSubmitting} className={btnCls}>
             {isSubmitting ? "Criando..." : "Criar conta"}
           </Button>
         </form>

@@ -111,7 +111,7 @@ export function EntrarForm() {
             <Campo label="Senha" erro={formSenha.formState.errors.senha?.message}>
               <Input type="password" placeholder="••••••" className={inputCls} {...formSenha.register("senha")} />
             </Campo>
-            <Button disabled={formSenha.formState.isSubmitting} className={btnCls}>
+            <Button type="submit" disabled={formSenha.formState.isSubmitting} className={btnCls}>
               {formSenha.formState.isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
             <div className="flex items-center justify-between text-xs pt-1">
@@ -135,7 +135,7 @@ export function EntrarForm() {
             <Campo label="CPF ou CNPJ" erro={formStart.formState.errors.documento?.message}>
               <Input autoFocus placeholder="000.000.000-00" className={inputCls} {...formStart.register("documento")} />
             </Campo>
-            <Button disabled={formStart.formState.isSubmitting} className={btnCls}>
+            <Button type="submit" disabled={formStart.formState.isSubmitting} className={btnCls}>
               {formStart.formState.isSubmitting ? "Enviando..." : "Enviar código"}
             </Button>
             <button type="button" onClick={() => trocarModo("senha")} className="w-full text-xs text-gray-500 hover:text-gray-700">
@@ -165,7 +165,7 @@ export function EntrarForm() {
                 {...formVerify.register("otp")}
               />
             </Campo>
-            <Button disabled={formVerify.formState.isSubmitting} className={btnCls}>
+            <Button type="submit" disabled={formVerify.formState.isSubmitting} className={btnCls}>
               {formVerify.formState.isSubmitting ? "Verificando..." : "Entrar"}
             </Button>
           </form>
