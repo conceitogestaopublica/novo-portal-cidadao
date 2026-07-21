@@ -432,18 +432,31 @@ export default function DesifPage() {
                         </span>
                       </td>
                       <td className="text-right">
-                        {/* Só a apuração mensal validada encerra: o módulo 3 é
-                            cadastro (não gera imposto) e o que já encerrou não
-                            pode encerrar de novo, sob pena de guia dobrada. */}
-                        {d.situacao === "VALIDADA" &&
-                        d.modulo === "APURACAO_MENSAL" ? (
-                          <button
-                            onClick={() => setEncerrando(d)}
-                            className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
+                        <div className="flex justify-end gap-2">
+                          {/* O comprovante vale para qualquer declaração
+                              recebida (a spec manda o banco guardá-lo), inclusive
+                              a rejeitada — que serve de prova da tentativa. */}
+                          <a
+                            href={`/api/fiscal/desif/declaracoes/${d.id}/comprovante`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 rounded-lg border border-gray-300 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                           >
-                            Encerrar competência
-                          </button>
-                        ) : null}
+                            Comprovante
+                          </a>
+                          {/* Só a apuração mensal validada encerra: o módulo 3 é
+                              cadastro (não gera imposto) e o que já encerrou não
+                              pode encerrar de novo, sob pena de guia dobrada. */}
+                          {d.situacao === "VALIDADA" &&
+                          d.modulo === "APURACAO_MENSAL" ? (
+                            <button
+                              onClick={() => setEncerrando(d)}
+                              className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700"
+                            >
+                              Encerrar competência
+                            </button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );
