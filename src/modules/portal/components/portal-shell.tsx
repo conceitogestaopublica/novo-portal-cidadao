@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ClipboardList, Home, Landmark, Mail, Phone, Search, Wallet } from "lucide-react";
 import type { Cidadao, Ug } from "@/shared/types/portal";
 
 export function PortalShell({
@@ -45,7 +46,7 @@ export function PortalShell({
               <img src={ug.brasao} alt="" className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
             ) : (
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-md">
-                <i className="fas fa-landmark text-white text-lg" />
+                <Landmark className="size-5 text-white" aria-hidden="true" />
               </div>
             )}
             <div className="leading-tight">
@@ -57,18 +58,18 @@ export function PortalShell({
 
           <nav className="hidden md:flex items-center gap-1 text-sm">
             <Link href="/" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
-              <i className="fas fa-home text-xs mr-1.5" /> Início
+              <Home className="size-3 mr-1.5" /> Início
             </Link>
             <Link href="/buscar" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
-              <i className="fas fa-search text-xs mr-1.5" /> Todos os Serviços
+              <Search className="size-3 mr-1.5" /> Todos os Serviços
             </Link>
             {cidadao ? (
               <>
                 <Link href="/fiscal" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
-                  <i className="fas fa-wallet text-xs mr-1.5" /> Meus Débitos
+                  <Wallet className="size-3 mr-1.5" /> Meus Débitos
                 </Link>
                 <Link href="/minhas-solicitacoes" className="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-blue-700 font-medium">
-                  <i className="fas fa-clipboard-list text-xs mr-1.5" /> Minhas Solicitações
+                  <ClipboardList className="size-3 mr-1.5" /> Minhas Solicitações
                 </Link>
                 <div className="ml-2 flex items-center gap-2 pl-3 border-l border-gray-200">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
@@ -95,7 +96,7 @@ export function PortalShell({
             <div className="max-w-6xl mx-auto px-4 lg:px-6">
               <form onSubmit={submeterBusca} className="flex gap-2 max-w-3xl mx-auto">
                 <div className="flex-1 relative">
-                  <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                   <input
                     type="text"
                     value={busca}
@@ -120,8 +121,8 @@ export function PortalShell({
           <div>
             <p className="text-white font-bold mb-2">{ug?.nome || "Portal do Cidadão"}</p>
             {ug?.cidade && <p>{ug.cidade}{ug.uf ? ` — ${ug.uf}` : ""}</p>}
-            {ug?.telefone && <p className="mt-1"><i className="fas fa-phone text-xs mr-2" />{ug.telefone}</p>}
-            {ug?.email && <p className="mt-1"><i className="fas fa-envelope text-xs mr-2" />{ug.email}</p>}
+            {ug?.telefone && <p className="mt-1"><Phone className="size-3 mr-2" />{ug.telefone}</p>}
+            {ug?.email && <p className="mt-1"><Mail className="size-3 mr-2" />{ug.email}</p>}
           </div>
           <div>
             <p className="text-white font-bold mb-2">Acesso rápido</p>

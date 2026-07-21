@@ -1,9 +1,11 @@
 "use client";
 
+import { AlertCircle, FileSignature, Plus, Trash2, UserCheck, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AdminCatalogo, AdminServico } from "@/shared/catalogo/catalogo-admin-repo";
 import type { Ambiente, CategoriaSeed } from "@/shared/catalogo/catalogo-seed";
+import { CatalogoIcon } from "@/shared/lib/icon-registry";
 
 type Aba = "ambientes" | "categorias" | "servicos";
 
@@ -123,13 +125,13 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
           </p>
         </div>
         <button onClick={sair} className="text-xs text-gray-500 hover:text-red-600">
-          <i className="fas fa-right-from-bracket mr-1" /> Sair
+          <UserCheck className="size-4 mr-1" /> Sair
         </button>
       </div>
 
       {erro && (
         <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-          <i className="fas fa-circle-exclamation mr-1.5" />
+          <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
           {erro}
         </div>
       )}
@@ -151,7 +153,7 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
           onClick={() => setEditing({ tipo: aba, item: null })}
           className="px-4 py-2 my-1 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900"
         >
-          <i className="fas fa-plus mr-1.5" />
+          <Plus className="size-4 mr-1.5" />
           Novo {aba === "servicos" ? "serviço" : aba === "categorias" ? "categoria" : "ambiente"}
         </button>
       </div>
@@ -235,7 +237,7 @@ function Lista({ linhas, vazio }: { linhas: Linha[]; vazio: string }) {
       {linhas.map((l) => (
         <div key={l.key} className="flex items-center gap-3 px-4 py-3">
           <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${COR_ICON[l.cor] ?? COR_ICON.slate}`}>
-            <i className={l.icone} />
+            <CatalogoIcon nome={l.icone} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-gray-800 truncate">
@@ -245,10 +247,10 @@ function Lista({ linhas, vazio }: { linhas: Linha[]; vazio: string }) {
             <p className="text-xs text-gray-500 truncate">{l.sub}</p>
           </div>
           <button onClick={l.onEdit} className="px-2 py-1 text-xs text-slate-600 hover:text-slate-900" title="Editar">
-            <i className="fas fa-pen" />
+            <FileSignature className="size-4" aria-hidden="true" />
           </button>
           <button onClick={l.onDel} className="px-2 py-1 text-xs text-gray-400 hover:text-red-600" title="Excluir">
-            <i className="fas fa-trash" />
+            <Trash2 className="size-4" aria-hidden="true" />
           </button>
         </div>
       ))}
@@ -265,7 +267,7 @@ function Modal({ titulo, children, onCancel }: { titulo: string; children: React
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
           <h2 className="font-bold text-gray-800">{titulo}</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-700">
-            <i className="fas fa-xmark" />
+            <X className="size-4" aria-hidden="true" />
           </button>
         </div>
         <div className="p-5">{children}</div>
@@ -514,7 +516,7 @@ function IconePicker({ valor, onChange }: { valor: string; onChange: (v: string)
       <label className={labelCls}>Ícone (classe FontAwesome)</label>
       <div className="mt-1 flex items-center gap-2">
         <span className="w-9 h-9 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 shrink-0">
-          <i className={valor || "fas fa-question"} />
+          <CatalogoIcon nome={valor} />
         </span>
         <input value={valor} onChange={(e) => onChange(e.target.value)} className={inputCls.replace("mt-1 ", "")} placeholder="fas fa-file-invoice" />
       </div>

@@ -2,6 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertCircle,
+  ArrowLeft,
+  CalendarPlus,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  FileWarning,
+  Plus,
+  Send,
+  Trash2,
+  UserLock,
+} from "lucide-react";
 import Link from "next/link";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -124,7 +137,7 @@ export default function DmsPage() {
   if (semSessao) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
-        <i className="fas fa-user-lock text-3xl text-gray-300 mb-3" />
+        <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
         <p className="text-sm text-gray-600 mb-4">Sua sessão expirou. Entre novamente.</p>
         <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
           Entrar
@@ -211,7 +224,7 @@ export default function DmsPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         <Cabecalho />
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-          <i className="fas fa-building-circle-exclamation text-3xl text-gray-300 mb-3" />
+          <FileWarning className="size-8 text-gray-300 mb-3" aria-hidden="true" />
           <p className="text-sm text-gray-600">
             Você não tem empresa ativa no cadastro econômico do município.
           </p>
@@ -229,7 +242,7 @@ export default function DmsPage() {
 
       {erro && (
         <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-          <i className="fas fa-circle-exclamation mr-1.5" />
+          <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
           {erro}
         </div>
       )}
@@ -259,7 +272,7 @@ export default function DmsPage() {
       {/* Abrir competência */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5">
         <h2 className="text-sm font-bold text-gray-800 mb-3">
-          <i className="fas fa-calendar-plus text-blue-600 mr-2" />
+          <CalendarPlus className="size-4 text-blue-600 mr-2" />
           Abrir competência
         </h2>
         <div className="flex flex-wrap items-end gap-2">
@@ -288,7 +301,7 @@ export default function DmsPage() {
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-sm font-bold text-gray-800">
-            <i className="fas fa-list text-gray-400 mr-2" />
+            <ClipboardList className="size-4 text-gray-400 mr-2" />
             Minhas declarações
           </h2>
         </div>
@@ -327,7 +340,7 @@ export default function DmsPage() {
         <div className="bg-white rounded-2xl border border-blue-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 bg-blue-50/50 flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-800">
-              <i className="fas fa-file-lines text-blue-600 mr-2" />
+              <FileText className="size-4 text-blue-600 mr-2" />
               {competenciaLabel(d.competenciaAno, d.competenciaMes)}
               <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${SITUACAO_COR[d.situacao] ?? ""}`}>
                 {d.situacao}
@@ -375,7 +388,7 @@ export default function DmsPage() {
                             className="text-gray-300 hover:text-red-600"
                             title="Remover"
                           >
-                            <i className="fas fa-trash text-xs" />
+                            <Trash2 className="size-3" aria-hidden="true" />
                           </button>
                         )}
                       </td>
@@ -410,7 +423,7 @@ export default function DmsPage() {
                   </label>
                 </div>
                 <button onClick={() => void escriturar()} disabled={!podeEscriturar || ocupado} className="px-4 py-2 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60">
-                  <i className="fas fa-plus mr-1.5" />
+                  <Plus className="size-4 mr-1.5" />
                   Adicionar
                 </button>
                 <p className="text-[11px] text-gray-400">
@@ -422,7 +435,7 @@ export default function DmsPage() {
               {/* Entregar */}
               <div className="px-5 py-4 border-t border-gray-100">
                 <button onClick={() => void entregar()} disabled={ocupado || vazia} className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
-                  <i className="fas fa-paper-plane mr-2" />
+                  <Send className="size-4 mr-2" />
                   {ocupado ? "Entregando…" : "Entregar declaração"}
                 </button>
                 <p className="text-[11px] text-gray-400 mt-2 text-center">
@@ -434,7 +447,7 @@ export default function DmsPage() {
             </>
           ) : (
             <div className="px-5 py-4 border-t border-gray-100 text-sm text-gray-600">
-              <i className="fas fa-circle-check text-green-600 mr-1.5" />
+              <CheckCircle2 className="size-4 text-green-600 mr-1.5" />
               Entregue{d.dataEntrega ? ` em ${new Date(d.dataEntrega).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}` : ""}. A
               guia do ISS está em <Link href="/fiscal" className="text-blue-600 font-semibold">Meus Débitos</Link>.
             </div>
@@ -450,7 +463,7 @@ function Cabecalho() {
     <>
       <nav className="text-xs text-gray-500">
         <Link href="/fiscal" className="hover:text-blue-600">
-          <i className="fas fa-arrow-left mr-1.5" />
+          <ArrowLeft className="size-4 mr-1.5" />
           Área fiscal
         </Link>
       </nav>

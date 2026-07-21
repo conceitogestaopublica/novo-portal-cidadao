@@ -3,6 +3,8 @@
 /** Home da Carta de Serviços — portada 1:1 do `Portal/Home.jsx` do GED. */
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ArrowRight, FolderOpen } from "lucide-react";
+import { CatalogoIcon } from "@/shared/lib/icon-registry";
 import type { Banner, Categoria, Servico } from "@/shared/types/portal";
 
 const COR_BG: Record<string, string> = {
@@ -46,7 +48,7 @@ function BannerCarrossel({ banners }: { banners: Banner[] }) {
                 {b.link_url && (
                   <a href={b.link_url} target="_blank" rel="noreferrer" className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors shadow-md">
                     {b.link_label || "Saiba mais"}
-                    <i className="fas fa-arrow-right ml-2 text-xs" />
+                    <ArrowRight className="size-3.5 ml-2" />
                   </a>
                 )}
               </div>
@@ -96,7 +98,7 @@ export function HomeView({
         {categorias.map((cat) => (
           <Link key={cat.id} href={`/categoria/${cat.slug}`} className="bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-lg hover:border-transparent hover:ring-2 hover:ring-blue-200 transition-all group">
             <div className={`w-14 h-14 bg-gradient-to-br ${COR_BG[cat.cor ?? ""] || "from-gray-500 to-gray-600"} rounded-xl flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform`}>
-              <i className={`${cat.icone || "fas fa-folder"} text-white text-xl`} />
+              <CatalogoIcon nome={cat.icone} className="text-white size-5" />
             </div>
             <h3 className="text-sm font-bold text-gray-800 mb-1">{cat.nome}</h3>
             <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2">{cat.descricao}</p>
@@ -113,13 +115,13 @@ export function HomeView({
             {maisAcessados.map((servico) => (
               <Link key={servico.id} href={`/servico/${servico.slug}`} className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 hover:shadow-md transition-all flex items-start gap-3 group">
                 <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-blue-100">
-                  <i className={servico.icone || "fas fa-file-alt"} />
+                  <CatalogoIcon nome={servico.icone} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700">{servico.titulo}</p>
                   <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{servico.descricao_curta}</p>
                 </div>
-                <i className="fas fa-arrow-right text-gray-300 group-hover:text-blue-600 mt-2" />
+                <ArrowRight className="size-4 text-gray-300 group-hover:text-blue-600 mt-2" aria-hidden="true" />
               </Link>
             ))}
           </div>
@@ -128,7 +130,7 @@ export function HomeView({
 
       {categorias.length === 0 && maisAcessados.length === 0 && (
         <div className="text-center py-16 text-gray-500">
-          <i className="fas fa-folder-open text-4xl text-gray-300 mb-3" />
+          <FolderOpen className="size-10 text-gray-300 mb-3" aria-hidden="true" />
           <p className="text-sm">Nenhum serviço publicado ainda.</p>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, CheckCircle2, FileSignature, Receipt, ShieldUser, TriangleAlert, UserLock } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -33,7 +34,7 @@ export default function CertidaoPage() {
   if (q.error instanceof Error && q.error.message === "SESSAO") {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
-        <i className="fas fa-user-lock text-3xl text-gray-300 mb-3" />
+        <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
         <p className="text-sm text-gray-600 mb-4">Sua sessão expirou. Entre novamente.</p>
         <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Entrar</Link>
       </div>
@@ -66,7 +67,7 @@ export default function CertidaoPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <nav className="text-xs text-gray-500">
-        <Link href="/fiscal" className="hover:text-blue-600"><i className="fas fa-arrow-left mr-1.5" />Meus Débitos</Link>
+        <Link href="/fiscal" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Meus Débitos</Link>
       </nav>
 
       <div>
@@ -79,12 +80,12 @@ export default function CertidaoPage() {
       ) : podeEmitir ? (
         <div className="bg-white rounded-2xl border border-green-200 p-6">
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shrink-0"><i className="fas fa-circle-check text-lg" /></div>
+            <div className="w-11 h-11 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shrink-0"><CheckCircle2 className="size-5" aria-hidden="true" /></div>
             <div className="flex-1">
               <h2 className="text-sm font-bold text-gray-800">Você está apto a emitir a certidão</h2>
               <p className="text-xs text-gray-500 mt-1">Tipo apurado: <strong>{tipo}</strong>.{totalSuspenso > 0 && ` Há ${money(totalSuspenso)} com exigibilidade suspensa (parcelado/discutido).`}</p>
               <button onClick={emitir} disabled={emitindo} className="mt-4 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60 inline-flex items-center gap-2">
-                <i className="fas fa-file-signature" />{emitindo ? "Emitindo…" : "Emitir certidão (PDF)"}
+                <FileSignature className="size-4" />{emitindo ? "Emitindo…" : "Emitir certidão (PDF)"}
               </button>
             </div>
           </div>
@@ -92,19 +93,19 @@ export default function CertidaoPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-red-200 p-6">
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0"><i className="fas fa-triangle-exclamation text-lg" /></div>
+            <div className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0"><TriangleAlert className="size-5" aria-hidden="true" /></div>
             <div className="flex-1">
               <h2 className="text-sm font-bold text-gray-800">Não é possível emitir a certidão negativa</h2>
               <p className="text-sm text-gray-600 mt-1">Você tem <strong className="text-red-600">{money(totalExigivel)}</strong> em débitos exigíveis. Regularize (pague ou parcele) para emitir a CND.</p>
               <Link href="/fiscal" className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
-                <i className="fas fa-file-invoice-dollar" />Ver meus débitos
+                <Receipt className="size-4" />Ver meus débitos
               </Link>
             </div>
           </div>
         </div>
       )}
 
-      <p className="text-[11px] text-gray-400"><i className="fas fa-shield-halved mr-1" />A certidão é assinada digitalmente e pode ser conferida pelo código de verificação impresso nela.</p>
+      <p className="text-[11px] text-gray-400"><ShieldUser className="size-4 mr-1" aria-hidden="true" />A certidão é assinada digitalmente e pode ser conferida pelo código de verificação impresso nela.</p>
     </div>
   );
 }

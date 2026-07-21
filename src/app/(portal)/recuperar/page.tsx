@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { MailCheck, TriangleAlert } from "lucide-react";
 
 /**
  * Pedir o link de recuperação de senha. Vale para qualquer usuário do portal.
@@ -45,7 +46,7 @@ export default function RecuperarPage() {
   if (enviado) {
     return (
       <div className="max-w-md mx-auto bg-white rounded-2xl border border-gray-200 p-8">
-        <i className="fas fa-envelope-circle-check text-3xl text-blue-600 mb-3" />
+        <MailCheck className="size-8 text-blue-600 mb-3" aria-hidden="true" />
         <h1 className="text-xl font-bold text-gray-800 mb-2">Pedido recebido</h1>
         <p className="text-sm text-gray-600">{enviado.message}</p>
         <p className="text-xs text-gray-500 mt-2">
@@ -54,7 +55,7 @@ export default function RecuperarPage() {
 
         {enviado.envioConfigurado === false && (
           <p className="mt-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2">
-            <i className="fas fa-triangle-exclamation mr-1.5" />
+            <TriangleAlert className="size-4 mr-1.5" />
             O envio de e-mail ainda não está configurado neste município. Se você
             não receber, procure a Prefeitura.
           </p>

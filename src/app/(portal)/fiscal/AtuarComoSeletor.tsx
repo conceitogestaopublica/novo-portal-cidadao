@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, Building, Check, Loader2, Tag, User } from "lucide-react";
 import { useState } from "react";
 import type { MeResponse, Representacao } from "@/shared/types/portal";
 
@@ -62,7 +63,7 @@ export default function AtuarComoSeletor() {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-4">
       <div className="flex items-center gap-2 mb-3">
-        <i className="fas fa-user-tag text-blue-600" />
+        <Tag className="size-4 text-blue-600" aria-hidden="true" />
         <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Atuando como</p>
         {ativo && (
           <span className="text-xs text-gray-500">
@@ -87,13 +88,17 @@ export default function AtuarComoSeletor() {
               } disabled:opacity-70`}
             >
               <span className="flex items-center gap-2">
-                <i className={`fas ${r.tipo === "titular" ? "fa-user" : "fa-building"} text-xs ${ativoR ? "text-blue-600" : "text-gray-400"}`} />
+                {r.tipo === "titular" ? (
+                  <User className={`size-3 ${ativoR ? "text-blue-600" : "text-gray-400"}`} aria-hidden="true" />
+                ) : (
+                  <Building className={`size-3 ${ativoR ? "text-blue-600" : "text-gray-400"}`} aria-hidden="true" />
+                )}
                 <span className="font-semibold text-gray-800">{r.nome}</span>
                 {r.tipo === "empresa" && r.papel && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{r.papel}</span>
                 )}
-                {trocando === r.id && <i className="fas fa-spinner fa-spin text-xs text-blue-500" />}
-                {ativoR && <i className="fas fa-check text-xs text-blue-600" />}
+                {trocando === r.id && <Loader2 className="size-3 text-blue-500 animate-spin" aria-hidden="true" />}
+                {ativoR && <Check className="size-3 text-blue-600" aria-hidden="true" />}
               </span>
               <span className="block text-[11px] text-gray-400 mt-0.5">{docFmt(r.documento)}</span>
             </button>
@@ -101,7 +106,7 @@ export default function AtuarComoSeletor() {
         })}
       </div>
 
-      {erro && <p className="text-xs text-red-600 mt-2"><i className="fas fa-circle-exclamation mr-1" />{erro}</p>}
+      {erro && <p className="text-xs text-red-600 mt-2"><AlertCircle className="size-4 mr-1" aria-hidden="true" />{erro}</p>}
     </div>
   );
 }

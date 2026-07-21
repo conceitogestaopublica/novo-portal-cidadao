@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle, FlaskConical, UserLock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -53,13 +54,13 @@ export default function EntrarPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 shadow-sm">
         <div className="text-center mb-6">
           <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
-            <i className="fas fa-user-lock text-white text-xl" />
+            <UserLock className="text-white size-5" aria-hidden="true" />
           </div>
           <h1 className="text-xl font-bold text-gray-800">Entrar no Atendimento</h1>
           <p className="text-sm text-gray-500 mt-1">Acesse seus débitos, guias e certidões.</p>
         </div>
 
-        {erro && <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2"><i className="fas fa-circle-exclamation mr-1.5" />{erro}</div>}
+        {erro && <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2"><AlertCircle className="size-4 mr-1.5" aria-hidden="true" />{erro}</div>}
 
         {modo === "senha" ? (
           <form onSubmit={entrarSenha} className="space-y-4">
@@ -86,7 +87,7 @@ export default function EntrarPage() {
         ) : (
           <form onSubmit={verificarOtp} className="space-y-4">
             {canal && <p className="text-xs text-gray-500 text-center">Código enviado para <strong>{canal}</strong>.</p>}
-            {devOtp && <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 text-center"><i className="fas fa-flask mr-1" /> Dev: código <strong className="font-mono tracking-widest">{devOtp}</strong></div>}
+            {devOtp && <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 text-center"><FlaskConical className="size-4 mr-1" aria-hidden="true" /> Dev: código <strong className="font-mono tracking-widest">{devOtp}</strong></div>}
             <Campo label="Código de verificação"><input autoFocus inputMode="numeric" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="000000" className={`${inputCls} text-center text-lg font-mono tracking-[0.3em]`} /></Campo>
             <button disabled={loading} className={btnCls}>{loading ? "Verificando..." : "Entrar"}</button>
           </form>

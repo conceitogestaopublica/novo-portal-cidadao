@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { CatalogoIcon } from "@/shared/lib/icon-registry";
 import type { Servico } from "@/shared/types/portal";
 
 interface AmbienteCard {
@@ -42,7 +44,7 @@ export function AmbientesView({
             <div className={`relative overflow-hidden rounded-2xl border p-6 transition-all h-full ${a.disponivel ? "bg-white border-gray-200 hover:shadow-lg hover:ring-2 hover:ring-blue-200 group" : "bg-gray-50 border-gray-200 opacity-70"}`}>
               <div className="flex items-start gap-4">
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${COR_BG[a.cor] || "from-gray-500 to-gray-600"} flex items-center justify-center shadow-md shrink-0 ${a.disponivel ? "group-hover:scale-110 transition-transform" : ""}`}>
-                  <i className={`${a.icone} text-white text-2xl`} />
+                  <CatalogoIcon nome={a.icone} className="text-white size-6" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -52,7 +54,7 @@ export function AmbientesView({
                   <p className="text-sm text-gray-500 mt-1 leading-relaxed">{a.descricao}</p>
                   {a.disponivel && (
                     <p className="text-xs text-blue-600 font-semibold mt-3 uppercase tracking-wide">
-                      {a.servicos_count} serviços <i className="fas fa-arrow-right ml-1 text-[10px]" />
+                      {a.servicos_count} serviços <ArrowRight className="size-3 ml-1" aria-hidden="true" />
                     </p>
                   )}
                 </div>
@@ -74,12 +76,12 @@ export function AmbientesView({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {maisAcessados.map((s) => (
               <Link key={String(s.id)} href={`/servico/${s.slug}`} className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 hover:shadow-md transition-all flex items-start gap-3 group">
-                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-blue-100"><i className={s.icone || "fas fa-file-alt"} /></div>
+                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-blue-100"><CatalogoIcon nome={s.icone} /></div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700">{s.titulo}</p>
                   <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{s.descricao_curta}</p>
                 </div>
-                <i className="fas fa-arrow-right text-gray-300 group-hover:text-blue-600 mt-2" />
+                <ArrowRight className="size-4 text-gray-300 group-hover:text-blue-600 mt-2" aria-hidden="true" />
               </Link>
             ))}
           </div>

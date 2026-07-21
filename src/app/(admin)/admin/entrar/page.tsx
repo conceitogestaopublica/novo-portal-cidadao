@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle, ShieldUser } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -35,7 +36,7 @@ export default function AdminEntrarPage() {
       <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 shadow-sm">
         <div className="text-center mb-6">
           <div className="w-14 h-14 bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md">
-            <i className="fas fa-user-shield text-white text-xl" />
+            <ShieldUser className="text-white size-5" aria-hidden="true" />
           </div>
           <h1 className="text-xl font-bold text-gray-800">Área administrativa</h1>
           <p className="text-sm text-gray-500 mt-1">Gerenciar a Carta de Serviços.</p>
@@ -43,7 +44,7 @@ export default function AdminEntrarPage() {
 
         {erro && (
           <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-            <i className="fas fa-circle-exclamation mr-1.5" />
+            <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
             {erro}
           </div>
         )}

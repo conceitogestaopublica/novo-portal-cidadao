@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,12 +38,12 @@ export default function CadastrarPage() {
     <div className="max-w-md mx-auto">
       <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 shadow-sm">
         <div className="text-center mb-6">
-          <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md"><i className="fas fa-user-plus text-white text-xl" /></div>
+          <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-md"><UserPlus className="text-white size-5" aria-hidden="true" /></div>
           <h1 className="text-xl font-bold text-gray-800">Criar conta</h1>
           <p className="text-sm text-gray-500 mt-1">Cadastre-se para acessar o Atendimento ao Contribuinte.</p>
         </div>
 
-        {erro && <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2"><i className="fas fa-circle-exclamation mr-1.5" />{erro}</div>}
+        {erro && <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2"><AlertCircle className="size-4 mr-1.5" aria-hidden="true" />{erro}</div>}
 
         <form onSubmit={submit} className="space-y-4">
           <Campo label="CPF ou CNPJ"><input autoFocus value={f.documento} onChange={set("documento")} placeholder="000.000.000-00" className={inputCls} /></Campo>

@@ -1,5 +1,18 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  CircleHelp,
+  ClipboardList,
+  Flag,
+  Info,
+  type LucideIcon,
+  MessageCircle,
+  Reply,
+  Share2,
+} from "lucide-react";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { getByIdDaConta } from "@/shared/repos/solicitacao-repo";
@@ -7,13 +20,13 @@ import { protocoloConfigDe, consultarProtocoloGpe2, type TimelineEvento } from "
 import { SituacaoBadge } from "../SituacaoBadge";
 import { ResponderForm } from "./ResponderForm";
 
-const ESTILO: Record<string, { icon: string; cor: string }> = {
-  abertura: { icon: "fa-flag", cor: "bg-blue-100 text-blue-600" },
-  tramite: { icon: "fa-share", cor: "bg-amber-100 text-amber-600" },
-  parecer: { icon: "fa-comment-dots", cor: "bg-gray-100 text-gray-500" },
-  exigencia: { icon: "fa-circle-question", cor: "bg-violet-100 text-violet-600" },
-  resposta: { icon: "fa-reply", cor: "bg-indigo-100 text-indigo-600" },
-  encerramento: { icon: "fa-flag-checkered", cor: "bg-green-100 text-green-600" },
+const ESTILO: Record<string, { Icon: LucideIcon; cor: string }> = {
+  abertura: { Icon: Flag, cor: "bg-blue-100 text-blue-600" },
+  tramite: { Icon: Share2, cor: "bg-amber-100 text-amber-600" },
+  parecer: { Icon: MessageCircle, cor: "bg-gray-100 text-gray-500" },
+  exigencia: { Icon: CircleHelp, cor: "bg-violet-100 text-violet-600" },
+  resposta: { Icon: Reply, cor: "bg-indigo-100 text-indigo-600" },
+  encerramento: { Icon: CheckCircle2, cor: "bg-green-100 text-green-600" },
 };
 
 function fmt(d?: string | null): string {
@@ -41,7 +54,7 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <nav className="text-xs text-gray-500">
-        <Link href="/minhas-solicitacoes" className="hover:text-blue-600"><i className="fas fa-arrow-left mr-1.5" />Minhas Solicitações</Link>
+        <Link href="/minhas-solicitacoes" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Minhas Solicitações</Link>
       </nav>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -67,7 +80,7 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
       {aguardandoVoce && (
         <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 text-violet-800 font-semibold text-sm">
-            <i className="fas fa-circle-question" /> O município pediu mais informações
+            <CircleHelp className="size-4" aria-hidden="true" /> O município pediu mais informações
           </div>
           {(() => {
             const pedido = [...eventos].reverse().find((e) => e.tipo === "exigencia");
@@ -79,7 +92,7 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
 
       {/* Linha do tempo do processo */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-sm font-bold text-gray-700 mb-4"><i className="fas fa-timeline mr-2 text-gray-400" />Andamento do processo</h2>
+        <h2 className="text-sm font-bold text-gray-700 mb-4"><ClipboardList className="size-4 mr-2 text-gray-400" />Andamento do processo</h2>
         {eventos.length === 0 ? (
           <p className="text-sm text-gray-400">
             {s.protocoloNumero
@@ -93,7 +106,7 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
               return (
                 <li key={i} className="ml-5">
                   <span className={`absolute -left-[15px] w-7 h-7 rounded-full border-4 border-white flex items-center justify-center ${st.cor}`}>
-                    <i className={`fas ${st.icon} text-[11px]`} />
+                    <st.Icon className="size-3" aria-hidden="true" />
                   </span>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-semibold text-gray-800">{e.titulo}</p>
@@ -101,7 +114,7 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
                   </div>
                   {e.tipo === "tramite" && (e.de || e.para) && (
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {e.de ?? "—"} <i className="fas fa-arrow-right mx-1 text-gray-300" /> {e.para ?? "—"}
+                      {e.de ?? "—"} <ArrowRight className="size-3 mx-1 text-gray-300 inline" aria-hidden="true" /> {e.para ?? "—"}
                     </p>
                   )}
                   {e.texto && <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{e.texto}</p>}
@@ -112,7 +125,7 @@ export default async function SolicitacaoDetalhePage({ params }: { params: Promi
         )}
       </div>
 
-      <p className="text-[11px] text-gray-400"><i className="fas fa-circle-info mr-1" />A tramitação e a decisão do processo acontecem no sistema de processos do município.</p>
+      <p className="text-[11px] text-gray-400"><Info className="size-4 mr-1" />A tramitação e a decisão do processo acontecem no sistema de processos do município.</p>
     </div>
   );
 }

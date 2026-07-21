@@ -1,6 +1,29 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertCircle,
+  ArrowDownWideNarrow,
+  ArrowLeft,
+  ArrowUpDown,
+  ArrowUpNarrowWide,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Circle,
+  Coins,
+  FileSignature,
+  FileText,
+  Gavel,
+  Inbox,
+  Info,
+  type LucideIcon,
+  Mail,
+  Receipt,
+  Search,
+  TriangleAlert,
+  UserLock,
+} from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import AtuarComoSeletor from "./AtuarComoSeletor";
@@ -115,7 +138,7 @@ export default function FiscalPage() {
   if (semSessao) {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
-        <i className="fas fa-user-lock text-3xl text-gray-300 mb-3" />
+        <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
         <p className="text-sm text-gray-600 mb-4">Sua sessão expirou. Entre novamente para ver seus débitos.</p>
         <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Entrar</Link>
       </div>
@@ -164,34 +187,37 @@ export default function FiscalPage() {
 
       {/* Cards de resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card icon="fas fa-file-invoice-dollar" cor="from-blue-500 to-indigo-600" titulo="Guias em aberto" valor={money(valor)} sub={`${qtd} guia(s)`} loading={resumo.isLoading} />
-        <Card icon="fas fa-gavel" cor="from-red-500 to-rose-600" titulo="Dívida ativa" valor={money(daValorNum)} sub={`${daQtd} inscrição(ões)`} loading={divida.isLoading} />
-        <Card icon="fas fa-coins" cor="from-amber-500 to-orange-600" titulo="Total geral a pagar" valor={money(totalGeral)} sub="guias + dívida ativa" loading={resumo.isLoading || divida.isLoading} />
-        <Card icon="fas fa-envelope" cor="from-green-500 to-emerald-600" titulo="Caixa Postal" valor={String(naoLidas)} sub="não lidas" loading={caixa.isLoading} href="#caixa" />
+        <Card icon={Receipt} cor="from-blue-500 to-indigo-600" titulo="Guias em aberto" valor={money(valor)} sub={`${qtd} guia(s)`} loading={resumo.isLoading} />
+        <Card icon={Gavel} cor="from-red-500 to-rose-600" titulo="Dívida ativa" valor={money(daValorNum)} sub={`${daQtd} inscrição(ões)`} loading={divida.isLoading} />
+        <Card icon={Coins} cor="from-amber-500 to-orange-600" titulo="Total geral a pagar" valor={money(totalGeral)} sub="guias + dívida ativa" loading={resumo.isLoading || divida.isLoading} />
+        <Card icon={Mail} cor="from-green-500 to-emerald-600" titulo="Caixa Postal" valor={String(naoLidas)} sub="não lidas" loading={caixa.isLoading} href="#caixa" />
       </div>
       {divida.data != null && daQtd > 0 && (
-        <p className="text-xs text-gray-500 -mt-2"><i className="fas fa-circle-info text-red-500 mr-1.5" />Você tem <strong>dívida ativa</strong> inscrita. Para negociar ou emitir guia da dívida, procure o Atendimento — a negociação online entra em breve.</p>
+        <p className="text-xs text-gray-500 -mt-2"><Info className="size-4 text-red-500 mr-1.5" aria-hidden="true" />Você tem <strong>dívida ativa</strong> inscrita. Para negociar ou emitir guia da dívida, procure o Atendimento — a negociação online entra em breve.</p>
       )}
 
       {/* Atalhos: até aqui estas telas só eram alcançáveis pela Carta de
           Serviços — quem já está na área fiscal não deveria dar essa volta. */}
       <div className="flex flex-wrap gap-2">
-        <Atalho href="/fiscal/nfse" icon="fas fa-file-invoice" rotulo="Emitir NFS-e" />
-        <Atalho href="/fiscal/dms" icon="fas fa-book" rotulo="Declaração mensal (DMS)" />
-        <Atalho href="/fiscal/certidao" icon="fas fa-certificate" rotulo="Emitir certidão" />
-        <Atalho href="/fiscal/parcelamento" icon="fas fa-file-signature" rotulo="Parcelar débitos" />
+        <Atalho href="/fiscal/nfse" icon={FileText} rotulo="Emitir NFS-e" />
+        <Atalho href="/fiscal/dms" icon={BookOpen} rotulo="Declaração mensal (DMS)" />
+        <Atalho href="/fiscal/certidao" icon={Award} rotulo="Emitir certidão" />
+        <Atalho href="/fiscal/parcelamento" icon={FileSignature} rotulo="Parcelar débitos" />
       </div>
 
       {/* Guias */}
       <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-sm font-bold text-gray-800 shrink-0"><i className={`fas ${verPagas ? "fa-circle-check text-green-600" : "fa-receipt text-blue-600"} mr-2`} />{verPagas ? "Guias pagas (comprovantes)" : "Minhas guias"}</h2>
+          <h2 className="text-sm font-bold text-gray-800 shrink-0">
+            {verPagas ? <CheckCircle2 className="size-4 text-green-600 mr-2" /> : <Receipt className="size-4 text-blue-600 mr-2" />}
+            {verPagas ? "Guias pagas (comprovantes)" : "Minhas guias"}
+          </h2>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button type="button" onClick={() => { setVerPagas((v) => !v); setBusca(""); }} className="text-xs font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap">
-              <i className={`fas ${verPagas ? "fa-arrow-left" : "fa-receipt"} mr-1`} />{verPagas ? "Ver débitos em aberto" : "Ver guias pagas"}
+              {verPagas ? <ArrowLeft className="size-4 mr-1" /> : <Receipt className="size-4 mr-1" />}{verPagas ? "Ver débitos em aberto" : "Ver guias pagas"}
             </button>
             <div className="relative flex-1 sm:w-56">
-              <i className="fas fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs" />
+              <Search className="size-3 absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" aria-hidden="true" />
               <input
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
@@ -205,9 +231,12 @@ export default function FiscalPage() {
         {guias.isLoading ? (
           <div className="p-8 text-center text-gray-400 text-sm">Carregando…</div>
         ) : items.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm"><i className={`fas ${verPagas ? "fa-inbox" : "fa-check-circle text-green-500"} mr-2`} />{verPagas ? "Nenhuma guia paga encontrada." : "Você não tem débitos em aberto."}</div>
+          <div className="p-8 text-center text-gray-500 text-sm">
+            {verPagas ? <Inbox className="size-4 mr-2" aria-hidden="true" /> : <CheckCircle2 className="size-4 text-green-500 mr-2" aria-hidden="true" />}
+            {verPagas ? "Nenhuma guia paga encontrada." : "Você não tem débitos em aberto."}
+          </div>
         ) : itemsFiltrados.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm"><i className="fas fa-magnifying-glass text-gray-300 mr-2" />Nenhuma guia encontrada para “{busca}”.</div>
+          <div className="p-8 text-center text-gray-500 text-sm"><Search className="size-4 text-gray-300 mr-2" aria-hidden="true" />Nenhuma guia encontrada para “{busca}”.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -229,7 +258,7 @@ export default function FiscalPage() {
                       <span className="font-medium text-gray-800">{String(pick(g, "numero", "nossoNumero", "codigo", "id") ?? "—")}</span>
                       <span className="block mt-0.5">
                         {parc ? (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold"><i className="fas fa-file-signature mr-1" />Parcela · {parc}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold"><FileSignature className="size-4 mr-1" />Parcela · {parc}</span>
                         ) : (
                           <span className="text-[10px] text-gray-400 uppercase tracking-wide">{String(pick(g, "origem") ?? "")}</span>
                         )}
@@ -244,7 +273,7 @@ export default function FiscalPage() {
                         disabled={!pick(g, "id")}
                         className="text-xs font-semibold text-blue-600 hover:text-blue-800 disabled:opacity-40 inline-flex items-center gap-1"
                       >
-                        <i className="fas fa-file-pdf" /> {verPagas ? "Comprovante" : "2ª via"}
+                        <FileText className="size-4" /> {verPagas ? "Comprovante" : "2ª via"}
                       </button>
                     </td>
                   </tr>
@@ -259,7 +288,7 @@ export default function FiscalPage() {
       {/* Caixa postal */}
       <section id="caixa" className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-bold text-gray-800"><i className="fas fa-inbox text-blue-600 mr-2" />Caixa Postal (DTE)</h2>
+          <h2 className="text-sm font-bold text-gray-800"><Inbox className="size-4 text-blue-600 mr-2" />Caixa Postal (DTE)</h2>
         </div>
         {caixa.isLoading ? (
           <div className="p-8 text-center text-gray-400 text-sm">Carregando…</div>
@@ -271,7 +300,7 @@ export default function FiscalPage() {
               const lida = !!pick(m, "cienciaEm", "lidaEm", "abertaEm");
               return (
                 <li key={String(pick(m, "id") ?? i)} className="px-5 py-3 flex items-start gap-3">
-                  <i className={`fas fa-circle text-[8px] mt-2 ${lida ? "text-gray-300" : "text-blue-500"}`} />
+                  <Circle className={`size-2 mt-2 ${lida ? "text-gray-300" : "text-blue-500"}`} aria-hidden="true" />
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm ${lida ? "text-gray-600" : "font-semibold text-gray-800"}`}>{String(pick(m, "assunto", "titulo", "tipo") ?? "Mensagem")}</p>
                     <p className="text-xs text-gray-400">{dateBR(pick(m, "criadaEm", "dataEnvio", "createdAt"))}</p>
@@ -289,7 +318,7 @@ export default function FiscalPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !emitindo && setAlvo(null)}>
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i className="fas fa-triangle-exclamation" /></div>
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><TriangleAlert className="size-4" aria-hidden="true" /></div>
               <div>
                 <h3 className="text-sm font-bold text-gray-800">Guia vencida — atualizar 2ª via</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Guia <strong>{alvo.numero}</strong>. Informe o novo vencimento; os juros e a multa são recalculados até essa data.</p>
@@ -303,7 +332,7 @@ export default function FiscalPage() {
               onChange={(e) => setNovaData(e.target.value)}
               className="mt-1 w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {erroModal && <p className="text-xs text-red-600 mt-2"><i className="fas fa-circle-exclamation mr-1" />{erroModal}</p>}
+            {erroModal && <p className="text-xs text-red-600 mt-2"><AlertCircle className="size-4 mr-1" aria-hidden="true" />{erroModal}</p>}
             <div className="flex gap-2 mt-5">
               <button onClick={() => setAlvo(null)} disabled={emitindo} className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-gray-50 disabled:opacity-50">Cancelar</button>
               <button onClick={confirmarAtualizacao} disabled={emitindo || !novaData} className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
@@ -323,17 +352,25 @@ function ThOrd({ label, campo, ordem, onClick, align }: { label: string; campo: 
     <th className={`px-5 py-2 font-semibold ${align === "right" ? "text-right" : "text-left"}`}>
       <button type="button" onClick={() => onClick(campo)} className={`inline-flex items-center gap-1 uppercase tracking-wide hover:text-blue-600 ${ativo ? "text-blue-600" : ""}`}>
         {label}
-        <i className={`fas ${ativo ? (ordem.dir === "asc" ? "fa-arrow-up-short-wide" : "fa-arrow-down-wide-short") : "fa-sort"} text-[10px] ${ativo ? "text-blue-500" : "text-gray-300"}`} />
+        {ativo ? (
+          ordem.dir === "asc" ? (
+            <ArrowUpNarrowWide className="size-2.5 text-blue-500" aria-hidden="true" />
+          ) : (
+            <ArrowDownWideNarrow className="size-2.5 text-blue-500" aria-hidden="true" />
+          )
+        ) : (
+          <ArrowUpDown className="size-2.5 text-gray-300" aria-hidden="true" />
+        )}
       </button>
     </th>
   );
 }
 
-function Card({ icon, cor, titulo, valor, sub, loading, href }: { icon: string; cor: string; titulo: string; valor: string; sub: string; loading?: boolean; href?: string }) {
+function Card({ icon: Icon, cor, titulo, valor, sub, loading, href }: { icon: LucideIcon; cor: string; titulo: string; valor: string; sub: string; loading?: boolean; href?: string }) {
   const inner = (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cor} flex items-center justify-center shadow-sm shrink-0`}>
-        <i className={`${icon} text-white`} />
+        <Icon className="text-white size-4" aria-hidden="true" />
       </div>
       <div className="min-w-0">
         <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{titulo}</p>
@@ -345,13 +382,13 @@ function Card({ icon, cor, titulo, valor, sub, loading, href }: { icon: string; 
   return href ? <a href={href}>{inner}</a> : inner;
 }
 
-function Atalho({ href, icon, rotulo }: { href: string; icon: string; rotulo: string }) {
+function Atalho({ href, icon: Icon, rotulo }: { href: string; icon: LucideIcon; rotulo: string }) {
   return (
     <Link
       href={href}
       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700"
     >
-      <i className={`${icon} text-blue-600`} />
+      <Icon className="text-blue-600 size-4" />
       {rotulo}
     </Link>
   );

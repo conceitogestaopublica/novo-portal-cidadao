@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { AlertCircle, ArrowLeft, FilePlus2, Plus, Receipt, UserLock } from "lucide-react";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
@@ -78,7 +79,7 @@ export default function PresteiPage() {
   if (pendentes.error instanceof Error && pendentes.error.message === "SESSAO") {
     return (
       <div className="max-w-md mx-auto text-center bg-white rounded-2xl border border-gray-200 p-8">
-        <i className="fas fa-user-lock text-3xl text-gray-300 mb-3" />
+        <UserLock className="size-8 text-gray-300 mb-3" aria-hidden="true" />
         <p className="text-sm text-gray-600 mb-4">Sua sessão expirou. Entre novamente.</p>
         <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
           Entrar
@@ -153,7 +154,7 @@ export default function PresteiPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <nav className="text-xs text-gray-500">
         <Link href="/fiscal" className="hover:text-blue-600">
-          <i className="fas fa-arrow-left mr-1.5" />
+          <ArrowLeft className="size-4 mr-1.5" />
           Área fiscal
         </Link>
       </nav>
@@ -167,14 +168,14 @@ export default function PresteiPage() {
 
       {erro && (
         <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-          <i className="fas fa-circle-exclamation mr-1.5" />
+          <AlertCircle className="size-4 mr-1.5" />
           {erro}
         </div>
       )}
 
       <div className="bg-white rounded-2xl border border-gray-200 p-5">
         <h2 className="text-sm font-bold text-gray-800 mb-3">
-          <i className="fas fa-file-circle-plus text-blue-600 mr-2" />
+          <FilePlus2 className="size-4 text-blue-600 mr-2" />
           Declarar nota
         </h2>
         <form onSubmit={declarar} className="grid sm:grid-cols-2 gap-3">
@@ -188,7 +189,7 @@ export default function PresteiPage() {
           <input value={f.valorIss} onChange={set("valorIss")} inputMode="decimal" placeholder="ISS da nota" className={inputCls} />
           <div className="sm:col-span-2">
             <button disabled={!podeDeclarar || ocupado} className="px-4 py-2 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60">
-              <i className="fas fa-plus mr-1.5" />
+              <Plus className="size-4 mr-1.5" />
               Declarar
             </button>
             <p className="text-[11px] text-gray-400 mt-2">
@@ -203,7 +204,7 @@ export default function PresteiPage() {
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-sm font-bold text-gray-800">
-            <i className="fas fa-receipt text-gray-400 mr-2" />
+            <Receipt className="size-4 text-gray-400 mr-2" />
             A pagar
             {p && p.total > 0 ? (
               <span className="ml-2 font-normal text-gray-500">

@@ -1,9 +1,23 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  Building,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  Folder,
+  Info,
+  type LucideIcon,
+  Scale,
+  Send,
+  UserCheck,
+} from "lucide-react";
 import { getServico } from "@/shared/catalogo/catalogo";
 import { destinoDe } from "@/shared/catalogo/destino-fiscal";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { currentTenant } from "@/shared/lib/tenant-map";
+import { CatalogoIcon } from "@/shared/lib/icon-registry";
 import type { Servico } from "@/shared/types/portal";
 
 const COR_BG: Record<string, string> = {
@@ -32,8 +46,8 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
     <>
       <nav className="text-xs text-gray-500 mb-4">
         <Link href="/" className="hover:text-blue-600">Início</Link>
-        <i className="fas fa-chevron-right mx-2 text-[10px]" />
-        {cat && (<><Link href={`/categoria/${cat.slug}`} className="hover:text-blue-600">{cat.nome}</Link><i className="fas fa-chevron-right mx-2 text-[10px]" /></>)}
+        <ChevronRight className="size-3 mx-2 inline" aria-hidden="true" />
+        {cat && (<><Link href={`/categoria/${cat.slug}`} className="hover:text-blue-600">{cat.nome}</Link><ChevronRight className="size-3 mx-2 inline" aria-hidden="true" /></>)}
         <span className="text-gray-700 font-medium">{servico.titulo}</span>
       </nav>
 
@@ -41,7 +55,7 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
         <article className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 lg:p-8">
           <div className="flex items-start gap-4 mb-6 pb-6 border-b border-gray-100">
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${corCat}`}>
-              <i className={`${servico.icone || "fas fa-file-alt"} text-2xl`} />
+              <CatalogoIcon nome={servico.icone} className="size-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -53,14 +67,14 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
             </div>
           </div>
 
-          {servico.descricao_completa && <Section titulo="Sobre o serviço" icon="fas fa-info-circle"><p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{servico.descricao_completa}</p></Section>}
-          {servico.requisitos && <Section titulo="Quem pode solicitar" icon="fas fa-user-check"><p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{servico.requisitos}</p></Section>}
+          {servico.descricao_completa && <Section titulo="Sobre o serviço" Icon={Info}><p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{servico.descricao_completa}</p></Section>}
+          {servico.requisitos && <Section titulo="Quem pode solicitar" Icon={UserCheck}><p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{servico.requisitos}</p></Section>}
           {Array.isArray(servico.documentos_necessarios) && servico.documentos_necessarios.length > 0 && (
-            <Section titulo="Documentos necessários" icon="fas fa-folder">
-              <ul className="space-y-2">{servico.documentos_necessarios.map((doc, i) => (<li key={i} className="flex items-start gap-2 text-sm text-gray-700"><i className="fas fa-check-circle text-blue-600 mt-0.5 shrink-0" /><span>{doc}</span></li>))}</ul>
+            <Section titulo="Documentos necessários" Icon={Folder}>
+              <ul className="space-y-2">{servico.documentos_necessarios.map((doc, i) => (<li key={i} className="flex items-start gap-2 text-sm text-gray-700"><CheckCircle2 className="size-4 text-blue-600 mt-0.5 shrink-0" aria-hidden="true" /><span>{doc}</span></li>))}</ul>
             </Section>
           )}
-          {servico.legislacao && <Section titulo="Legislação de referência" icon="fas fa-scale-balanced"><p className="text-sm text-gray-700 whitespace-pre-line italic">{servico.legislacao}</p></Section>}
+          {servico.legislacao && <Section titulo="Legislação de referência" Icon={Scale}><p className="text-sm text-gray-700 whitespace-pre-line italic">{servico.legislacao}</p></Section>}
         </article>
 
         <aside className="space-y-4">
@@ -68,7 +82,7 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
             <h3 className="text-sm font-bold mb-1">{fiscal ? "Serviço online" : "Solicite este serviço online"}</h3>
             {cidadao && (
               <p className="text-[11px] text-blue-100 mb-1 flex items-center gap-1.5">
-                <i className="fas fa-circle-check" />Você está logado como <strong className="text-white">{cidadao.nome.split(" ")[0]}</strong>
+                <CheckCircle2 className="size-4" aria-hidden="true" />Você está logado como <strong className="text-white">{cidadao.nome.split(" ")[0]}</strong>
               </p>
             )}
             <p className="text-xs text-blue-100 mb-3">
@@ -82,11 +96,11 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
             </p>
             {fiscal ? (
               <Link href={cidadao ? destinoFiscal : "/entrar"} className="block text-center px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
-                <i className="fas fa-arrow-right-to-bracket mr-2" />{cidadao ? rotuloFiscal : "Entrar para acessar"}
+                <UserCheck className="size-4 mr-2" />{cidadao ? rotuloFiscal : "Entrar para acessar"}
               </Link>
             ) : (
               <Link href={cidadao ? `/servico/${servico.slug}/solicitar` : "/entrar"} className="block text-center px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
-                <i className="fas fa-paper-plane mr-2" />{cidadao ? "Solicitar agora" : "Entrar para solicitar"}
+                <Send className="size-4 mr-2" />{cidadao ? "Solicitar agora" : "Entrar para solicitar"}
               </Link>
             )}
           </div>
@@ -94,9 +108,9 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
           <div className="bg-white rounded-2xl border border-gray-200 p-5">
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Resumo</h3>
             <div className="space-y-3">
-              <Resumo icon="fas fa-clock" titulo="Prazo" valor={servico.prazo_entrega || "Não informado"} />
-              <Resumo icon="fas fa-dollar-sign" titulo="Custo" valor={servico.custo || "Gratuito"} highlight={!servico.custo || /gratuito|sem custo/i.test(servico.custo)} />
-              {servico.orgao_responsavel && <Resumo icon="fas fa-building" titulo="Órgão responsável" valor={servico.orgao_responsavel} />}
+              <Resumo Icon={Clock} titulo="Prazo" valor={servico.prazo_entrega || "Não informado"} />
+              <Resumo Icon={DollarSign} titulo="Custo" valor={servico.custo || "Gratuito"} highlight={!servico.custo || /gratuito|sem custo/i.test(servico.custo)} />
+              {servico.orgao_responsavel && <Resumo Icon={Building} titulo="Órgão responsável" valor={servico.orgao_responsavel} />}
             </div>
           </div>
 
@@ -115,7 +129,7 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {relacionados.map((rel: Servico) => (
               <Link key={String(rel.id)} href={`/servico/${rel.slug}`} className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-200 hover:ring-2 hover:ring-blue-100 transition-all flex items-start gap-3 group">
-                <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0"><i className={`${rel.icone || "fas fa-file-alt"} text-sm`} /></div>
+                <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0"><CatalogoIcon nome={rel.icone} className="size-3.5" /></div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-800 group-hover:text-blue-700">{rel.titulo}</p>
                   <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{rel.descricao_curta}</p>
@@ -129,19 +143,19 @@ export default async function ServicoPage({ params }: { params: Promise<{ slug: 
   );
 }
 
-function Section({ titulo, icon, children }: { titulo: string; icon: string; children: React.ReactNode }) {
+function Section({ titulo, Icon, children }: { titulo: string; Icon: LucideIcon; children: React.ReactNode }) {
   return (
     <section className="mb-6 last:mb-0">
-      <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2"><i className={`${icon} text-blue-600`} />{titulo}</h2>
+      <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2"><Icon className="size-4 text-blue-600" aria-hidden="true" />{titulo}</h2>
       <div className="pl-6">{children}</div>
     </section>
   );
 }
 
-function Resumo({ icon, titulo, valor, highlight }: { icon: string; titulo: string; valor: string; highlight?: boolean }) {
+function Resumo({ Icon, titulo, valor, highlight }: { Icon: LucideIcon; titulo: string; valor: string; highlight?: boolean }) {
   return (
     <div className="flex items-start gap-3">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${highlight ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}><i className={`${icon} text-xs`} /></div>
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${highlight ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500"}`}><Icon className="size-3" aria-hidden="true" /></div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{titulo}</p>
         <p className={`text-sm font-medium ${highlight ? "text-blue-700" : "text-gray-800"}`}>{valor}</p>

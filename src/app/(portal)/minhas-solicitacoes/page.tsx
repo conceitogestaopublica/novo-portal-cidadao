@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { FolderOpen, Inbox } from "lucide-react";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { listByConta } from "@/shared/repos/solicitacao-repo";
@@ -19,7 +20,7 @@ export default async function MinhasSolicitacoesPage() {
 
       {itens.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-          <i className="fas fa-inbox text-3xl text-gray-300 mb-3" />
+          <Inbox className="size-8 text-gray-300 mb-3" aria-hidden="true" />
           <p className="text-sm text-gray-500 mb-4">Você ainda não abriu nenhuma solicitação.</p>
           <Link href="/" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Ver serviços</Link>
         </div>
@@ -34,7 +35,7 @@ export default async function MinhasSolicitacoesPage() {
                 </div>
                 <SituacaoBadge situacao={s.situacao} />
               </div>
-              {s.protocoloNumero && <p className="text-[11px] text-gray-400 mt-2"><i className="fas fa-folder-open mr-1" />Protocolo {s.protocoloNumero}</p>}
+              {s.protocoloNumero && <p className="text-[11px] text-gray-400 mt-2"><FolderOpen className="size-4 mr-1" />Protocolo {s.protocoloNumero}</p>}
             </Link>
           ))}
         </div>

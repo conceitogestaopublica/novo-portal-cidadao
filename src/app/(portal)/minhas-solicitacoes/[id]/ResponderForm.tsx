@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Send } from "lucide-react";
 
 /** Formulário do cidadão para responder a uma exigência ("pedir mais informações"). */
 export function ResponderForm({ id }: { id: string }) {
@@ -49,7 +50,7 @@ export function ResponderForm({ id }: { id: string }) {
           disabled={enviando || !texto.trim()}
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-violet-600 rounded-xl hover:bg-violet-700 disabled:opacity-50"
         >
-          <i className="fas fa-paper-plane" />
+          <Send className="size-4" />
           {enviando ? "Enviando…" : "Enviar resposta"}
         </button>
       </div>

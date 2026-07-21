@@ -1,6 +1,7 @@
 import "server-only";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
+import { slugify } from "@/shared/lib/slugify";
 import { invalidarCatalogo } from "./catalogo-repo";
 import type { Ambiente, CategoriaSeed, ServicoSeed } from "./catalogo-seed";
 
@@ -36,15 +37,6 @@ export async function carregarCatalogoAdmin(municipio: string): Promise<AdminCat
     categorias: cat.map((r) => r.dados as unknown as CategoriaSeed),
     servicos: ser.map((r) => ({ ...(r.dados as unknown as ServicoSeed), publicado: r.publicado })),
   };
-}
-
-function slugify(v: string): string {
-  return v
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }
 
 /** Cria/atualiza um ambiente (chave = município + slug). */
@@ -108,5 +100,3 @@ export async function excluirServico(municipio: string, slug: string): Promise<v
   await prisma.portalServico.delete({ where: { municipio_slug: { municipio, slug } } });
   invalidarCatalogo(municipio);
 }
-
-export { slugify };

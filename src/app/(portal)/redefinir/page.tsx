@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { CheckCircle2, Unlink } from "lucide-react";
 
 function RedefinirForm() {
   const router = useRouter();
@@ -59,7 +60,7 @@ function RedefinirForm() {
   if (pronto) {
     return (
       <div className={card}>
-        <i className="fas fa-circle-check text-3xl text-green-600 mb-3" />
+        <CheckCircle2 className="size-8 text-green-600 mb-3" aria-hidden="true" />
         <h1 className="text-xl font-bold text-gray-800 mb-2">Senha alterada</h1>
         <p className="text-sm text-gray-600 mb-5">
           Pronto. Entre com sua nova senha.
@@ -85,7 +86,7 @@ function RedefinirForm() {
   if (!valido) {
     return (
       <div className={card}>
-        <i className="fas fa-link-slash text-3xl text-gray-300 mb-3" />
+        <Unlink className="size-8 text-gray-300 mb-3" aria-hidden="true" />
         <h1 className="text-xl font-bold text-gray-800 mb-2">Link inválido</h1>
         <p className="text-sm text-gray-600 mb-5">
           Este link expirou ou já foi usado. Peça a recuperação de novo — leva um
