@@ -17,7 +17,7 @@ function docFmt(doc?: string | null): string {
  * sem novo login. Só aparece quando há mais de uma identidade. Ao trocar,
  * reemite o token no BFF e recarrega os dados fiscais da identidade escolhida.
  */
-export default function AtuarComoSeletor() {
+export function AtuarComoSeletor() {
   const qc = useQueryClient();
   const [trocando, setTrocando] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);

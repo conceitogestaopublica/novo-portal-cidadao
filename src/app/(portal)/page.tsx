@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AmbientesView } from "@/modules/carta-servicos/components/ambientes-view";
+import { AmbientesView } from "@/modules/carta-servicos";
 import { getHome } from "@/shared/catalogo/catalogo";
 import { currentTenant } from "@/shared/lib/tenant-map";
 

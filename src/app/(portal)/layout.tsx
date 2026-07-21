@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PortalShell } from "@/modules/portal/components/portal-shell";
+import { PortalShell } from "@/modules/portal";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import type { Ug } from "@/shared/types/portal";

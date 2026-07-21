@@ -13,7 +13,7 @@ import { ApiError } from "@/shared/lib/http-client";
 import { postJson } from "@/shared/lib/client-api";
 import { criarSolicitacaoSchema, type CriarSolicitacaoInput } from "@/modules/solicitacoes/schemas/solicitacoes.schema";
 
-export default function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
+export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
   const router = useRouter();
   const [protocolo, setProtocolo] = useState<string | null>(null);
 

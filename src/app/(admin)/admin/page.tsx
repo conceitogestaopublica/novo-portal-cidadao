@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/shared/lib/admin-session";
 import { carregarCatalogoAdmin } from "@/shared/catalogo/catalogo-admin-repo";
 import { currentTenant } from "@/shared/lib/tenant-map";
-import { AdminConsole } from "./AdminConsole";
+import { AdminConsole } from "@/modules/admin";
 
 export const dynamic = "force-dynamic";
 
