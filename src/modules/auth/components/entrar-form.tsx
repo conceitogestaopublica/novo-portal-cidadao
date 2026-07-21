@@ -17,7 +17,7 @@ import {
   type LoginStartInput,
   type LoginVerifyInput,
 } from "@/modules/auth/schemas/auth.schema";
-import { useLoginSenha, useLoginStart, useLoginVerify } from "@/modules/auth/hooks/use-login";
+import { useLoginSenha, useLoginStart, useLoginVerify } from "../hooks/use-login";
 
 export function EntrarForm() {
   const router = useRouter();

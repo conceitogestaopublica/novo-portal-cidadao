@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { recuperarSchema, type RecuperarInput } from "@/modules/auth/schemas/auth.schema";
-import { useRecuperar } from "@/modules/auth/hooks/use-recuperar";
+import { useRecuperar } from "../hooks/use-recuperar";
 
 /**
  * Pedir o link de recuperação de senha. Vale para qualquer usuário do portal.

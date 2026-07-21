@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { redefinirFormSchema, type RedefinirFormInput } from "@/modules/auth/schemas/auth.schema";
-import { useCheckTokenRedefinir, useRedefinir } from "@/modules/auth/hooks/use-redefinir";
+import { useCheckTokenRedefinir, useRedefinir } from "../hooks/use-redefinir";
 
 export function RedefinirForm() {
   const router = useRouter();

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cadastroFormSchema, type CadastroFormInput } from "@/modules/auth/schemas/auth.schema";
-import { useCadastro } from "@/modules/auth/hooks/use-cadastro";
+import { useCadastro } from "../hooks/use-cadastro";
 
 export function CadastroForm() {
   const router = useRouter();
