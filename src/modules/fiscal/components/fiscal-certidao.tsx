@@ -51,7 +51,7 @@ export function FiscalCertidao() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <nav className="text-xs text-muted-foreground">
-        <Link href="/fiscal" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Meus Débitos</Link>
+        <Link href="/fiscal" className="hover:text-blue-600 inline-flex items-center gap-1.5"><ArrowLeft className="size-4" />Meus Débitos</Link>
       </nav>
 
       <div>
@@ -89,7 +89,7 @@ export function FiscalCertidao() {
         </div>
       )}
 
-      <p className="text-[11px] text-muted-foreground"><ShieldUser className="size-4 mr-1" aria-hidden="true" />A certidão é assinada digitalmente e pode ser conferida pelo código de verificação impresso nela.</p>
+      <p className="text-[11px] text-muted-foreground flex items-center gap-1"><ShieldUser className="size-4" aria-hidden="true" />A certidão é assinada digitalmente e pode ser conferida pelo código de verificação impresso nela.</p>
     </div>
   );
 }

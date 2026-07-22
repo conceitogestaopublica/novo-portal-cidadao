@@ -35,7 +35,7 @@ export async function MinhasSolicitacoesLista() {
                 </div>
                 <SituacaoBadge situacao={s.situacao} />
               </div>
-              {s.protocoloNumero && <p className="text-[11px] text-muted-foreground mt-2"><FolderOpen className="size-4 mr-1" />Protocolo {s.protocoloNumero}</p>}
+              {s.protocoloNumero && <p className="text-[11px] text-muted-foreground mt-2 inline-flex items-center gap-1"><FolderOpen className="size-4" />Protocolo {s.protocoloNumero}</p>}
             </Link>
           ))}
         </div>

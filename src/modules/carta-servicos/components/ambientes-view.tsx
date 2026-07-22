@@ -53,8 +53,8 @@ export function AmbientesView({
                   </div>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{a.descricao}</p>
                   {a.disponivel && (
-                    <p className="text-xs text-blue-600 font-semibold mt-3 uppercase tracking-wide">
-                      {a.servicos_count} serviços <ArrowRight className="size-3 ml-1" aria-hidden="true" />
+                    <p className="text-xs text-blue-600 font-semibold mt-3 uppercase tracking-wide inline-flex items-center gap-1">
+                      {a.servicos_count} serviços <ArrowRight className="size-3" aria-hidden="true" />
                     </p>
                   )}
                 </div>

@@ -89,7 +89,7 @@ export function AtuarComoSeletor() {
         })}
       </div>
 
-      {erro && <p className="text-xs text-red-600 mt-2"><AlertCircle className="size-4 mr-1" aria-hidden="true" />{erro}</p>}
+      {erro && <p className="text-xs text-red-600 mt-2 inline-flex items-center gap-1"><AlertCircle className="size-4" aria-hidden="true" />{erro}</p>}
     </div>
   );
 }

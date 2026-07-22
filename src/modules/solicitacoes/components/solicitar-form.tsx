@@ -88,7 +88,7 @@ export function SolicitarForm({ slug, nome }: { slug: string; nome: string }) {
         />
       </div>
       <Button type="submit" disabled={isPending} className="w-full px-5 py-3 h-auto rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
-        <Send className="size-4 mr-2" />
+        <Send className="size-4" />
         {isPending ? "Enviando…" : "Enviar solicitação"}
       </Button>
       <p className="text-[11px] text-muted-foreground text-center">Sua solicitação gera um protocolo e será encaminhada para tramitação.</p>

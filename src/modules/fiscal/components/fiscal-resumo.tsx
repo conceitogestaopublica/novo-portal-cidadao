@@ -174,7 +174,7 @@ export function FiscalResumo() {
         <Card icon={Mail} cor="from-green-500 to-emerald-600" titulo="Caixa Postal" valor={String(naoLidas)} sub="não lidas" loading={caixa.isLoading} href="#caixa" />
       </div>
       {divida.data != null && daQtd > 0 && (
-        <p className="text-xs text-muted-foreground -mt-2"><Info className="size-4 text-red-500 mr-1.5" aria-hidden="true" />Você tem <strong>dívida ativa</strong> inscrita. Para negociar ou emitir guia da dívida, procure o Atendimento — a negociação online entra em breve.</p>
+        <p className="text-xs text-muted-foreground -mt-2 flex items-center gap-1.5"><Info className="size-4 text-red-500" aria-hidden="true" />Você tem <strong>dívida ativa</strong> inscrita. Para negociar ou emitir guia da dívida, procure o Atendimento — a negociação online entra em breve.</p>
       )}
 
       {/* Atalhos: até aqui estas telas só eram alcançáveis pela Carta de
@@ -189,13 +189,13 @@ export function FiscalResumo() {
       {/* Guias */}
       <section className="bg-card rounded-2xl border border-border overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h2 className="text-sm font-bold text-foreground shrink-0">
-            {verPagas ? <CheckCircle2 className="size-4 text-green-600 mr-2" /> : <Receipt className="size-4 text-blue-600 mr-2" />}
+          <h2 className="text-sm font-bold text-foreground shrink-0 flex items-center gap-2">
+            {verPagas ? <CheckCircle2 className="size-4 text-green-600" /> : <Receipt className="size-4 text-blue-600" />}
             {verPagas ? "Guias pagas (comprovantes)" : "Minhas guias"}
           </h2>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button type="button" onClick={() => { setVerPagas((v) => !v); setBusca(""); }} className="text-xs font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap">
-              {verPagas ? <ArrowLeft className="size-4 mr-1" /> : <Receipt className="size-4 mr-1" />}{verPagas ? "Ver débitos em aberto" : "Ver guias pagas"}
+            <button type="button" onClick={() => { setVerPagas((v) => !v); setBusca(""); }} className="text-xs font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap inline-flex items-center gap-1">
+              {verPagas ? <ArrowLeft className="size-4" /> : <Receipt className="size-4" />}{verPagas ? "Ver débitos em aberto" : "Ver guias pagas"}
             </button>
             <div className="relative flex-1 sm:w-56">
               <Search className="size-3 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -212,12 +212,12 @@ export function FiscalResumo() {
         {guias.isLoading ? (
           <div className="p-8 text-center text-muted-foreground text-sm">Carregando…</div>
         ) : items.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground text-sm">
-            {verPagas ? <Inbox className="size-4 mr-2" aria-hidden="true" /> : <CheckCircle2 className="size-4 text-green-500 mr-2" aria-hidden="true" />}
+          <div className="p-8 text-center text-muted-foreground text-sm flex items-center justify-center gap-2">
+            {verPagas ? <Inbox className="size-4" aria-hidden="true" /> : <CheckCircle2 className="size-4 text-green-500" aria-hidden="true" />}
             {verPagas ? "Nenhuma guia paga encontrada." : "Você não tem débitos em aberto."}
           </div>
         ) : itemsFiltrados.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground text-sm"><Search className="size-4 text-muted-foreground mr-2" aria-hidden="true" />Nenhuma guia encontrada para “{busca}”.</div>
+          <div className="p-8 text-center text-muted-foreground text-sm flex items-center justify-center gap-2"><Search className="size-4 text-muted-foreground" aria-hidden="true" />Nenhuma guia encontrada para “{busca}”.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -239,7 +239,7 @@ export function FiscalResumo() {
                       <span className="font-medium text-foreground">{String(pick(g, "numero", "nossoNumero", "codigo", "id") ?? "—")}</span>
                       <span className="block mt-0.5">
                         {parc ? (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold"><FileSignature className="size-4 mr-1" />Parcela · {parc}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold inline-flex items-center gap-1"><FileSignature className="size-4" />Parcela · {parc}</span>
                         ) : (
                           <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{String(pick(g, "origem") ?? "")}</span>
                         )}
@@ -269,7 +269,7 @@ export function FiscalResumo() {
       {/* Caixa postal */}
       <section id="caixa" className="bg-card rounded-2xl border border-border overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
-          <h2 className="text-sm font-bold text-foreground"><Inbox className="size-4 text-blue-600 mr-2" />Caixa Postal (DTE)</h2>
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-2"><Inbox className="size-4 text-blue-600" />Caixa Postal (DTE)</h2>
         </div>
         {caixa.isLoading ? (
           <div className="p-8 text-center text-muted-foreground text-sm">Carregando…</div>
@@ -313,7 +313,7 @@ export function FiscalResumo() {
               onChange={(e) => setNovaData(e.target.value)}
               className="mt-1 w-full px-3 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {erroModal && <p className="text-xs text-red-600 mt-2"><AlertCircle className="size-4 mr-1" aria-hidden="true" />{erroModal}</p>}
+            {erroModal && <p className="text-xs text-red-600 mt-2 flex items-center gap-1"><AlertCircle className="size-4" aria-hidden="true" />{erroModal}</p>}
             <div className="flex gap-2 mt-5">
               <button onClick={() => setAlvo(null)} disabled={emitindo} className="flex-1 px-4 py-2.5 rounded-xl border border-border text-muted-foreground font-semibold text-sm hover:bg-muted/50 disabled:opacity-50">Cancelar</button>
               <button onClick={confirmarAtualizacao} disabled={emitindo || !novaData} className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">

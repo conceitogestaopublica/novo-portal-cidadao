@@ -53,10 +53,12 @@ export function RecuperarForm() {
         <p className="text-xs text-muted-foreground mt-2">O link vale por 1 hora e só pode ser usado uma vez.</p>
 
         {enviado.envioConfigurado === false && (
-          <p className="mt-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2">
-            <TriangleAlert className="size-4 mr-1.5" />
-            O envio de e-mail ainda não está configurado neste município. Se você
-            não receber, procure a Prefeitura.
+          <p className="mt-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-2 flex items-start gap-1.5">
+            <TriangleAlert className="size-4 mt-0.5 shrink-0" />
+            <span>
+              O envio de e-mail ainda não está configurado neste município. Se você
+              não receber, procure a Prefeitura.
+            </span>
           </p>
         )}
 

@@ -59,19 +59,19 @@ export function PortalShell({
           </Link>
 
           <nav className="hidden md:flex items-center gap-1 text-sm">
-            <Link href="/" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
-              <Home className="size-3 mr-1.5" /> Início
+            <Link href="/" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium inline-flex items-center gap-1.5">
+              <Home className="size-3" /> Início
             </Link>
-            <Link href="/buscar" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
-              <Search className="size-3 mr-1.5" /> Todos os Serviços
+            <Link href="/buscar" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium inline-flex items-center gap-1.5">
+              <Search className="size-3" /> Todos os Serviços
             </Link>
             {cidadao ? (
               <>
-                <Link href="/fiscal" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
-                  <Wallet className="size-3 mr-1.5" /> Meus Débitos
+                <Link href="/fiscal" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium inline-flex items-center gap-1.5">
+                  <Wallet className="size-3" /> Meus Débitos
                 </Link>
-                <Link href="/minhas-solicitacoes" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium">
-                  <ClipboardList className="size-3 mr-1.5" /> Minhas Solicitações
+                <Link href="/minhas-solicitacoes" className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-blue-700 font-medium inline-flex items-center gap-1.5">
+                  <ClipboardList className="size-3" /> Minhas Solicitações
                 </Link>
                 <div className="ml-2 flex items-center gap-2 pl-3 border-l border-border">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
@@ -123,8 +123,8 @@ export function PortalShell({
           <div>
             <p className="text-white font-bold mb-2">{ug?.nome || "Portal do Cidadão"}</p>
             {ug?.cidade && <p>{ug.cidade}{ug.uf ? ` — ${ug.uf}` : ""}</p>}
-            {ug?.telefone && <p className="mt-1"><Phone className="size-3 mr-2" />{ug.telefone}</p>}
-            {ug?.email && <p className="mt-1"><Mail className="size-3 mr-2" />{ug.email}</p>}
+            {ug?.telefone && <p className="mt-1 inline-flex items-center gap-2"><Phone className="size-3" />{ug.telefone}</p>}
+            {ug?.email && <p className="mt-1 inline-flex items-center gap-2"><Mail className="size-3" />{ug.email}</p>}
           </div>
           <div>
             <p className="text-white font-bold mb-2">Acesso rápido</p>

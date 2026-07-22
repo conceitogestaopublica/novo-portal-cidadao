@@ -113,8 +113,8 @@ export function FiscalPrestei() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <nav className="text-xs text-muted-foreground">
-        <Link href="/fiscal" className="hover:text-blue-600">
-          <ArrowLeft className="size-4 mr-1.5" />
+        <Link href="/fiscal" className="hover:text-blue-600 inline-flex items-center gap-1.5">
+          <ArrowLeft className="size-4" />
           Área fiscal
         </Link>
       </nav>
@@ -127,15 +127,15 @@ export function FiscalPrestei() {
       </div>
 
       {erro && (
-        <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2">
-          <AlertCircle className="size-4 mr-1.5" />
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 flex items-center gap-1.5">
+          <AlertCircle className="size-4" />
           {erro}
         </div>
       )}
 
       <div className="bg-card rounded-2xl border border-border p-5">
-        <h2 className="text-sm font-bold text-foreground mb-3">
-          <FilePlus2 className="size-4 text-blue-600 mr-2" />
+        <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+          <FilePlus2 className="size-4 text-blue-600" />
           Declarar nota
         </h2>
         <form onSubmit={declarar} className="grid sm:grid-cols-2 gap-3">
@@ -148,8 +148,8 @@ export function FiscalPrestei() {
           <input value={f.valorServicos} onChange={set("valorServicos")} inputMode="decimal" placeholder="Valor do serviço" className={inputCls} />
           <input value={f.valorIss} onChange={set("valorIss")} inputMode="decimal" placeholder="ISS da nota" className={inputCls} />
           <div className="sm:col-span-2">
-            <button disabled={!podeDeclarar || ocupado} className="px-4 py-2 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60">
-              <Plus className="size-4 mr-1.5" />
+            <button disabled={!podeDeclarar || ocupado} className="px-4 py-2 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60 inline-flex items-center gap-1.5">
+              <Plus className="size-4" />
               Declarar
             </button>
             <p className="text-[11px] text-muted-foreground mt-2">
@@ -163,11 +163,11 @@ export function FiscalPrestei() {
 
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
         <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-sm font-bold text-foreground">
-            <Receipt className="size-4 text-muted-foreground mr-2" />
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <Receipt className="size-4 text-muted-foreground" />
             A pagar
             {p && p.total > 0 ? (
-              <span className="ml-2 font-normal text-muted-foreground">
+              <span className="font-normal text-muted-foreground">
                 {p.total} nota(s) · {money(p.valorIss)}
               </span>
             ) : null}

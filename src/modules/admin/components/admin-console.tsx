@@ -127,14 +127,14 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
             {data.ambientes.length} ambientes · {data.categorias.length} categorias · {data.servicos.length} serviços
           </p>
         </div>
-        <button onClick={sair} className="text-xs text-muted-foreground hover:text-red-600">
-          <UserCheck className="size-4 mr-1" /> Sair
+        <button onClick={sair} className="text-xs text-muted-foreground hover:text-red-600 inline-flex items-center gap-1">
+          <UserCheck className="size-4" /> Sair
         </button>
       </div>
 
       {erro && (
-        <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">
-          <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
+        <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 flex items-center gap-1.5">
+          <AlertCircle className="size-4" aria-hidden="true" />
           {erro}
         </div>
       )}
@@ -154,9 +154,9 @@ export function AdminConsole({ inicial }: { inicial: AdminCatalogo }) {
         <div className="flex-1" />
         <button
           onClick={() => setEditing({ tipo: aba, item: null })}
-          className="px-4 py-2 my-1 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900"
+          className="px-4 py-2 my-1 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 inline-flex items-center gap-1.5"
         >
-          <Plus className="size-4 mr-1.5" />
+          <Plus className="size-4" />
           Novo {aba === "servicos" ? "serviço" : aba === "categorias" ? "categoria" : "ambiente"}
         </button>
       </div>

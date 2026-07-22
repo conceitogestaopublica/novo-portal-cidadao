@@ -110,7 +110,7 @@ export function FiscalParcelamento() {
           <h1 className="text-xl font-bold text-foreground">Parcelamento efetivado!</h1>
           <p className="text-sm text-muted-foreground mt-1">Termo <strong>{resultado.numero}</strong> — total {money(resultado.valorTotal)}.</p>
           <div className="flex gap-2 justify-center mt-5">
-            <a href={parcelamentoTermoUrl(resultado.id)} target="_blank" rel="noreferrer" className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700"><FileSignature className="size-4 mr-2" />Baixar termo (PDF)</a>
+            <a href={parcelamentoTermoUrl(resultado.id)} target="_blank" rel="noreferrer" className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 inline-flex items-center gap-2"><FileSignature className="size-4" />Baixar termo (PDF)</a>
             <Link href="/fiscal" className="px-5 py-2.5 rounded-xl border border-border text-muted-foreground font-semibold text-sm hover:bg-muted/50">Ver meus débitos</Link>
           </div>
           <p className="text-[11px] text-muted-foreground mt-4">As guias das parcelas já estão disponíveis em “Meus Débitos”.</p>
@@ -121,13 +121,13 @@ export function FiscalParcelamento() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <nav className="text-xs text-muted-foreground"><Link href="/fiscal" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Meus Débitos</Link></nav>
+      <nav className="text-xs text-muted-foreground"><Link href="/fiscal" className="hover:text-blue-600 inline-flex items-center gap-1.5"><ArrowLeft className="size-4" />Meus Débitos</Link></nav>
       <div>
         <h1 className="text-2xl font-bold text-foreground">Parcelamento de débitos</h1>
         <p className="text-sm text-muted-foreground">Parcele sua dívida ativa online: escolha o programa, simule e adira.</p>
       </div>
 
-      {erro && <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2"><AlertCircle className="size-4 mr-1.5" />{erro}</div>}
+      {erro && <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 inline-flex items-center gap-1.5"><AlertCircle className="size-4" />{erro}</div>}
 
       {/* Programa */}
       <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
@@ -144,13 +144,13 @@ export function FiscalParcelamento() {
           debitos.isLoading ? (
             <p className="text-sm text-muted-foreground">Buscando seus débitos parceláveis…</p>
           ) : elegiveis.length === 0 ? (
-            <p className="text-sm text-muted-foreground"><InfoIcon className="size-4 mr-1.5 text-blue-500" />Você não tem débitos elegíveis para este programa.</p>
+            <p className="text-sm text-muted-foreground inline-flex items-center gap-1.5"><InfoIcon className="size-4 text-blue-500" />Você não tem débitos elegíveis para este programa.</p>
           ) : (
             <>
               {/* O que ENTRA no parcelamento */}
               <div className="rounded-xl bg-green-50 border border-green-200 overflow-hidden">
                 <button type="button" onClick={() => setVerEntram((v) => !v)} className="w-full flex items-center justify-between px-3 py-2.5 text-sm">
-                  <span className="text-foreground"><CheckCircle2 className="size-4 text-green-600 mr-1.5" /><strong>{elegiveis.length}</strong> inscrição(ões) entram — saldo atualizado <strong>{money(totalElegivel)}</strong></span>
+                  <span className="text-foreground inline-flex items-center gap-1.5"><CheckCircle2 className="size-4 text-green-600" /><strong>{elegiveis.length}</strong> inscrição(ões) entram — saldo atualizado <strong>{money(totalElegivel)}</strong></span>
                   {verEntram ? <ChevronUp className="size-3 text-muted-foreground" aria-hidden="true" /> : <ChevronDown className="size-3 text-muted-foreground" aria-hidden="true" />}
                 </button>
                 {verEntram && (
@@ -169,20 +169,20 @@ export function FiscalParcelamento() {
               {(inelegiveis.length > 0 || (jaParceladas?.quantidade ?? 0) > 0 || (ajuizadas?.quantidade ?? 0) > 0) && (
                 <div className="rounded-xl bg-amber-50 border border-amber-200 overflow-hidden">
                   <button type="button" onClick={() => setVerNaoEntram((v) => !v)} className="w-full flex items-center justify-between px-3 py-2.5 text-sm">
-                    <span className="text-foreground"><InfoIcon className="size-4 text-amber-600 mr-1.5" />Débitos em aberto que <strong>não entram</strong> neste parcelamento</span>
+                    <span className="text-foreground inline-flex items-center gap-1.5"><InfoIcon className="size-4 text-amber-600" />Débitos em aberto que <strong>não entram</strong> neste parcelamento</span>
                     {verNaoEntram ? <ChevronUp className="size-3 text-muted-foreground" aria-hidden="true" /> : <ChevronDown className="size-3 text-muted-foreground" aria-hidden="true" />}
                   </button>
                   {verNaoEntram && (
                     <div className="border-t border-amber-100 bg-card text-xs">
                       {(jaParceladas?.quantidade ?? 0) > 0 && (
                         <div className="flex items-center justify-between px-3 py-2 border-b border-amber-50">
-                          <span className="text-muted-foreground"><FileSignature className="size-4 text-amber-500 mr-1.5" />Já em parcelamento ({jaParceladas!.quantidade}) — não pode parcelar de novo</span>
+                          <span className="text-muted-foreground inline-flex items-center gap-1.5"><FileSignature className="size-4 text-amber-500" />Já em parcelamento ({jaParceladas!.quantidade}) — não pode parcelar de novo</span>
                           <span className="font-semibold text-foreground">{money(jaParceladas!.valorInscrito)}</span>
                         </div>
                       )}
                       {(ajuizadas?.quantidade ?? 0) > 0 && (
                         <div className="flex items-center justify-between px-3 py-2 border-b border-amber-50">
-                          <span className="text-muted-foreground"><Gavel className="size-4 text-amber-500 mr-1.5" />Em execução fiscal ({ajuizadas!.quantidade})</span>
+                          <span className="text-muted-foreground inline-flex items-center gap-1.5"><Gavel className="size-4 text-amber-500" />Em execução fiscal ({ajuizadas!.quantidade})</span>
                           <span className="font-semibold text-foreground">{money(ajuizadas!.valorInscrito)}</span>
                         </div>
                       )}
@@ -213,7 +213,7 @@ export function FiscalParcelamento() {
                 />
                 {programa && programa.entradaPercentual > 0 && <p className="text-[11px] text-muted-foreground mt-1">Entrada de {programa.entradaPercentual}%. Parcela mínima {money(programa.valorMinimoParcela)}.</p>}
               </div>
-              <button onClick={simular} disabled={ocupado} className="px-5 py-2.5 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60"><Calculator className="size-4 mr-2" />{ocupado && !sim ? "Simulando…" : "Simular"}</button>
+              <button onClick={simular} disabled={ocupado} className="px-5 py-2.5 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60 inline-flex items-center gap-2"><Calculator className="size-4" />{ocupado && !sim ? "Simulando…" : "Simular"}</button>
             </>
           )
         )}
@@ -223,7 +223,7 @@ export function FiscalParcelamento() {
       {sim && (
         <div className="bg-card rounded-2xl border border-blue-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-border bg-blue-50/50">
-            <h2 className="text-sm font-bold text-foreground"><Receipt className="size-4 text-blue-600 mr-2" />Simulação — {sim.parametroNome}</h2>
+            <h2 className="text-sm font-bold text-foreground inline-flex items-center gap-2"><Receipt className="size-4 text-blue-600" />Simulação — {sim.parametroNome}</h2>
           </div>
           {/* Deixa explícito que o débito foi ATUALIZADO na consolidação. */}
           <div className="px-5 pt-4 text-sm">
@@ -252,8 +252,8 @@ export function FiscalParcelamento() {
             </table>
           </div>
           <div className="px-5 py-4 border-t border-border">
-            {erro && <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs px-3 py-2"><AlertCircle className="size-4 mr-1.5" />{erro}</div>}
-            <button onClick={aderir} disabled={ocupado} className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60"><FileSignature className="size-4 mr-2" />{ocupado ? "Processando… (pode levar alguns segundos)" : "Aderir ao parcelamento"}</button>
+            {erro && <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs px-3 py-2 inline-flex items-center gap-1.5"><AlertCircle className="size-4" />{erro}</div>}
+            <button onClick={aderir} disabled={ocupado} className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60 inline-flex items-center gap-2"><FileSignature className="size-4" />{ocupado ? "Processando… (pode levar alguns segundos)" : "Aderir ao parcelamento"}</button>
             <p className="text-[11px] text-muted-foreground mt-2 text-center">Ao aderir, você confessa o débito e gera o termo + as guias das parcelas.</p>
           </div>
         </div>

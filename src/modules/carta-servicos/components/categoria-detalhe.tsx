@@ -36,7 +36,7 @@ export async function CategoriaDetalhe({ params }: { params: Promise<{ slug: str
   return (
     <>
       <div className={`rounded-2xl bg-gradient-to-br ${COR_HERO[categoria.cor ?? ""] || "from-gray-600 to-gray-700"} p-6 lg:p-8 text-white mb-8 shadow-lg`}>
-        <Link href="/" className="text-xs text-white/80 hover:text-white"><ArrowLeft className="size-4 mr-1.5" />Voltar ao início</Link>
+        <Link href="/" className="text-xs text-white/80 hover:text-white inline-flex items-center gap-1.5"><ArrowLeft className="size-4" />Voltar ao início</Link>
         <div className="flex items-center gap-4 mt-3">
           <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center"><CatalogoIcon nome={categoria.icone} className="size-6" /></div>
           <div>

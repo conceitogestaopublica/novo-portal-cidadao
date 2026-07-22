@@ -29,7 +29,7 @@ export async function AmbienteDetalhe({ params }: { params: Promise<{ slug: stri
   return (
     <>
       <div className={`rounded-2xl bg-gradient-to-br ${COR_HERO[ambiente.cor] || "from-gray-600 to-gray-700"} p-6 lg:p-8 text-white mb-8 shadow-lg`}>
-        <Link href="/" className="text-xs text-white/80 hover:text-white"><ArrowLeft className="size-4 mr-1.5" />Todos os ambientes</Link>
+        <Link href="/" className="text-xs text-white/80 hover:text-white inline-flex items-center gap-1.5"><ArrowLeft className="size-4" />Todos os ambientes</Link>
         <div className="flex flex-col md:flex-row md:items-center gap-4 mt-3">
           <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shrink-0"><CatalogoIcon nome={ambiente.icone} className="size-6" /></div>
           <div className="flex-1">
@@ -40,14 +40,14 @@ export async function AmbienteDetalhe({ params }: { params: Promise<{ slug: stri
             <div className="shrink-0">
               {cidadao ? (
                 <div className="text-right">
-                  <p className="text-[11px] text-white/80 mb-1"><CheckCircle2 className="size-4 mr-1" />Logado como <strong>{cidadao.nome.split(" ")[0]}</strong></p>
-                  <Link href="/fiscal" className="inline-block px-4 py-2 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
-                    <Receipt className="size-4 mr-2" />Ver meus débitos
+                  <p className="text-[11px] text-white/80 mb-1 inline-flex items-center gap-1"><CheckCircle2 className="size-4" />Logado como <strong>{cidadao.nome.split(" ")[0]}</strong></p>
+                  <Link href="/fiscal" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
+                    <Receipt className="size-4" />Ver meus débitos
                   </Link>
                 </div>
               ) : (
-                <Link href="/entrar" className="inline-block px-4 py-2 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
-                  <UserCheck className="size-4 mr-2" />Entrar no Atendimento
+                <Link href="/entrar" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
+                  <UserCheck className="size-4" />Entrar no Atendimento
                 </Link>
               )}
             </div>

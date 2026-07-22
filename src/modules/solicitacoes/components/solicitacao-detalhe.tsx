@@ -54,7 +54,7 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <nav className="text-xs text-muted-foreground">
-        <Link href="/minhas-solicitacoes" className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />Minhas Solicitações</Link>
+        <Link href="/minhas-solicitacoes" className="hover:text-blue-600 inline-flex items-center gap-1.5"><ArrowLeft className="size-4" />Minhas Solicitações</Link>
       </nav>
 
       <div className="bg-card rounded-2xl border border-border p-6">
@@ -92,7 +92,7 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
 
       {/* Linha do tempo do processo */}
       <div className="bg-card rounded-2xl border border-border p-6">
-        <h2 className="text-sm font-bold text-foreground mb-4"><ClipboardList className="size-4 mr-2 text-muted-foreground" />Andamento do processo</h2>
+        <h2 className="text-sm font-bold text-foreground mb-4 inline-flex items-center gap-2"><ClipboardList className="size-4 text-muted-foreground" />Andamento do processo</h2>
         {eventos.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {s.protocoloNumero
@@ -125,7 +125,7 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      <p className="text-[11px] text-muted-foreground"><Info className="size-4 mr-1" />A tramitação e a decisão do processo acontecem no sistema de processos do município.</p>
+      <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1"><Info className="size-4 shrink-0" />A tramitação e a decisão do processo acontecem no sistema de processos do município.</p>
     </div>
   );
 }

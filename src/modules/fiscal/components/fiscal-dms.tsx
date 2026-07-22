@@ -182,8 +182,8 @@ export function FiscalDms() {
       <Cabecalho />
 
       {erro && (
-        <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2">
-          <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 flex items-center gap-1.5">
+          <AlertCircle className="size-4" aria-hidden="true" />
           {erro}
         </div>
       )}
@@ -212,8 +212,8 @@ export function FiscalDms() {
 
       {/* Abrir competência */}
       <div className="bg-card rounded-2xl border border-border p-5">
-        <h2 className="text-sm font-bold text-foreground mb-3">
-          <CalendarPlus className="size-4 text-blue-600 mr-2" />
+        <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+          <CalendarPlus className="size-4 text-blue-600" />
           Abrir competência
         </h2>
         <div className="flex flex-wrap items-end gap-2">
@@ -241,8 +241,8 @@ export function FiscalDms() {
       {/* Declarações */}
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
-          <h2 className="text-sm font-bold text-foreground">
-            <ClipboardList className="size-4 text-muted-foreground mr-2" />
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <ClipboardList className="size-4 text-muted-foreground" />
             Minhas declarações
           </h2>
         </div>
@@ -280,10 +280,10 @@ export function FiscalDms() {
       {abertaId && d && (
         <div className="bg-card rounded-2xl border border-blue-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-border bg-blue-50/50 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-foreground">
-              <FileText className="size-4 text-blue-600 mr-2" />
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <FileText className="size-4 text-blue-600" />
               {competenciaLabel(d.competenciaAno, d.competenciaMes)}
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${SITUACAO_COR[d.situacao] ?? ""}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${SITUACAO_COR[d.situacao] ?? ""}`}>
                 {d.situacao}
               </span>
             </h2>
@@ -372,7 +372,7 @@ export function FiscalDms() {
                   </label>
                 </div>
                 <Button type="submit" disabled={ocupado} className="px-4 py-2 h-auto rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60">
-                  <Plus className="size-4 mr-1.5" />
+                  <Plus className="size-4" />
                   Adicionar
                 </Button>
                 <p className="text-[11px] text-muted-foreground">
@@ -383,8 +383,8 @@ export function FiscalDms() {
 
               {/* Entregar */}
               <div className="px-5 py-4 border-t border-border">
-                <button onClick={() => void entregar()} disabled={ocupado || vazia} className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60">
-                  <Send className="size-4 mr-2" />
+                <button onClick={() => void entregar()} disabled={ocupado || vazia} className="w-full px-5 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60 inline-flex items-center justify-center gap-2">
+                  <Send className="size-4" />
                   {ocupado ? "Entregando…" : "Entregar declaração"}
                 </button>
                 <p className="text-[11px] text-muted-foreground mt-2 text-center">
@@ -395,8 +395,8 @@ export function FiscalDms() {
               </div>
             </>
           ) : (
-            <div className="px-5 py-4 border-t border-border text-sm text-muted-foreground">
-              <CheckCircle2 className="size-4 text-green-600 mr-1.5" />
+            <div className="px-5 py-4 border-t border-border text-sm text-muted-foreground flex items-center gap-1.5">
+              <CheckCircle2 className="size-4 text-green-600" />
               Entregue{d.dataEntrega ? ` em ${new Date(d.dataEntrega).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}` : ""}. A
               guia do ISS está em <Link href="/fiscal" className="text-blue-600 font-semibold">Meus Débitos</Link>.
             </div>
@@ -411,8 +411,8 @@ function Cabecalho() {
   return (
     <>
       <nav className="text-xs text-muted-foreground">
-        <Link href="/fiscal" className="hover:text-blue-600">
-          <ArrowLeft className="size-4 mr-1.5" />
+        <Link href="/fiscal" className="hover:text-blue-600 inline-flex items-center gap-1.5">
+          <ArrowLeft className="size-4" />
           Área fiscal
         </Link>
       </nav>

@@ -146,8 +146,8 @@ export function FiscalNfse() {
 
       {emitida && (
         <div className="rounded-2xl bg-green-50 border border-green-200 p-4 flex items-center justify-between gap-3">
-          <p className="text-sm text-foreground">
-            <CheckCircle2 className="size-4 text-green-600 mr-2" />
+          <p className="text-sm text-foreground inline-flex items-center gap-2">
+            <CheckCircle2 className="size-4 text-green-600" />
             NFS-e <strong>nº {emitida.numero}</strong> (série {emitida.serie}) emitida —
             ISS {money(emitida.valorIss)}.
           </p>
@@ -187,23 +187,23 @@ export function FiscalNfse() {
       {!emitindo ? (
         <button
           onClick={() => setEmitindo(true)}
-          className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700"
+          className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 inline-flex items-center gap-2"
         >
-          <Plus className="size-4 mr-2" />
+          <Plus className="size-4" />
           Emitir NFS-e
         </button>
       ) : (
         <div className="bg-card rounded-2xl border border-blue-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-border bg-blue-50/50">
-            <h2 className="text-sm font-bold text-foreground">
-              <FileText className="size-4 text-blue-600 mr-2" />
+            <h2 className="text-sm font-bold text-foreground inline-flex items-center gap-2">
+              <FileText className="size-4 text-blue-600" />
               Nova NFS-e
             </h2>
           </div>
           <div className="p-5 space-y-4">
             {erro && (
-              <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2">
-                <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 inline-flex items-center gap-1.5">
+                <AlertCircle className="size-4" aria-hidden="true" />
                 {erro}
               </div>
             )}
@@ -301,9 +301,9 @@ export function FiscalNfse() {
               <button
                 onClick={emitir}
                 disabled={!podeEmitir || ocupado}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-60 inline-flex items-center gap-2"
               >
-                <Send className="size-4 mr-2" />
+                <Send className="size-4" />
                 {ocupado ? "Emitindo…" : "Emitir"}
               </button>
               <button
@@ -327,15 +327,15 @@ export function FiscalNfse() {
       {/* Minhas notas */}
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
-          <h2 className="text-sm font-bold text-foreground">
-            <ClipboardList className="size-4 text-muted-foreground mr-2" />
+          <h2 className="text-sm font-bold text-foreground inline-flex items-center gap-2">
+            <ClipboardList className="size-4 text-muted-foreground" />
             Minhas notas emitidas
           </h2>
         </div>
         {erroDownload && (
           <div className="mx-5 mt-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm px-3 py-2 flex items-center justify-between gap-3">
-            <span>
-              <AlertCircle className="size-4 mr-1.5" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1.5">
+              <AlertCircle className="size-4" aria-hidden="true" />
               {erroDownload}
             </span>
             <button
@@ -425,8 +425,8 @@ function Cabecalho() {
   return (
     <>
       <nav className="text-xs text-muted-foreground">
-        <Link href="/fiscal" className="hover:text-blue-600">
-          <ArrowLeft className="size-4 mr-1.5" />
+        <Link href="/fiscal" className="hover:text-blue-600 inline-flex items-center gap-1.5">
+          <ArrowLeft className="size-4" />
           Área fiscal
         </Link>
       </nav>

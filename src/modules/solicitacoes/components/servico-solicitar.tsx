@@ -20,7 +20,7 @@ export async function ServicoSolicitar({ params }: { params: Promise<{ slug: str
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <nav className="text-xs text-muted-foreground">
-        <Link href={`/servico/${servico.slug}`} className="hover:text-blue-600"><ArrowLeft className="size-4 mr-1.5" />{servico.titulo}</Link>
+        <Link href={`/servico/${servico.slug}`} className="hover:text-blue-600 inline-flex items-center gap-1.5"><ArrowLeft className="size-4" />{servico.titulo}</Link>
       </nav>
 
       <div>
@@ -30,7 +30,7 @@ export async function ServicoSolicitar({ params }: { params: Promise<{ slug: str
 
       {Array.isArray(servico.documentos_necessarios) && servico.documentos_necessarios.length > 0 && (
         <div className="bg-card rounded-2xl border border-border p-5">
-          <h2 className="text-sm font-bold text-foreground mb-2"><Folder className="size-4 text-blue-600 mr-2" />Documentos necessários</h2>
+          <h2 className="text-sm font-bold text-foreground mb-2 inline-flex items-center gap-2"><Folder className="size-4 text-blue-600" />Documentos necessários</h2>
           <ul className="space-y-1.5">
             {servico.documentos_necessarios.map((d, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-foreground"><CheckCircle2 className="size-4 text-blue-600 mt-0.5 shrink-0" aria-hidden="true" /><span>{d}</span></li>

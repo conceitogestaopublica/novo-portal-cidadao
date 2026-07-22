@@ -14,8 +14,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <SlidersHorizontal className="text-amber-300 size-4" aria-hidden="true" />
             <span className="font-bold text-sm">Administração — Carta de Serviços</span>
           </div>
-          <Link href="/" className="text-xs text-slate-300 hover:text-white">
-            <ArrowLeft className="size-4 mr-1" /> Voltar ao portal
+          <Link href="/" className="text-xs text-slate-300 hover:text-white inline-flex items-center gap-1">
+            <ArrowLeft className="size-4" /> Voltar ao portal
           </Link>
         </div>
       </header>

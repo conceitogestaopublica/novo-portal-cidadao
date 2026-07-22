@@ -95,12 +95,12 @@ export async function ServicoDetalhe({ params }: { params: Promise<{ slug: strin
                   : "Entre com seu CPF/CNPJ para solicitar e acompanhar."}
             </p>
             {fiscal ? (
-              <Link href={cidadao ? destinoFiscal : "/entrar"} className="block text-center px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
-                <UserCheck className="size-4 mr-2" />{cidadao ? rotuloFiscal : "Entrar para acessar"}
+              <Link href={cidadao ? destinoFiscal : "/entrar"} className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
+                <UserCheck className="size-4" />{cidadao ? rotuloFiscal : "Entrar para acessar"}
               </Link>
             ) : (
-              <Link href={cidadao ? `/servico/${servico.slug}/solicitar` : "/entrar"} className="block text-center px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
-                <Send className="size-4 mr-2" />{cidadao ? "Solicitar agora" : "Entrar para solicitar"}
+              <Link href={cidadao ? `/servico/${servico.slug}/solicitar` : "/entrar"} className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-blue-700 font-bold text-sm hover:bg-blue-50 transition-colors">
+                <Send className="size-4" />{cidadao ? "Solicitar agora" : "Entrar para solicitar"}
               </Link>
             )}
           </div>
