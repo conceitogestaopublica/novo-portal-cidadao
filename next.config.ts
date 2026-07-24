@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Build enxuto para o Dockerfile: `.next/standalone` já traz um server.js
+  // com só o node_modules necessário, sem precisar copiar node_modules inteiro.
+  output: "standalone",
 };
 
 export default nextConfig;

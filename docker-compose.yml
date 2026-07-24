@@ -16,5 +16,65 @@ services:
       timeout: 3s
       retries: 20
 
+  db-init:
+    build:
+      context: .
+      target: builder
+    container_name: portal_cidadao_db_init
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:docker@db:5432/portal_cidadao?schema=public
+    volumes:
+      - .docker/db-init:/var/lib/portal-init
+    command: |
+      sh -c "
+      set -e
+      if [ -f /var/lib/portal-init/migrate.done ]; then
+        echo 'Migrations ja aplicadas anteriormente'
+        exit 0
+      fi
+      echo '--- Migrations: portal_cidadao ---'
+      npx prisma migrate deploy
+      touch /var/lib/portal-init/migrate.done
+      "
+    restart: "no"
+
+  app:
+    build:
+      context: .
+    container_name: portal_cidadao_app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    # Alcança o backend tributário (não containerizado aqui, roda no host) via
+    # host.docker.internal — funciona em Linux (Docker 20.10+), Mac e Windows.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      # Em dev: crie .env a partir de .env.example. Em staging/produção: injete
+      # as vars via CI/CD secrets — o arquivo é opcional.
+      - path: .env
+        required: false
+    environment:
+      # Sobrescreve as URLs do .env.local para apontar ao container db e ao
+      # backend tributário rodando no host (fora deste compose).
+      - DATABASE_URL=postgresql://postgres:docker@db:5432/portal_cidadao?schema=public
+      - TRIBUTARIO_BASE_URL=${TRIBUTARIO_BASE_URL:-http://host.docker.internal:3000/api/v1}
+      - PORT=3001
+      - NODE_ENV=production
+    healthcheck:
+      test: ['CMD-SHELL', 'node -e "fetch(\"http://127.0.0.1:3001/\").then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
 volumes:
   portal_cidadao_data:

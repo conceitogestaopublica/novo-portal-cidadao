@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# marcador de migration já aplicada (docker compose db-init) — estado local, não código
+.docker/db-init/migrate.done
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
