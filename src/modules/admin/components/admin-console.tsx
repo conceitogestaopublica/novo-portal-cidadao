@@ -73,6 +73,7 @@ const ACOES_FISCAIS = [
   { v: "nfse", label: "NFS-e (emitir/consultar)" },
   { v: "dms", label: "DMS (declaração mensal)" },
   { v: "prestei", label: "Prestei serviço aqui (outro município)" },
+  { v: "desif", label: "DES-IF (instituições financeiras)" },
 ];
 
 const inputCls = "mt-1 w-full px-3 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-slate-500 text-sm";

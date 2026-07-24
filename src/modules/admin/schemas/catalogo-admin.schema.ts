@@ -47,7 +47,7 @@ export const servicoSchema = z.object({
   icone: z.string().default("fas fa-file-lines"),
   tipo_fluxo: z.enum(["processo_ged", "self_service_fiscal", "protocolo_gpe2"]).default("processo_ged"),
   fiscal_acao: z
-    .enum(["segunda_via", "certidao", "parcelamento", "debitos", "caixa_postal", "nfse", "dms", "prestei"])
+    .enum(["segunda_via", "certidao", "parcelamento", "debitos", "caixa_postal", "nfse", "dms", "prestei", "desif"])
     .nullable()
     .optional(),
   publicado: z.boolean().default(true),

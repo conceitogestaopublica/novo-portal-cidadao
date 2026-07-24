@@ -18,6 +18,11 @@ export const DESTINO_FISCAL: Record<FiscalAcao, { href: string; rotulo: string; 
     rotulo: "Declarar serviço que prestei aqui",
     icone: "fas fa-file-circle-plus",
   },
+  desif: {
+    href: "/fiscal/desif",
+    rotulo: "Enviar DES-IF (instituições financeiras)",
+    icone: "fas fa-building-columns",
+  },
 };
 
 export function destinoDe(servico: Pick<Servico, "tipo_fluxo" | "fiscal_acao">) {

@@ -83,6 +83,7 @@ const REGISTRO: Record<string, LucideIcon> = {
   book: BookOpen,
   building: Building,
   "building-circle-exclamation": FileWarning,
+  "building-columns": Landmark,
   calculator: Calculator,
   "calendar-plus": CalendarPlus,
   certificate: Award,
