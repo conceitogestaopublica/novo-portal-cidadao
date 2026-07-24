@@ -1,25 +1,17 @@
 import "server-only";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/shared/lib/prisma";
 
 /**
  * Store de desafios OTP — o BFF é dono do OTP (o tributário só resolve o
- * contribuinte e emite o token). MVP: em memória (single process de dev).
- * Produção: Redis ou tabela no banco do portal + canal de envio real
- * (e-mail/SMS). Aqui, em dev, o OTP é ecoado na resposta (DEV_OTP_ECHO).
+ * contribuinte e emite o token). Persistido em `PortalOtpDesafio` (substitui o
+ * antigo `Map` em memória): sobrevive a restart/deploy e vale entre instâncias
+ * do portal. Guarda o HASH do código, nunca o código em si — mesma razão de
+ * `PortalSenhaReset` não guardar o token em texto.
+ *
+ * Em dev, o OTP é ecoado na resposta (`DEV_OTP_ECHO`); em produção, enviar
+ * pelo canal do contribuinte (e-mail/SMS).
  */
-interface Challenge {
-  contribuinteId: string;
-  nome: string;
-  documento: string;
-  municipio: string;
-  otp: string;
-  expiresAt: number;
-  tentativas: number;
-}
-
-// Ancorado no globalThis para persistir entre requests (route handlers rodam em
-// contextos de módulo isolados no Next) e sobreviver ao HMR em dev.
-const g = globalThis as typeof globalThis & { __portalOtp?: Map<string, Challenge> };
-const CHALLENGES: Map<string, Challenge> = (g.__portalOtp ??= new Map());
 const TTL_MS = 5 * 60 * 1000;
 const MAX_TENTATIVAS = 5;
 
@@ -28,19 +20,25 @@ function gerarOtp(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-export function criarDesafio(input: {
+export async function criarDesafio(input: {
   contribuinteId: string;
   nome: string;
   documento: string;
   municipio: string;
-}): { challengeId: string; otp: string } {
+}): Promise<{ challengeId: string; otp: string }> {
   const challengeId = crypto.randomUUID();
   const otp = gerarOtp();
-  CHALLENGES.set(challengeId, {
-    ...input,
-    otp,
-    expiresAt: Date.now() + TTL_MS,
-    tentativas: 0,
+  const otpHash = await bcrypt.hash(otp, 10);
+  await prisma.portalOtpDesafio.create({
+    data: {
+      id: challengeId,
+      contribuinteId: input.contribuinteId,
+      nome: input.nome,
+      documento: input.documento,
+      municipio: input.municipio,
+      otpHash,
+      expiraEm: new Date(Date.now() + TTL_MS),
+    },
   });
   return { challengeId, otp };
 }
@@ -49,21 +47,21 @@ export type VerificacaoResultado =
   | { ok: true; contribuinteId: string; nome: string; documento: string; municipio: string }
   | { ok: false; motivo: "expirado" | "invalido" | "bloqueado" };
 
-export function verificarDesafio(challengeId: string, otp: string): VerificacaoResultado {
-  const ch = CHALLENGES.get(challengeId);
-  if (!ch || ch.expiresAt < Date.now()) {
-    CHALLENGES.delete(challengeId);
+export async function verificarDesafio(challengeId: string, otp: string): Promise<VerificacaoResultado> {
+  const ch = await prisma.portalOtpDesafio.findUnique({ where: { id: challengeId } });
+  if (!ch || ch.expiraEm.getTime() < Date.now()) {
+    if (ch) await prisma.portalOtpDesafio.delete({ where: { id: challengeId } });
     return { ok: false, motivo: "expirado" };
   }
   if (ch.tentativas >= MAX_TENTATIVAS) {
-    CHALLENGES.delete(challengeId);
+    await prisma.portalOtpDesafio.delete({ where: { id: challengeId } });
     return { ok: false, motivo: "bloqueado" };
   }
-  if (ch.otp !== otp) {
-    ch.tentativas += 1;
+  if (!(await bcrypt.compare(otp, ch.otpHash))) {
+    await prisma.portalOtpDesafio.update({ where: { id: challengeId }, data: { tentativas: { increment: 1 } } });
     return { ok: false, motivo: "invalido" };
   }
-  CHALLENGES.delete(challengeId);
+  await prisma.portalOtpDesafio.delete({ where: { id: challengeId } });
   return {
     ok: true,
     contribuinteId: ch.contribuinteId,

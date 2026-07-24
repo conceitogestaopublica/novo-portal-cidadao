@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ challengeId: null, canalMascarado: null, encontrado: false });
   }
 
-  const { challengeId, otp } = criarDesafio({
+  const { challengeId, otp } = await criarDesafio({
     contribuinteId: resolved.contribuinteId,
     nome: resolved.nome,
     documento,

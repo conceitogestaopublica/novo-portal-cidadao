@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Dados inválidos" }, { status: 400 });
   }
 
-  const v = verificarDesafio(parsed.data.challengeId, parsed.data.otp.trim());
+  const v = await verificarDesafio(parsed.data.challengeId, parsed.data.otp.trim());
   if (!v.ok) {
     const msg =
       v.motivo === "expirado" ? "Código expirado. Recomece."

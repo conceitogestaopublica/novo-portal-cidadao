@@ -102,6 +102,37 @@ model PortalSeedAplicado {
   @@map("portal_seed_aplicado")
 }
 
+/// Controle de tentativas de login (admin da Carta de Serviços, ou senha do
+/// cidadão) — bloqueia a chave após N falhas seguidas. Persistido (em vez de
+/// `Map` em memória) pra sobreviver a restart/deploy e valer entre instâncias.
+model PortalLoginTentativa {
+  escopo       String    @db.VarChar(20)
+  chave        String    @db.VarChar(200)
+  contagem     Int       @default(0)
+  bloqueadoAte DateTime? @map("bloqueado_ate") @db.Timestamptz
+  atualizadoEm DateTime  @updatedAt @map("atualizado_em") @db.Timestamptz
+
+  @@id([escopo, chave])
+  @@map("portal_login_tentativas")
+}
+
+/// Desafio de login por código (OTP) — passo 1 do login sem senha. Guarda o
+/// HASH do código, nunca o código em si (mesma razão de `PortalSenhaReset`).
+/// Persistido (em vez de `Map` em memória) pelo mesmo motivo de `PortalLoginTentativa`.
+model PortalOtpDesafio {
+  id             String   @id @db.Uuid
+  contribuinteId String   @map("contribuinte_id") @db.Uuid
+  nome           String   @db.VarChar(200)
+  documento      String   @db.VarChar(14)
+  municipio      String   @db.VarChar(60)
+  otpHash        String   @map("otp_hash") @db.VarChar(255)
+  tentativas     Int      @default(0)
+  expiraEm       DateTime @map("expira_em") @db.Timestamptz
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.Timestamptz
+
+  @@map("portal_otp_desafios")
+}
+
 /// Pedidos de recuperação de senha (qualquer usuário do portal). Guarda o HASH do
 /// token, nunca o token em si — mesma razão de não guardar senha em texto.
 model PortalSenhaReset {
