@@ -1,34 +1,37 @@
 import { NextResponse } from "next/server";
-import { senhaAdminValida, writeAdminSession } from "@/shared/lib/admin-session";
+import { writeAdminSession } from "@/shared/lib/admin-session";
 import { loginBloqueado, registrarFalha, registrarSucesso } from "@/shared/lib/login-lock";
+import { adminByEmail, verificarSenhaAdmin } from "@/shared/repos/portal-admin-repo";
 import { adminLoginSchema as schema } from "@/modules/admin/schemas/admin-login.schema";
 
-function chaveCliente(req: Request): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "global"
-  );
-}
-
-/** Login do admin da Carta de Serviços (senha `PORTAL_ADMIN_SENHA`). */
+/**
+ * Login do admin da Carta de Serviços (conta própria — `PortalAdmin`).
+ *
+ * Bloqueio por E-MAIL (não por IP): protege a CONTA visada, mesmo padrão do
+ * login por senha do cidadão — rotacionar IP não ajuda quem ataca.
+ */
 export async function POST(req: Request) {
-  const chave = chaveCliente(req);
-  if (await loginBloqueado("admin", chave)) {
+  const parsed = schema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ message: parsed.error.issues[0]?.message ?? "Dados inválidos." }, { status: 400 });
+  }
+  const email = parsed.data.email.trim().toLowerCase();
+
+  if (await loginBloqueado("admin", email)) {
     return NextResponse.json(
       { message: "Muitas tentativas. Aguarde alguns minutos e tente novamente." },
       { status: 429 },
     );
   }
 
-  const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ message: "Informe a senha." }, { status: 400 });
-
-  if (!senhaAdminValida(parsed.data.senha)) {
-    await registrarFalha("admin", chave);
-    return NextResponse.json({ message: "Senha inválida." }, { status: 401 });
+  const admin = await adminByEmail(email);
+  if (!admin || !(await verificarSenhaAdmin(admin, parsed.data.senha))) {
+    await registrarFalha("admin", email);
+    // Genérico (não revela se o e-mail tem conta).
+    return NextResponse.json({ message: "E-mail ou senha inválidos." }, { status: 401 });
   }
-  await registrarSucesso("admin", chave);
-  await writeAdminSession();
+
+  await registrarSucesso("admin", email);
+  await writeAdminSession(admin);
   return NextResponse.json({ ok: true });
 }

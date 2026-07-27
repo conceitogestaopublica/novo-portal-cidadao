@@ -34,8 +34,6 @@ export const env = {
     }
     return s;
   },
-  /** Senha do admin da Carta de Serviços (`/admin`). Vazio = admin desabilitado. */
-  adminSenha: () => process.env.PORTAL_ADMIN_SENHA ?? "",
   /** Base URL do GED (Laravel) — API do portal. */
   gedBaseUrl: () => process.env.GED_BASE_URL ?? "",
   /** Base URL do gpe2 (Laravel) — API do portal. */

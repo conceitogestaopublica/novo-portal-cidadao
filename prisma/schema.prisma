@@ -17,10 +17,14 @@ datasource db {
 
 /// Vitrine da Carta de Serviços — grande área do portal (mapeia um sistema/domínio).
 model PortalAmbiente {
-  municipio String @db.Text
-  slug      String @db.Text
-  ordem     Int    @default(0)
-  dados     Json
+  municipio      String       @db.Text
+  slug           String       @db.Text
+  ordem          Int          @default(0)
+  dados          Json
+  criadoPorId    String?      @map("criado_por_id") @db.Uuid
+  atualizadoPorId String?     @map("atualizado_por_id") @db.Uuid
+  criadoPor      PortalAdmin? @relation("AmbienteCriadoPor", fields: [criadoPorId], references: [id], onDelete: SetNull)
+  atualizadoPor  PortalAdmin? @relation("AmbienteAtualizadoPor", fields: [atualizadoPorId], references: [id], onDelete: SetNull)
 
   @@id([municipio, slug])
   @@map("portal_ambientes")
@@ -28,11 +32,15 @@ model PortalAmbiente {
 
 /// Categoria dentro de um ambiente.
 model PortalCategoria {
-  municipio    String @db.Text
-  slug         String @db.Text
-  ambienteSlug String @map("ambiente_slug") @db.Text
-  ordem        Int    @default(0)
-  dados        Json
+  municipio      String       @db.Text
+  slug           String       @db.Text
+  ambienteSlug   String       @map("ambiente_slug") @db.Text
+  ordem          Int          @default(0)
+  dados          Json
+  criadoPorId    String?      @map("criado_por_id") @db.Uuid
+  atualizadoPorId String?     @map("atualizado_por_id") @db.Uuid
+  criadoPor      PortalAdmin? @relation("CategoriaCriadoPor", fields: [criadoPorId], references: [id], onDelete: SetNull)
+  atualizadoPor  PortalAdmin? @relation("CategoriaAtualizadoPor", fields: [atualizadoPorId], references: [id], onDelete: SetNull)
 
   @@id([municipio, slug])
   @@index([municipio, ambienteSlug], map: "idx_portal_cat_ambiente")
@@ -41,12 +49,16 @@ model PortalCategoria {
 
 /// Serviço oferecido dentro de uma categoria.
 model PortalServico {
-  municipio     String  @db.Text
-  slug          String  @db.Text
-  categoriaSlug String  @map("categoria_slug") @db.Text
-  publicado     Boolean @default(true)
-  ordem         Int     @default(0)
-  dados         Json
+  municipio      String       @db.Text
+  slug           String       @db.Text
+  categoriaSlug  String       @map("categoria_slug") @db.Text
+  publicado      Boolean      @default(true)
+  ordem          Int          @default(0)
+  dados          Json
+  criadoPorId    String?      @map("criado_por_id") @db.Uuid
+  atualizadoPorId String?     @map("atualizado_por_id") @db.Uuid
+  criadoPor      PortalAdmin? @relation("ServicoCriadoPor", fields: [criadoPorId], references: [id], onDelete: SetNull)
+  atualizadoPor  PortalAdmin? @relation("ServicoAtualizadoPor", fields: [atualizadoPorId], references: [id], onDelete: SetNull)
 
   @@id([municipio, slug])
   @@index([municipio, categoriaSlug], map: "idx_portal_serv_categoria")
@@ -63,6 +75,11 @@ model PortalConta {
   senhaHash      String?  @map("senha_hash") @db.VarChar(255)
   contribuinteId String?  @map("contribuinte_id") @db.Uuid
   municipio      String   @db.VarChar(60)
+  /// Incrementa quando a lista de representações (empresas que a pessoa pode
+  /// "atuar como") muda — a sessão carrega a versão vigente no login/troca de
+  /// identidade; se divergir da atual, a sessão é tratada como revogada.
+  /// Mesmo mecanismo do `tokenVersion` do `PortalAdmin`/`User` do tributário.
+  tokenVersion   Int      @default(0) @map("token_version")
   criadoEm       DateTime @default(now()) @map("criado_em") @db.Timestamptz
 
   @@unique([documento, municipio], map: "uq_conta_doc_municipio")
@@ -131,6 +148,33 @@ model PortalOtpDesafio {
   criadoEm       DateTime @default(now()) @map("criado_em") @db.Timestamptz
 
   @@map("portal_otp_desafios")
+}
+
+/// Conta de administrador da Carta de Serviços — uma por pessoa (antes era uma
+/// senha só, global, sem autoria nenhuma). `municipio` nulo = acesso a todos
+/// (espelha o padrão `unidadeGestoraId` nulo = acesso total do tributário).
+/// `tokenVersion` permite revogar a sessão na hora (incrementar invalida todo
+/// cookie já emitido) — mesmo mecanismo do `User.tokenVersion` do tributário.
+model PortalAdmin {
+  id           String    @id @default(uuid()) @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  nome         String    @db.VarChar(200)
+  senhaHash    String    @map("senha_hash") @db.VarChar(255)
+  municipio    String?   @db.VarChar(60)
+  tokenVersion Int       @default(0) @map("token_version")
+  ativo        Boolean   @default(true)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz
+  deletedBy    String?   @map("deleted_by") @db.Uuid
+  criadoEm     DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+
+  ambientesCriados      PortalAmbiente[]  @relation("AmbienteCriadoPor")
+  ambientesAtualizados  PortalAmbiente[]  @relation("AmbienteAtualizadoPor")
+  categoriasCriadas     PortalCategoria[] @relation("CategoriaCriadoPor")
+  categoriasAtualizadas PortalCategoria[] @relation("CategoriaAtualizadoPor")
+  servicosCriados       PortalServico[]   @relation("ServicoCriadoPor")
+  servicosAtualizados   PortalServico[]   @relation("ServicoAtualizadoPor")
+
+  @@map("portal_admins")
 }
 
 /// Pedidos de recuperação de senha (qualquer usuário do portal). Guarda o HASH do

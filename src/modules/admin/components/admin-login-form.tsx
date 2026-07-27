@@ -17,7 +17,7 @@ export function AdminLoginForm() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<AdminLoginInput>({ resolver: zodResolver(adminLoginSchema), defaultValues: { senha: "" } });
+  } = useForm<AdminLoginInput>({ resolver: zodResolver(adminLoginSchema), defaultValues: { email: "", senha: "" } });
 
   async function onSubmit(data: AdminLoginInput) {
     try {
@@ -49,9 +49,23 @@ export function AdminLoginForm() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
-            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Senha do administrador</Label>
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">E-mail</Label>
             <Input
               autoFocus
+              type="email"
+              placeholder="seu@email.com"
+              className="mt-1 w-full px-4 py-3 h-auto rounded-xl border-border focus-visible:ring-slate-500 text-sm"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-xs text-destructive mt-1" role="alert">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Senha</Label>
+            <Input
               type="password"
               placeholder="••••••••"
               className="mt-1 w-full px-4 py-3 h-auto rounded-xl border-border focus-visible:ring-slate-500 text-sm"

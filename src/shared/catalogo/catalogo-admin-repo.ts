@@ -39,43 +39,71 @@ export async function carregarCatalogoAdmin(municipio: string): Promise<AdminCat
   };
 }
 
-/** Cria/atualiza um ambiente (chave = município + slug). */
-export async function salvarAmbiente(municipio: string, a: Ambiente, ordem?: number): Promise<void> {
+/** Cria/atualiza um ambiente (chave = município + slug). `adminId` = quem está gravando (auditoria). */
+export async function salvarAmbiente(
+  municipio: string,
+  a: Ambiente,
+  ordem?: number,
+  adminId?: string,
+): Promise<void> {
   const slug = a.slug || slugify(a.nome);
   const dados = { ...a, slug } as unknown as Prisma.InputJsonValue;
   await prisma.portalAmbiente.upsert({
     where: { municipio_slug: { municipio, slug } },
-    create: { municipio, slug, ordem: ordem ?? 0, dados },
-    update: { dados, ...(ordem !== undefined ? { ordem } : {}) },
+    create: { municipio, slug, ordem: ordem ?? 0, dados, criadoPorId: adminId, atualizadoPorId: adminId },
+    update: { dados, ...(ordem !== undefined ? { ordem } : {}), atualizadoPorId: adminId },
   });
   invalidarCatalogo(municipio);
 }
 
-/** Cria/atualiza uma categoria (chave = município + slug). */
-export async function salvarCategoria(municipio: string, c: CategoriaSeed, ordem?: number): Promise<void> {
+/** Cria/atualiza uma categoria (chave = município + slug). `adminId` = quem está gravando (auditoria). */
+export async function salvarCategoria(
+  municipio: string,
+  c: CategoriaSeed,
+  ordem?: number,
+  adminId?: string,
+): Promise<void> {
   const slug = c.slug || slugify(c.nome);
   const dados = { ...c, slug } as unknown as Prisma.InputJsonValue;
   await prisma.portalCategoria.upsert({
     where: { municipio_slug: { municipio, slug } },
-    create: { municipio, slug, ambienteSlug: c.ambienteSlug, ordem: ordem ?? 0, dados },
-    update: { ambienteSlug: c.ambienteSlug, dados, ...(ordem !== undefined ? { ordem } : {}) },
+    create: {
+      municipio,
+      slug,
+      ambienteSlug: c.ambienteSlug,
+      ordem: ordem ?? 0,
+      dados,
+      criadoPorId: adminId,
+      atualizadoPorId: adminId,
+    },
+    update: { ambienteSlug: c.ambienteSlug, dados, ...(ordem !== undefined ? { ordem } : {}), atualizadoPorId: adminId },
   });
   invalidarCatalogo(municipio);
 }
 
-/** Cria/atualiza um serviço (chave = município + slug). */
+/** Cria/atualiza um serviço (chave = município + slug). `adminId` = quem está gravando (auditoria). */
 export async function salvarServico(
   municipio: string,
   s: ServicoSeed,
   publicado: boolean,
   ordem?: number,
+  adminId?: string,
 ): Promise<void> {
   const slug = s.slug || slugify(s.titulo);
   const dados = { ...s, slug } as unknown as Prisma.InputJsonValue;
   await prisma.portalServico.upsert({
     where: { municipio_slug: { municipio, slug } },
-    create: { municipio, slug, categoriaSlug: s.categoriaSlug, publicado, ordem: ordem ?? 0, dados },
-    update: { categoriaSlug: s.categoriaSlug, publicado, dados, ...(ordem !== undefined ? { ordem } : {}) },
+    create: {
+      municipio,
+      slug,
+      categoriaSlug: s.categoriaSlug,
+      publicado,
+      ordem: ordem ?? 0,
+      dados,
+      criadoPorId: adminId,
+      atualizadoPorId: adminId,
+    },
+    update: { categoriaSlug: s.categoriaSlug, publicado, dados, ...(ordem !== undefined ? { ordem } : {}), atualizadoPorId: adminId },
   });
   invalidarCatalogo(municipio);
 }
