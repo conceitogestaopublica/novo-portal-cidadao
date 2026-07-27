@@ -61,7 +61,13 @@ export async function consumirTokenETrocarSenha(token: string, senhaHash: string
     });
     if (atualizado.count === 0) return false;
 
-    await tx.portalConta.update({ where: { id: reset.contaId }, data: { senhaHash } });
+    // tokenVersion++ revoga toda sessão já aberta na hora (ver ensureToken) —
+    // quem trocou a senha por suspeita de acesso indevido não fica esperando
+    // o cookie antigo expirar em até 8h.
+    await tx.portalConta.update({
+      where: { id: reset.contaId },
+      data: { senhaHash, tokenVersion: { increment: 1 } },
+    });
     return true;
   });
 }

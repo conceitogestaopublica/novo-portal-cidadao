@@ -39,6 +39,15 @@ export interface PortalSession {
   tributarioToken?: string;
   /** Epoch (s) de expiração do tributarioToken. */
   tributarioTokenExp?: number;
+  /**
+   * Id da `PortalConta` (documento+senha), se a pessoa tiver uma — quem entra
+   * só por OTP sem nunca ter se cadastrado por senha não tem. Junto com
+   * `contaTokenVersion`, permite revogar a sessão na hora quando a senha troca
+   * (ver `ensureToken` em `portal-me-client.ts`).
+   */
+  contaId?: string;
+  /** `PortalConta.tokenVersion` capturado no login/cadastro. */
+  contaTokenVersion?: number;
 }
 
 /** Lê a sessão do cookie httpOnly (server-side). Retorna null se ausente/inválida/adulterada. */

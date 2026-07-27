@@ -13,6 +13,8 @@ export interface Conta {
   senhaHash: string | null;
   contribuinteId: string | null;
   municipio: string;
+  /** Incrementa ao trocar senha — sessão com versão antiga é tratada como revogada. */
+  tokenVersion: number;
 }
 
 function map(c: PortalConta): Conta {
@@ -25,6 +27,7 @@ function map(c: PortalConta): Conta {
     senhaHash: c.senhaHash,
     contribuinteId: c.contribuinteId,
     municipio: c.municipio,
+    tokenVersion: c.tokenVersion,
   };
 }
 
@@ -60,4 +63,10 @@ export async function criarConta(input: {
 export async function verificarSenha(conta: Conta, senha: string): Promise<boolean> {
   if (!conta.senhaHash) return false;
   return bcrypt.compare(senha, conta.senhaHash);
+}
+
+/** Só a versão vigente — usado a cada renovação de token (`ensureToken`), sem buscar a linha inteira. */
+export async function tokenVersionAtual(contaId: string): Promise<number | null> {
+  const c = await prisma.portalConta.findUnique({ where: { id: contaId }, select: { tokenVersion: true } });
+  return c?.tokenVersion ?? null;
 }

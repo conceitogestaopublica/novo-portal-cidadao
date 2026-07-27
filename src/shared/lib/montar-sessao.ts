@@ -2,6 +2,7 @@ import "server-only";
 import type { TenantConfig } from "@/shared/lib/tenant-map";
 import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { writeSession, type PortalSession } from "@/shared/lib/portal-session";
+import { contaByDocumento } from "@/shared/repos/conta-repo";
 import type { Representacao } from "@/shared/types/portal";
 
 /**
@@ -15,6 +16,11 @@ import type { Representacao } from "@/shared/types/portal";
  *
  * Trocar de empresa (POST /api/auth/atuar-como) só reaproveita o passo 3 para
  * outra identidade da lista — sem novo login.
+ *
+ * Busca a `PortalConta` pelo documento (existe ou não, independente do
+ * caminho de login usado hoje) e grava a `tokenVersion` vigente na sessão —
+ * assim, se a pessoa tem conta e troca a senha depois, a sessão é revogada na
+ * hora (`ensureToken`), mesmo que tenha entrado por OTP nesta vez.
  */
 export async function montarSessaoLogada(input: {
   tenant: TenantConfig;
@@ -24,6 +30,7 @@ export async function montarSessaoLogada(input: {
   nome: string;
 }): Promise<PortalSession> {
   const adapter = new TributarioAdapter(input.tenant);
+  const conta = await contaByDocumento(input.documento, input.tenant.municipio);
 
   let representados: Representacao[] = [];
   try {
@@ -61,6 +68,7 @@ export async function montarSessaoLogada(input: {
     municipio: input.tenant.municipio,
     tributarioToken: tokenRes.accessToken,
     tributarioTokenExp: Math.floor(Date.now() / 1000) + (tokenRes.expiresIn ?? 900),
+    ...(conta ? { contaId: conta.id, contaTokenVersion: conta.tokenVersion } : {}),
   };
 
   await writeSession(session);

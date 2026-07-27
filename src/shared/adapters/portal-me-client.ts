@@ -2,6 +2,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { readSession, writeSession } from "@/shared/lib/portal-session";
+import { tokenVersionAtual } from "@/shared/repos/conta-repo";
 import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 
 /**
@@ -19,6 +20,19 @@ async function ensureToken(): Promise<
   const [tenant, session] = await Promise.all([currentTenant(), readSession()]);
   if (!tenant) return { ok: false, status: 404 };
   if (!session?.conta) return { ok: false, status: 401 };
+
+  // Se a pessoa tem PortalConta, a sessão carrega a tokenVersion vigente no
+  // login — trocar a senha incrementa a versão no banco (senha-reset-repo.ts)
+  // e toda sessão aberta com a versão antiga passa a ser rejeitada aqui, sem
+  // esperar o TTL de 8h. Quem entrou só por OTP sem conta não tem essa checagem
+  // (nada a revogar por senha — a identidade em si já é revalidada a cada
+  // emissão de token contra o tributário).
+  if (session.contaId) {
+    const vigente = await tokenVersionAtual(session.contaId);
+    if (vigente === null || vigente !== session.contaTokenVersion) {
+      return { ok: false, status: 401 };
+    }
+  }
 
   const adapter = new TributarioAdapter(tenant);
   const agora = Math.floor(Date.now() / 1000);
