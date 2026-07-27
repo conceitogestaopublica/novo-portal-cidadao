@@ -1,5 +1,5 @@
 import "server-only";
-import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 import type { PortalConta } from "@prisma/client";
 import { prisma } from "@/shared/lib/prisma";
 
@@ -45,7 +45,7 @@ export async function criarConta(input: {
   contribuinteId: string | null;
   municipio: string;
 }): Promise<Conta> {
-  const senhaHash = await bcrypt.hash(input.senha, 10);
+  const senhaHash = await argon2.hash(input.senha);
   const c = await prisma.portalConta.create({
     data: {
       documento: input.documento,
@@ -62,7 +62,7 @@ export async function criarConta(input: {
 
 export async function verificarSenha(conta: Conta, senha: string): Promise<boolean> {
   if (!conta.senhaHash) return false;
-  return bcrypt.compare(senha, conta.senhaHash);
+  return argon2.verify(conta.senhaHash, senha);
 }
 
 /** Só a versão vigente — usado a cada renovação de token (`ensureToken`), sem buscar a linha inteira. */

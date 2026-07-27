@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 import {
   consumirTokenETrocarSenha,
   contaDoToken,
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const senhaHash = await bcrypt.hash(parsed.data.senha, 10);
+  const senhaHash = await argon2.hash(parsed.data.senha);
   const ok = await consumirTokenETrocarSenha(parsed.data.token, senhaHash);
 
   if (!ok) {
