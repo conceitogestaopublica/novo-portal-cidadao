@@ -271,6 +271,28 @@ requerimento/protocolo**) geram uma **solicitação**:
 
 ---
 
+## 10. DES-IF — instituição financeira declara pelo portal
+
+Bancos e demais instituições financeiras com dependência no município enviam
+a Declaração de Instituições Financeiras (DES-IF) por aqui, em vez de
+protocolo físico.
+
+1. Entre com o CPF/CNPJ e senha da instituição.
+2. Em **Área fiscal → DES-IF**, escolha a instituição (se representar mais de
+   uma) e envie o **arquivo do leiaute ABRASF** (upload ou colar o conteúdo).
+3. O sistema valida e lista a declaração em **Módulo 1/2/3/4** conforme o
+   conteúdo enviado, com erros/alertas apontados linha a linha se houver.
+4. Uma declaração **validada** do módulo de **apuração mensal** pode ser
+   **encerrada** — isso gera o lançamento do ISS e a guia de recolhimento
+   (aparece em **Meus Débitos**).
+5. Baixe o **comprovante de entrega** (PDF assinado) a qualquer momento,
+   mesmo para uma declaração rejeitada — o comprovante prova que algo foi
+   recebido, não que foi aceito.
+
+> Uma competência já encerrada não encerra de novo — evita guia duplicada.
+
+---
+
 ## Apêndice A — Resumo técnico (para revisão / operação)
 
 > Detalhe de implementação da rotina 1. Público: revisor (Gabriel) e operação.
@@ -284,7 +306,7 @@ requerimento/protocolo**) geram uma **solicitação**:
   `economicos.contribuinte_id` → a empresa). Extensível a rep. legal/técnico e
   gov.br sem mudar a sessão/UI.
 
-### A.2 Backend (tributário — branch `feat/portal-me-self-service`)
+### A.2 Backend (tributário — módulo `portal-integration`, em produção)
 
 - `cadastro-economico`: `IEconomicoRepository.listEmpresasByContador()`
   (Prisma + in-memory) e o use case público `ListarEmpresasPorContadorUseCase`
@@ -327,8 +349,8 @@ requerimento/protocolo**) geram uma **solicitação**:
 ### A.6 Backend das rotinas §2–§5
 
 Os endpoints do tributário que sustentam débitos/comprovante, dívida ativa,
-CND/CPEN e parcelamento estão no `portal-me` (branch
-`feat/portal-me-self-service` do `gpd-web-tribut-rio`, em revisão do Gabriel):
+CND/CPEN e parcelamento estão no `portal-me` (`gpd-web-tribut-rio`, já
+mesclado no `master` e em produção):
 
 - Guias: `GET /portal-me/guias` (em aberto; `?pagas=1` = comprovantes; canceladas
   ocultas), `GET /portal-me/guias/:id/segunda-via.pdf` (`?atualizar=1&data=`).
@@ -338,5 +360,5 @@ CND/CPEN e parcelamento estão no `portal-me` (branch
   `POST /portal-me/parcelamento/{simular,aderir}`, `GET …/:id/termo.pdf`.
 
 **Pendência fiscal:** a guia da parcela ainda não carrega o tributo de origem
-(rateio por receita) — proposta em `gpd-web-tribut-rio/docs/propostas/
-parcelamento-rateio-receita-por-tributo.md`.
+(rateio por receita) — confirmado ainda em aberto no backend (sem `tributoOrigem`/
+`rateio` em `divida-ativa`), sem proposta escrita ainda.

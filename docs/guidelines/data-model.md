@@ -42,11 +42,11 @@ const resultado = await adapter.resolver(documento);
 
 - Chamadas vivem só em `shared/adapters/*.adapter.ts`, com `"server-only"` no
   topo — nunca do browser, nunca de fora de uma rota BFF/Server Component.
-- Endpoints seguem o contrato oficial documentado em `docs/design/
-  portal-cidadao.md` do repositório `gpd-web-tribut-rio` (`portal-auth/
-  contribuinte/*`, `portal-me/*`) — verificado nesta sessão: os ~25 endpoints
-  usados batem exatamente com os controllers reais do backend, sem
-  reimplementação paralela.
+- Endpoints seguem o contrato oficial registrado em `docs/adr/0055-portal-
+  integration-service-token.md` do repositório `gpd-web-tribut-rio`
+  (`portal-auth/contribuinte/*`, `portal-me/*`) — verificado nesta sessão: os
+  ~25 endpoints usados batem exatamente com os controllers reais do backend,
+  sem reimplementação paralela.
 - Segredo de serviço (`X-Service-Token`/`PROXY_SHARED_SECRET`) só em
   `shared/config/env.ts` e nos adapters — nunca em resposta JSON, nunca em
   `NEXT_PUBLIC_*`.

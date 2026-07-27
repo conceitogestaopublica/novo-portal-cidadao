@@ -24,31 +24,37 @@ sessões simples e independentes:
 - Login por **senha única** (`PORTAL_ADMIN_SENHA`), sem usuário — é o
   servidor do município que edita a Carta de Serviços.
 - Cookie httpOnly assinado, TTL de 8h.
-- Lockout por tentativas erradas (`admin-login-lock.ts`).
 - `requireAdmin()` no topo de toda página/rota do admin — guard server-side,
-  nunca só uma checagem client-side.
+  nunca só uma checagem client-side, redireciona para `/admin/entrar` se
+  ausente.
 
-## Regra comum às duas
+## Lockout de força bruta (`shared/lib/login-lock.ts`)
 
-**Guard sempre no servidor**, nunca só na UI:
+Um único módulo, por `escopo`, cobre os dois logins por senha (não o OTP, que
+já tem seu próprio limite de tentativas em `otp-store.ts`):
 
-```typescript
-// página do cidadão autenticado
-import { requireCidadao } from "@/shared/lib/portal-session";
-export default async function Page() {
-  const cidadao = await requireCidadao(); // redireciona para /entrar se ausente
-  ...
-}
-```
+- **`admin`**: chave = IP de quem chama (só existe uma senha global).
+- **`login-senha`**: chave = documento — bloqueia a CONTA visada, não o IP de
+  quem ataca (rotacionar IP não ajuda o atacante).
 
-```typescript
-// página do admin
-import { requireAdmin } from "@/shared/lib/admin-session";
-export default async function Page() {
-  await requireAdmin(); // redireciona para /admin/entrar se ausente
-  ...
-}
-```
+5 tentativas erradas → bloqueio de 5 min. Estado persistido em
+`PortalLoginTentativa` (Postgres) — sobrevive a restart/deploy e vale entre
+instâncias, ao contrário de um `Map` em memória.
 
-Um componente client pode checar sessão para efeito cosmético (mostrar/
-esconder botão), mas isso nunca é a fonte de verdade de segurança.
+## Guard: como cada sessão é verificada de fato
+
+**Admin**: guard de página de verdade (`requireAdmin()`, redireciona
+server-side). Toda página/rota do admin chama isso no topo.
+
+**Cidadão**: **não há** guard de página equivalente — os componentes de
+`page.tsx` das áreas autenticadas (ex. `/fiscal/*`) são Server Components
+finos, sem checagem de sessão. A fonte de verdade de segurança é o **BFF**: as
+rotas `src/app/api/fiscal/*` e os adapters (`shared/adapters/*.ts`) exigem
+sessão válida e devolvem 401 sem ela — quem não está logado nunca consegue
+ler dado nenhum, mesmo acessando a URL direto. No cliente, os hooks React
+Query recebem esse 401 e o componente confere `isSessaoExpirada(query.error)`
+para renderizar `<SessaoExpirada />` (`components/common/`) em vez de tentar
+mostrar a tela com dado ausente.
+
+Isso é intencional (evita duplicar o guard em toda `page.tsx`), mas é
+diferente do admin — não confundir os dois modelos ao criar uma página nova.
