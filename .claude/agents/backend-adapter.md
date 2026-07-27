@@ -11,9 +11,10 @@ tools: Read, Write, Edit, Bash
 Responsável pela integração com os 3 backends externos que o portal consome:
 - **tributário** (`gpd-web-tribut-rio`, NestJS) — débitos, guias, NFS-e, DMS, certidões,
   parcelamento, dívida ativa, caixa postal/DTE. Contrato oficial em
-  `docs/design/portal-cidadao.md` desse repositório: `portal-auth/contribuinte/*`
-  (resolver por documento, OTP, emissão de token) e `portal-me/*`
-  (autoatendimento, sempre escopado pelo id do token — nunca id vindo do client).
+  `docs/adr/0055-portal-integration-service-token.md` desse repositório:
+  `portal-auth/contribuinte/*` (resolver por documento, OTP, emissão de token)
+  e `portal-me/*` (autoatendimento, sempre escopado pelo id do token — nunca id
+  vindo do client).
 - **GED** (Laravel) — protocolo, requerimentos, ouvidoria.
 - **gpe2** (Laravel) — serviços do servidor público, transparência (ainda não disponíveis).
 
@@ -27,7 +28,7 @@ sistemas — nenhum outro arquivo deve montar essas requisições.
 2. **Segredo de serviço nunca sai do servidor.** `X-Service-Token`/`PROXY_SHARED_SECRET` (tributário), credenciais equivalentes de GED/gpe2 — só em `shared/config/env.ts` e nos adapters, nunca em resposta JSON, nunca em variável `NEXT_PUBLIC_*`.
 3. **Município sempre explícito e resolvido no servidor.** Nunca aceitar município/tenant vindo do body do client sem cruzar com o subdomínio resolvido (`shared/lib/extract-subdomain.ts` + `tenant-map.ts`).
 4. **Sessão do cidadão nunca confia em id vindo do client.** O id do contribuinte/conta vem do JWT/cookie de sessão do próprio portal (`portal-session.ts`), nunca de um campo do request — mesma regra do backend (`portal-me/*` sempre escopado por `@AuthUser('id')`).
-5. **Usar o contrato oficial antes de inventar um novo.** Antes de adicionar uma chamada nova ao tributário, verificar em `docs/design/portal-cidadao.md` (no repo `gpd-web-tribut-rio`) e em `src/modules/portal-integration/` desse mesmo repo se o endpoint já existe. Não deixar o adapter reimplementar lógica que já é feita pelo backend (ex.: cálculo de dívida, geração de certidão).
+5. **Usar o contrato oficial antes de inventar um novo.** Antes de adicionar uma chamada nova ao tributário, verificar em `docs/adr/0055-portal-integration-service-token.md` (no repo `gpd-web-tribut-rio`) e em `src/modules/portal-integration/` desse mesmo repo se o endpoint já existe. Não deixar o adapter reimplementar lógica que já é feita pelo backend (ex.: cálculo de dívida, geração de certidão).
 6. **Erro do backend externo propagado com contexto.** Nunca engolir o erro — mapear para uma mensagem que a rota BFF possa devolver ao formulário/hook do módulo.
 7. **Timeout e resposta de indisponibilidade tratados.** Backend externo fora do ar não deve estourar 500 genérico sem log; devolver um erro identificável (`ApiError` com código) para o client mostrar algo útil.
 

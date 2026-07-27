@@ -10,7 +10,7 @@ description: Adicionar uma chamada a um backend externo (tributário, GED, gpe2)
 ### 1. Verificar se o endpoint já existe no backend
 
 Antes de escrever a chamada, confirme no repositório `../gpd-web-tribut-rio`:
-- `docs/design/portal-cidadao.md` — desenho geral da integração.
+- `docs/adr/0055-portal-integration-service-token.md` — desenho geral da integração.
 - `src/modules/portal-integration/` — controllers `portal-auth/contribuinte/*` e
   `portal-me/*` já disponíveis.
 

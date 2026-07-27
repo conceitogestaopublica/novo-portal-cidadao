@@ -4,6 +4,7 @@ import { FolderOpen, Inbox } from "lucide-react";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { listByConta } from "@/shared/repos/solicitacao-repo";
+import { dateBR } from "@/shared/lib/format";
 import { SituacaoBadge } from "./situacao-badge";
 
 export async function MinhasSolicitacoesLista() {
@@ -31,7 +32,7 @@ export async function MinhasSolicitacoesLista() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-foreground">{s.servicoTitulo}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Protocolo <strong className="text-muted-foreground">{s.protocolo}</strong> · {new Date(s.criadoEm).toLocaleDateString("pt-BR")}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Protocolo <strong className="text-muted-foreground">{s.protocolo}</strong> · {dateBR(s.criadoEm)}</p>
                 </div>
                 <SituacaoBadge situacao={s.situacao} />
               </div>

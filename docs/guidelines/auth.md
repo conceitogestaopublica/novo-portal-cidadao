@@ -5,25 +5,42 @@ sessões simples e independentes:
 
 ## Sessão do cidadão (`shared/lib/portal-session.ts`)
 
-- Login por **documento + senha** (conta própria do portal) ou **documento +
-  OTP** (resolve o contribuinte no tributário, emite um desafio, valida e
-  emite o JWT CONTRIBUINTE).
+- Login por **documento + senha** (conta própria do portal, `PortalConta`) ou
+  **documento + OTP** (resolve o contribuinte no tributário, emite um
+  desafio, valida e emite o JWT CONTRIBUINTE).
 - Cookie httpOnly assinado (HMAC), TTL de 8h — é a identidade durável.
+- Senha com bcryptjs (`shared/repos/conta-repo.ts`) — só o admin (`PortalAdmin`)
+  foi migrado para argon2 até aqui.
 - O JWT CONTRIBUINTE do tributário (TTL 15min) é renovado **transparentemente**
   pelo BFF (`shared/adapters/portal-me-client.ts` → `ensureToken()`) usando o
   `contribuinteId` da própria sessão como prova de identidade — sem pedir OTP
   de novo a cada 15 minutos.
 - Modelo "uma pessoa, várias empresas": a sessão guarda a lista de
   `representados` (titular + empresas que a pessoa representa) resolvida no
-  login; trocar de identidade ativa (`POST /api/auth/atuar-como`) só reemite o
-  JWT para outra identidade **que já esteja nessa lista** — nunca aceita um
-  `contribuinteId` arbitrário do body sem essa checagem de posse.
+  login; trocar de identidade ativa (`POST /api/auth/atuar-como`) exige que o
+  alvo esteja nessa lista (checagem rápida, mas pode ficar velha por até 8h) —
+  e o **tributário revalida de novo** a cada emissão de token (login, "atuar
+  como" e toda renovação silenciosa em `ensureToken`), comparando o
+  `documento` fixo da sessão contra o vínculo vigente. Um vínculo revogado
+  depois do login (ex.: contador perdeu acesso à empresa) é pego na próxima
+  renovação, não só no próximo login.
+- **Revogação por troca de senha**: `PortalConta.tokenVersion` é capturado na
+  sessão no login e comparado a cada renovação em `ensureToken`. Trocar a
+  senha (`consumirTokenETrocarSenha`) incrementa a versão — toda sessão aberta
+  com a versão antiga é rejeitada (401) na próxima chamada fiscal, sem esperar
+  o cookie expirar. Quem entrou só por OTP (sem `PortalConta`) não tem essa
+  checagem — não há senha para revogar.
 
 ## Sessão do admin (`shared/lib/admin-session.ts`)
 
-- Login por **senha única** (`PORTAL_ADMIN_SENHA`), sem usuário — é o
-  servidor do município que edita a Carta de Serviços.
-- Cookie httpOnly assinado, TTL de 8h.
+- Login por **e-mail + senha**, conta própria por pessoa (`PortalAdmin`,
+  argon2) — substituiu a antiga senha única global (`PORTAL_ADMIN_SENHA`, hoje
+  removida). Criação de admin via `npm run admin:criar` (script
+  `prisma/scripts/criar-admin.mjs`), não há autocadastro.
+- Cookie httpOnly assinado, TTL de 8h. Payload carrega `adminId` +
+  `tokenVersion`; `getAdminSession()` revalida a versão contra o banco a cada
+  chamada — trocar a senha ou `revogarSessoesAdmin()` invalida sessões abertas
+  na hora, mesmo mecanismo do cidadão.
 - `requireAdmin()` no topo de toda página/rota do admin — guard server-side,
   nunca só uma checagem client-side, redireciona para `/admin/entrar` se
   ausente.
@@ -33,9 +50,10 @@ sessões simples e independentes:
 Um único módulo, por `escopo`, cobre os dois logins por senha (não o OTP, que
 já tem seu próprio limite de tentativas em `otp-store.ts`):
 
-- **`admin`**: chave = IP de quem chama (só existe uma senha global).
-- **`login-senha`**: chave = documento — bloqueia a CONTA visada, não o IP de
-  quem ataca (rotacionar IP não ajuda o atacante).
+- **`admin`**: chave = e-mail informado — bloqueia a CONTA visada (cada admin
+  agora tem a sua), não o IP de quem ataca.
+- **`login-senha`**: chave = documento — mesma lógica, bloqueia a CONTA
+  visada, não o IP.
 
 5 tentativas erradas → bloqueio de 5 min. Estado persistido em
 `PortalLoginTentativa` (Postgres) — sobrevive a restart/deploy e vale entre

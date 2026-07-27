@@ -16,6 +16,7 @@ import {
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { getByIdDaConta } from "@/shared/repos/solicitacao-repo";
+import { dateBR } from "@/shared/lib/format";
 import { protocoloConfigDe, consultarProtocoloGpe2, type TimelineEvento } from "@/shared/adapters/gpe2.adapter";
 import { SituacaoBadge } from "./situacao-badge";
 import { ResponderForm } from "./responder-form";
@@ -64,7 +65,7 @@ export async function SolicitacaoDetalhe({ params }: { params: Promise<{ id: str
             <p className="text-xs text-muted-foreground mt-1">
               Protocolo <strong className="text-muted-foreground">{s.protocolo}</strong>
               {s.protocoloNumero && <> · Processo <strong className="text-muted-foreground">{s.protocoloNumero}</strong></>}
-              {" "}· aberta em {new Date(s.criadoEm).toLocaleDateString("pt-BR")}
+              {" "}· aberta em {dateBR(s.criadoEm)}
             </p>
           </div>
           <SituacaoBadge situacao={s.situacao} />

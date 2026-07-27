@@ -97,6 +97,7 @@ src/
     common/         # EmptyState, ErrorState, Skeleton, etc.
   modules/          # módulos de negócio isolados (cada um com index.ts público)
     auth/           # login (senha e OTP), cadastro, recuperação de senha, "atuar como"
+    portal/         # shell/navegação do cidadão logado (PortalShell) e logout
     fiscal/         # nfse, dms, certidão, parcelamento, caixa postal, dívida ativa, prestei
     carta-servicos/ # ambientes, categorias, serviços — vitrine pública
     solicitacoes/   # "minhas solicitações" (espelho do protocolo/PAE)
