@@ -10,9 +10,9 @@ import {
   FileText,
   Landmark,
   Send,
-  UserLock,
 } from "lucide-react";
 import Link from "next/link";
+import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
 import { Button } from "@/components/ui/button";
 import {
@@ -112,15 +112,7 @@ export function FiscalDesif() {
 
   const semSessao = [instituicoes, declaracoes].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
-    return (
-      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
-        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente.</p>
-        <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
-          Entrar
-        </Link>
-      </div>
-    );
+    return <SessaoExpirada />;
   }
 
   async function lerArquivo(file: File) {

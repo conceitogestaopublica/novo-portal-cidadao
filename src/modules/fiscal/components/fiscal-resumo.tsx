@@ -22,11 +22,11 @@ import {
   Receipt,
   Search,
   TriangleAlert,
-  UserLock,
 } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { AtuarComoSeletor } from "./atuar-como-seletor";
+import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
 import { useFiscalResumo } from "../hooks/use-fiscal-resumo";
 import { useFiscalGuias } from "../hooks/use-fiscal-guias";
@@ -117,13 +117,7 @@ export function FiscalResumo() {
 
   const semSessao = [resumo, guias, caixa].some((q) => isSessaoExpirada(q.error));
   if (semSessao) {
-    return (
-      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
-        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente para ver seus débitos.</p>
-        <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Entrar</Link>
-      </div>
-    );
+    return <SessaoExpirada mensagem="Sua sessão expirou. Entre novamente para ver seus débitos." />;
   }
 
   const r = (resumo.data ?? {}) as Record<string, unknown>;

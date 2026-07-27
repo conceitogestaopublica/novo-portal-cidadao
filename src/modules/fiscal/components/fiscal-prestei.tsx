@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ArrowLeft, FilePlus2, Plus, Receipt, UserLock } from "lucide-react";
+import { AlertCircle, ArrowLeft, FilePlus2, Plus, Receipt } from "lucide-react";
+import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
 import { useDeclararPrestei, useGerarGuiaPrestei, usePresteiPendentes } from "../hooks/use-prestei";
 
@@ -38,15 +39,7 @@ export function FiscalPrestei() {
   const gerarGuiaMutation = useGerarGuiaPrestei();
 
   if (isSessaoExpirada(pendentes.error)) {
-    return (
-      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
-        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente.</p>
-        <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">
-          Entrar
-        </Link>
-      </div>
-    );
+    return <SessaoExpirada />;
   }
 
   async function acao(fn: () => Promise<unknown>) {

@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowLeft, CheckCircle2, FileSignature, Receipt, ShieldUser, TriangleAlert, UserLock } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileSignature, Receipt, ShieldUser, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
 import { emitirCertidaoPdf } from "../services/certidao.service";
 import { useCertidaoApuracao } from "../hooks/use-certidao";
@@ -18,13 +19,7 @@ export function FiscalCertidao() {
   const q = useCertidaoApuracao();
 
   if (isSessaoExpirada(q.error)) {
-    return (
-      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
-        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente.</p>
-        <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Entrar</Link>
-      </div>
-    );
+    return <SessaoExpirada />;
   }
 
   const podeEmitir = q.data?.podeEmitir === true;

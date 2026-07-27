@@ -13,8 +13,8 @@ import {
   Gavel,
   Info as InfoIcon,
   Receipt,
-  UserLock,
 } from "lucide-react";
+import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
 import { parcelamentoTermoUrl, Resultado, Simulacao } from "../services/parcelamento.service";
 import {
@@ -71,13 +71,7 @@ export function FiscalParcelamento() {
   }
 
   if ([programas, debitos].some((q) => isSessaoExpirada(q.error))) {
-    return (
-      <div className="max-w-md mx-auto text-center bg-card rounded-2xl border border-border p-8">
-        <UserLock className="size-8 text-muted-foreground mb-3" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground mb-4">Sua sessão expirou. Entre novamente.</p>
-        <Link href="/entrar" className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700">Entrar</Link>
-      </div>
-    );
+    return <SessaoExpirada />;
   }
 
   const ids = elegiveis.map((d) => d.inscricaoId);
