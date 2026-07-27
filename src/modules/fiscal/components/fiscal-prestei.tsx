@@ -2,10 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { AlertCircle, ArrowLeft, FilePlus2, Plus, Receipt } from "lucide-react";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
 import { money } from "@/shared/lib/format";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  declararPresteiFormSchema,
+  type DeclararPresteiFormInput,
+  type DeclararPresteiFormOutput,
+} from "../schemas/prestei.schema";
 import { useDeclararPrestei, useGerarGuiaPrestei, usePresteiPendentes } from "../hooks/use-prestei";
 
 /** Vencimento sugerido: dia 10 do mês que vem. */
@@ -14,23 +23,31 @@ function vencimentoPadrao(): string {
   return new Date(d.getFullYear(), d.getMonth() + 1, 10).toISOString().slice(0, 10);
 }
 
+const DEFAULT_VALUES: DeclararPresteiFormInput = {
+  tomadorDocumento: "",
+  tomadorNome: "",
+  numeroNota: "",
+  competencia: "",
+  dataEmissao: "",
+  discriminacao: "",
+  valorServicos: "",
+  valorIss: "",
+};
+
 export function FiscalPrestei() {
   const [erro, setErro] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [selecao, setSelecao] = useState<string[]>([]);
 
-  const [f, setF] = useState({
-    tomadorDocumento: "",
-    tomadorNome: "",
-    numeroNota: "",
-    competencia: "",
-    dataEmissao: "",
-    valorServicos: "",
-    valorIss: "",
-    discriminacao: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<DeclararPresteiFormInput, unknown, DeclararPresteiFormOutput>({
+    resolver: zodResolver(declararPresteiFormSchema),
+    defaultValues: DEFAULT_VALUES,
   });
-  const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setF({ ...f, [k]: e.target.value });
 
   const pendentes = usePresteiPendentes();
   const declararMutation = useDeclararPrestei();
@@ -54,22 +71,21 @@ export function FiscalPrestei() {
     }
   }
 
-  async function declarar(e: React.FormEvent) {
-    e.preventDefault();
+  async function declarar(data: DeclararPresteiFormOutput) {
     const ok = await acao(() =>
       declararMutation.mutateAsync({
-        tomadorDocumento: f.tomadorDocumento.replace(/\D/g, ""),
-        tomadorNome: f.tomadorNome || null,
-        numeroNota: f.numeroNota,
-        competencia: f.competencia,
-        dataEmissao: f.dataEmissao,
-        discriminacao: f.discriminacao || null,
-        valorServicos: Number(f.valorServicos.replace(",", ".")),
-        valorIss: Number(f.valorIss.replace(",", ".")),
+        tomadorDocumento: data.tomadorDocumento.replace(/\D/g, ""),
+        tomadorNome: data.tomadorNome || null,
+        numeroNota: data.numeroNota,
+        competencia: data.competencia,
+        dataEmissao: data.dataEmissao,
+        discriminacao: data.discriminacao || null,
+        valorServicos: Number(data.valorServicos.replace(",", ".")),
+        valorIss: Number(data.valorIss.replace(",", ".")),
       }),
     );
     if (ok) {
-      setF({ ...f, numeroNota: "", valorServicos: "", valorIss: "", discriminacao: "" });
+      reset({ ...DEFAULT_VALUES, tomadorDocumento: data.tomadorDocumento, tomadorNome: data.tomadorNome, competencia: data.competencia, dataEmissao: data.dataEmissao });
     }
   }
 
@@ -91,15 +107,9 @@ export function FiscalPrestei() {
   }
 
   const p = pendentes.data;
-  const podeDeclarar =
-    f.tomadorDocumento.replace(/\D/g, "").length >= 11 &&
-    !!f.numeroNota &&
-    /^\d{4}-\d{2}$/.test(f.competencia) &&
-    /^\d{4}-\d{2}-\d{2}$/.test(f.dataEmissao) &&
-    Number(f.valorServicos.replace(",", ".")) > 0;
 
   const inputCls =
-    "w-full px-3 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "w-full px-3 py-2.5 h-auto rounded-xl border-border text-sm focus-visible:ring-blue-500";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -129,20 +139,44 @@ export function FiscalPrestei() {
           <FilePlus2 className="size-4 text-blue-600" />
           Declarar nota
         </h2>
-        <form onSubmit={declarar} className="grid sm:grid-cols-2 gap-3">
-          <input value={f.tomadorDocumento} onChange={set("tomadorDocumento")} placeholder="CPF/CNPJ de quem contratou" className={inputCls} />
-          <input value={f.tomadorNome} onChange={set("tomadorNome")} placeholder="Nome de quem contratou (opcional)" className={inputCls} />
-          <input value={f.numeroNota} onChange={set("numeroNota")} placeholder="Número da sua nota" className={inputCls} />
-          <input value={f.competencia} onChange={set("competencia")} placeholder="Competência (AAAA-MM)" className={inputCls} />
-          <input type="date" value={f.dataEmissao} onChange={set("dataEmissao")} className={inputCls} />
-          <input value={f.discriminacao} onChange={set("discriminacao")} placeholder="Descrição do serviço (opcional)" className={inputCls} />
-          <input value={f.valorServicos} onChange={set("valorServicos")} inputMode="decimal" placeholder="Valor do serviço" className={inputCls} />
-          <input value={f.valorIss} onChange={set("valorIss")} inputMode="decimal" placeholder="ISS da nota" className={inputCls} />
+        <form onSubmit={handleSubmit(declarar)} className="grid sm:grid-cols-2 gap-3" noValidate>
+          <div>
+            <Input placeholder="CPF/CNPJ de quem contratou" className={inputCls} {...register("tomadorDocumento")} />
+            {errors.tomadorDocumento && (
+              <p className="text-xs text-destructive mt-1">{errors.tomadorDocumento.message}</p>
+            )}
+          </div>
+          <Input placeholder="Nome de quem contratou (opcional)" className={inputCls} {...register("tomadorNome")} />
+          <div>
+            <Input placeholder="Número da sua nota" className={inputCls} {...register("numeroNota")} />
+            {errors.numeroNota && <p className="text-xs text-destructive mt-1">{errors.numeroNota.message}</p>}
+          </div>
+          <div>
+            <Input placeholder="Competência (AAAA-MM)" className={inputCls} {...register("competencia")} />
+            {errors.competencia && <p className="text-xs text-destructive mt-1">{errors.competencia.message}</p>}
+          </div>
+          <div>
+            <Input type="date" className={inputCls} {...register("dataEmissao")} />
+            {errors.dataEmissao && <p className="text-xs text-destructive mt-1">{errors.dataEmissao.message}</p>}
+          </div>
+          <Input placeholder="Descrição do serviço (opcional)" className={inputCls} {...register("discriminacao")} />
+          <div>
+            <Input inputMode="decimal" placeholder="Valor do serviço" className={inputCls} {...register("valorServicos")} />
+            {errors.valorServicos && <p className="text-xs text-destructive mt-1">{errors.valorServicos.message}</p>}
+          </div>
+          <div>
+            <Input inputMode="decimal" placeholder="ISS da nota" className={inputCls} {...register("valorIss")} />
+            {errors.valorIss && <p className="text-xs text-destructive mt-1">{errors.valorIss.message}</p>}
+          </div>
           <div className="sm:col-span-2">
-            <button disabled={!podeDeclarar || ocupado} className="px-4 py-2 rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60 inline-flex items-center gap-1.5">
+            <Button
+              type="submit"
+              disabled={ocupado}
+              className="px-4 py-2 h-auto rounded-xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 disabled:opacity-60 inline-flex items-center gap-1.5"
+            >
               <Plus className="size-4" />
               Declarar
-            </button>
+            </Button>
             <p className="text-[11px] text-muted-foreground mt-2">
               Declare aqui só o serviço em que o contratante <strong>não reteve</strong> o
               ISS. Se ele reteve, quem declara é ele — o imposto já saiu do seu
