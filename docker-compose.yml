@@ -4,17 +4,26 @@ services:
     container_name: portal_cidadao_db
     restart: unless-stopped
     ports:
-      - "5434:5432"
+      # Só o host local alcança o banco — nunca publicar Postgres pra fora
+      # (mesmo em hml). Uma app de fora deste compose acessa via app/db-init.
+      - "127.0.0.1:5434:5432"
     volumes:
       - portal_cidadao_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=docker
+      # Sem default: falha rápido se ninguém definiu uma senha real via .env —
+      # não dá pra existir um "docker" hardcoded rodando em hml/produção.
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
       - POSTGRES_DB=portal_cidadao
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d portal_cidadao"]
       interval: 5s
       timeout: 3s
       retries: 20
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   db-init:
     build:
@@ -25,20 +34,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://postgres:docker@db:5432/portal_cidadao?schema=public
-    volumes:
-      - .docker/db-init:/var/lib/portal-init
-    command: |
-      sh -c "
-      set -e
-      if [ -f /var/lib/portal-init/migrate.done ]; then
-        echo 'Migrations ja aplicadas anteriormente'
-        exit 0
-      fi
-      echo '--- Migrations: portal_cidadao ---'
-      npx prisma migrate deploy
-      touch /var/lib/portal-init/migrate.done
-      "
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/portal_cidadao?schema=public
+    # `prisma migrate deploy` já é idempotente (só aplica pendentes) — nada de
+    # marker file: um `docker compose down -v` que reseta o volume do banco mas
+    # não o bind mount do marker deixaria a app subir sem tabela nenhuma.
+    command: ["npx", "prisma", "migrate", "deploy"]
     restart: "no"
 
   app:
@@ -47,34 +47,35 @@ services:
     container_name: portal_cidadao_app
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      # Sem reverse proxy na frente (ainda não configurado), continua só
+      # acessível do próprio host — nunca publicar a app direto pra internet.
+      - "127.0.0.1:3001:3001"
     depends_on:
       db:
         condition: service_healthy
       db-init:
         condition: service_completed_successfully
-    # Alcança o backend tributário (não containerizado aqui, roda no host) via
-    # host.docker.internal — funciona em Linux (Docker 20.10+), Mac e Windows.
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
-      # Em dev: crie .env a partir de .env.example. Em staging/produção: injete
-      # as vars via CI/CD secrets — o arquivo é opcional.
       - path: .env
         required: false
     environment:
-      # Sobrescreve as URLs do .env.local para apontar ao container db e ao
-      # backend tributário rodando no host (fora deste compose).
-      - DATABASE_URL=postgresql://postgres:docker@db:5432/portal_cidadao?schema=public
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/portal_cidadao?schema=public
       - TRIBUTARIO_BASE_URL=${TRIBUTARIO_BASE_URL:-http://host.docker.internal:3000/api/v1}
       - PORT=3001
       - NODE_ENV=production
     healthcheck:
-      test: ['CMD-SHELL', 'node -e "fetch(\"http://127.0.0.1:3001/\").then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"']
+      test: ['CMD-SHELL', 'node -e "fetch(\"http://127.0.0.1:3001/api/health\").then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"']
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   portal_cidadao_data:
