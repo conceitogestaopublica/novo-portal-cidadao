@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
-import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
+import { TributarioAdapter, IdentidadeNaoAutorizadaError } from "@/shared/adapters/tributario.adapter";
 import { readSession, writeSession } from "@/shared/lib/portal-session";
 
 const schema = z.object({ contribuinteId: z.string().uuid() });
@@ -9,8 +9,9 @@ const schema = z.object({ contribuinteId: z.string().uuid() });
 /**
  * Troca a identidade ATIVA da sessão ("atuar como") — pessoa ⇄ empresas que ela
  * representa — SEM novo login. O alvo tem de estar na lista `representados` da
- * própria sessão (autorização): assim ninguém atua como uma empresa que não
- * representa. Reemite o JWT CONTRIBUINTE para a nova identidade.
+ * própria sessão (checagem rápida, mas pode estar velha por até 8h); o
+ * tributário — fonte de verdade do vínculo — revalida de novo na emissão do
+ * token (`emitirToken`), então um vínculo revogado após o login é pego aqui.
  */
 export async function POST(req: Request) {
   const tenant = await currentTenant();
@@ -28,11 +29,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "Identidade não autorizada." }, { status: 403 });
   }
 
+  const documento = session.pessoa?.documento ?? session.conta.documento;
+  if (!documento) return NextResponse.json({ message: "Sessão inválida." }, { status: 401 });
+
   const adapter = new TributarioAdapter(tenant);
   let tokenRes;
   try {
-    tokenRes = await adapter.emitirToken(alvo.id);
-  } catch {
+    tokenRes = await adapter.emitirToken(alvo.id, documento);
+  } catch (e) {
+    if (e instanceof IdentidadeNaoAutorizadaError) {
+      return NextResponse.json({ message: "Identidade não autorizada." }, { status: 403 });
+    }
     return NextResponse.json({ message: "Falha ao trocar de identidade." }, { status: 502 });
   }
 

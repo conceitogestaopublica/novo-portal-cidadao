@@ -46,6 +46,9 @@ function unwrap<T>(json: unknown): T {
   return json as T;
 }
 
+/** O tributário recusou (403): o documento não/não mais representa esse contribuinte. */
+export class IdentidadeNaoAutorizadaError extends Error {}
+
 export class TributarioAdapter {
   constructor(private readonly tenant: TenantConfig) {}
 
@@ -124,8 +127,16 @@ export class TributarioAdapter {
     return data?.representacoes ?? [];
   }
 
-  /** Emite o JWT CONTRIBUINTE (passo 2, após validar o OTP). */
-  async emitirToken(contribuinteId: string): Promise<{ accessToken: string; expiresIn: number }> {
+  /**
+   * Emite o JWT CONTRIBUINTE (passo 2, após validar o OTP; ou renovação/"atuar
+   * como"). `documento` é a identidade fixa da sessão (o titular) — o backend
+   * revalida com ele, a cada emissão, que `contribuinteId` ainda é ele mesmo ou
+   * uma empresa que ele de fato representa (fonte de verdade do vínculo).
+   */
+  async emitirToken(
+    contribuinteId: string,
+    documento: string,
+  ): Promise<{ accessToken: string; expiresIn: number }> {
     const res = await fetch(`${this.base}/portal-auth/contribuinte/token`, {
       method: "POST",
       headers: {
@@ -133,9 +144,10 @@ export class TributarioAdapter {
         "X-Service-Token": env.portalServiceToken(),
         ...tenantHeaders(this.tenant),
       },
-      body: JSON.stringify({ contribuinteId, tenantId: this.tenant.municipio }),
+      body: JSON.stringify({ contribuinteId, documento, tenantId: this.tenant.municipio }),
       cache: "no-store",
     });
+    if (res.status === 403) throw new IdentidadeNaoAutorizadaError();
     if (!res.ok) throw new Error(`token falhou: ${res.status}`);
     return unwrap<{ accessToken: string; expiresIn: number }>(await res.json());
   }

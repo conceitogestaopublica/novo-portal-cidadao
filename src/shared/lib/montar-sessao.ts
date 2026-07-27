@@ -59,7 +59,7 @@ export async function montarSessaoLogada(input: {
   if (!representados.length) representados = [titular];
 
   // Identidade ativa inicial = o titular (o CPF da pessoa).
-  const tokenRes = await adapter.emitirToken(titular.id);
+  const tokenRes = await adapter.emitirToken(titular.id, input.documento);
 
   const session: PortalSession = {
     conta: { id: titular.id, nome: titular.nome, documento: titular.documento ?? undefined },

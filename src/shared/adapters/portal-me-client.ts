@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { readSession, writeSession } from "@/shared/lib/portal-session";
 import { tokenVersionAtual } from "@/shared/repos/conta-repo";
-import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
+import { TributarioAdapter, IdentidadeNaoAutorizadaError } from "@/shared/adapters/tributario.adapter";
 
 /**
  * Cliente server-side do `portal-me` para os route handlers fiscais.
@@ -40,15 +40,20 @@ async function ensureToken(): Promise<
   const valido = token && session.tributarioTokenExp && session.tributarioTokenExp - 30 > agora;
 
   if (!valido) {
+    const documento = session.pessoa?.documento ?? session.conta.documento;
+    if (!documento) return { ok: false, status: 401 };
     try {
-      const t = await adapter.emitirToken(session.conta.id);
+      const t = await adapter.emitirToken(session.conta.id, documento);
       token = t.accessToken;
       await writeSession({
         ...session,
         tributarioToken: t.accessToken,
         tributarioTokenExp: agora + (t.expiresIn ?? 900),
       });
-    } catch {
+    } catch (e) {
+      // Vínculo revogado desde o login/última troca de identidade (ex.: contador
+      // perdeu acesso à empresa) — a sessão pra ESSA identidade não vale mais.
+      if (e instanceof IdentidadeNaoAutorizadaError) return { ok: false, status: 403 };
       return { ok: false, status: 502 };
     }
   }
