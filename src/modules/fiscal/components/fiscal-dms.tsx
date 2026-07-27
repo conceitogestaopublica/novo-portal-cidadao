@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { money } from "@/shared/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   useAbrirCompetenciaDms,
@@ -36,8 +37,6 @@ import {
   type EscriturarItemFormOutput,
 } from "../schemas/dms.schema";
 
-const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 const competenciaLabel = (ano: number, mes: number) => `${MESES[mes - 1]}/${ano}`;
 

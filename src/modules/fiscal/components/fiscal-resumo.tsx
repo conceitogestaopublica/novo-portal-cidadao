@@ -28,18 +28,13 @@ import Link from "next/link";
 import { AtuarComoSeletor } from "./atuar-como-seletor";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { dateBR, money } from "@/shared/lib/format";
 import { useFiscalResumo } from "../hooks/use-fiscal-resumo";
 import { useFiscalGuias } from "../hooks/use-fiscal-guias";
 import { useFiscalCaixaPostal } from "../hooks/use-fiscal-caixa-postal";
 import { useFiscalDividaAtiva } from "../hooks/use-fiscal-divida-ativa";
 import { baixarSegundaViaGuia } from "../services/fiscal-guias.service";
 
-const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-function money(v: unknown): string {
-  const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
-  return Number.isFinite(n) ? BRL.format(n) : "—";
-}
 function pick<T = unknown>(o: Record<string, unknown> | undefined, ...keys: string[]): T | undefined {
   if (!o) return undefined;
   for (const k of keys) if (o[k] != null) return o[k] as T;
@@ -50,12 +45,6 @@ function parcelamentoDe(g: Record<string, unknown>): string | null {
   const obs = String(pick(g, "observacao") ?? "");
   const m = obs.match(/Parcelamento\s+(PARC\s*\d{4}\/\d+)/i);
   return m ? m[1].replace(/\s+/g, " ") : null;
-}
-
-function dateBR(v: unknown): string {
-  if (!v) return "—";
-  const d = new Date(String(v));
-  return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString("pt-BR");
 }
 
 function hojeISO(): string {

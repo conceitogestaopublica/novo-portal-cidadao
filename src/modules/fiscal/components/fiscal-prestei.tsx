@@ -5,10 +5,8 @@ import Link from "next/link";
 import { AlertCircle, ArrowLeft, FilePlus2, Plus, Receipt } from "lucide-react";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { money } from "@/shared/lib/format";
 import { useDeclararPrestei, useGerarGuiaPrestei, usePresteiPendentes } from "../hooks/use-prestei";
-
-const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
 
 /** Vencimento sugerido: dia 10 do mês que vem. */
 function vencimentoPadrao(): string {

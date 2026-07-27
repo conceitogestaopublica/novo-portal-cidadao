@@ -5,14 +5,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { money } from "@/shared/lib/format";
 import { emitirCertidaoPdf } from "../services/certidao.service";
 import { useCertidaoApuracao } from "../hooks/use-certidao";
-
-const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-function money(v: unknown): string {
-  const n = Number(v);
-  return Number.isFinite(n) ? BRL.format(n) : "—";
-}
 
 export function FiscalCertidao() {
   const [emitindo, setEmitindo] = useState(false);

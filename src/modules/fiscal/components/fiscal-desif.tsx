@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { money } from "@/shared/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   useDesifDeclaracoes,
@@ -32,8 +33,6 @@ import {
   type EnviarDesifFormOutput,
 } from "../schemas/desif.schema";
 
-const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
 /** `aaaamm` → `mai/2026`. É assim que o leiaute identifica a competência. */

@@ -14,15 +14,9 @@ import {
 import Link from "next/link";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { dateBR, money } from "@/shared/lib/format";
 import { baixarDanfse, Emitida } from "../services/nfse.service";
 import { useEmitirNfse, useNfseEmpresas, useNfseItensServico, useNfseNotas } from "../hooks/use-nfse";
-
-const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
-const dateBR = (v: unknown) => {
-  const d = new Date(String(v));
-  return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
-};
 
 const SITUACAO_COR: Record<string, string> = {
   EMITIDA: "bg-green-100 text-green-700",

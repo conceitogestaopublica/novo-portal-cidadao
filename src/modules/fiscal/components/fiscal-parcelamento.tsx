@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { SessaoExpirada } from "@/components/common/sessao-expirada";
 import { isSessaoExpirada } from "@/shared/lib/http-client";
+import { dateBR, money } from "@/shared/lib/format";
 import { parcelamentoTermoUrl, Resultado, Simulacao } from "../services/parcelamento.service";
 import {
   useAderirParcelamento,
@@ -23,13 +24,6 @@ import {
   useProgramasParcelamento,
   useSimularParcelamento,
 } from "../hooks/use-parcelamento";
-
-const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const money = (v: unknown) => (Number.isFinite(Number(v)) ? BRL.format(Number(v)) : "—");
-const dateBR = (v: unknown) => {
-  const d = new Date(String(v));
-  return isNaN(d.getTime()) ? String(v ?? "—") : d.toLocaleDateString("pt-BR");
-};
 
 export function FiscalParcelamento() {
   const [programaId, setProgramaId] = useState("");
@@ -223,7 +217,7 @@ export function FiscalParcelamento() {
           <div className="px-5 pt-4 text-sm">
             <div className="rounded-xl border border-border divide-y divide-border">
               <Linha rotulo="Valor inscrito (original)" valor={money(inscritoElegivel)} />
-              <Linha rotulo="Atualização (juros, multa e correção até hoje)" valor={`+ ${money(atualizacaoConsolidado)}`} destaque />
+              <Linha rotulo="Atualização (juros, multa e correção até hoje)" valor={`${atualizacaoConsolidado < 0 ? "− " : "+ "}${money(Math.abs(atualizacaoConsolidado))}`} destaque />
               <Linha rotulo="Valor consolidado" valor={money(sim.valorConsolidado)} negrito />
               {Number(sim.honorariosValor ?? 0) > 0 && <Linha rotulo="Honorários" valor={`+ ${money(sim.honorariosValor)}`} />}
               <Linha rotulo="Total a parcelar" valor={money(sim.valorTotal)} negrito />
