@@ -65,7 +65,7 @@ export class TributarioAdapter {
         "X-Service-Token": env.portalServiceToken(),
         ...tenantHeaders(this.tenant),
       },
-      body: JSON.stringify({ documento, tenantId: this.tenant.municipio }),
+      body: JSON.stringify({ documento, tenantId: this.tenant.tributarioSubdomain }),
       cache: "no-store",
     });
     if (!res.ok) throw new Error(`resolver falhou: ${res.status}`);
@@ -97,7 +97,7 @@ export class TributarioAdapter {
           "X-Service-Token": env.portalServiceToken(),
           ...tenantHeaders(this.tenant),
         },
-        body: JSON.stringify({ ...input, tenantId: this.tenant.municipio }),
+        body: JSON.stringify({ ...input, tenantId: this.tenant.tributarioSubdomain }),
         cache: "no-store",
       },
     );
@@ -119,7 +119,7 @@ export class TributarioAdapter {
         "X-Service-Token": env.portalServiceToken(),
         ...tenantHeaders(this.tenant),
       },
-      body: JSON.stringify({ documento, tenantId: this.tenant.municipio }),
+      body: JSON.stringify({ documento, tenantId: this.tenant.tributarioSubdomain }),
       cache: "no-store",
     });
     if (!res.ok) throw new Error(`representacoes falhou: ${res.status}`);
@@ -144,7 +144,7 @@ export class TributarioAdapter {
         "X-Service-Token": env.portalServiceToken(),
         ...tenantHeaders(this.tenant),
       },
-      body: JSON.stringify({ contribuinteId, documento, tenantId: this.tenant.municipio }),
+      body: JSON.stringify({ contribuinteId, documento, tenantId: this.tenant.tributarioSubdomain }),
       cache: "no-store",
     });
     if (res.status === 403) throw new IdentidadeNaoAutorizadaError();
