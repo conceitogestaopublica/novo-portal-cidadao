@@ -9,12 +9,14 @@ const nextConfig: NextConfig = {
   // fora do `.next/standalone/node_modules` e todo acesso ao banco falha em
   // produção (MODULE_NOT_FOUND), mesmo com build local aparentando OK.
   serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg"],
-  // `serverExternalPackages` sozinho só copiou o `dist/index.mjs` do pacote
-  // (export condition "import") — o runtime do Next carrega via `require`
-  // (CJS) e precisa do `dist/index.js`, que o tracer não seguiu por causa do
-  // export map condicional do pacote. Força a inclusão explícita.
+  // `serverExternalPackages` sozinho só copiou o `dist/index.mjs` de cada
+  // pacote (export condition "import") — o runtime do Next carrega via
+  // `require` (CJS) e precisa do `dist/index.js`, que o tracer não segue por
+  // causa do export map condicional. Vale pro adapter-pg E suas próprias
+  // dependências (@prisma/driver-adapter-utils, etc.) — força todo o escopo
+  // @prisma/* de uma vez em vez de descobrir dependência por dependência.
   outputFileTracingIncludes: {
-    "/*": ["./node_modules/@prisma/adapter-pg/dist/**"],
+    "/*": ["./node_modules/@prisma/**/dist/**"],
   },
 };
 
