@@ -34,7 +34,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/portal_cidadao?schema=public
+      # `portal_cidadao_db` (container_name), não `db` (nome do serviço): se a
+      # app entrar em outra rede compartilhada com um projeto que também tem
+      # um serviço `db`, o DNS embutido do Docker pode resolver o nome curto
+      # pro container ERRADO — o container_name é único e nunca ambíguo.
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@portal_cidadao_db:5432/portal_cidadao?schema=public
     # `prisma migrate deploy` já é idempotente (só aplica pendentes) — nada de
     # marker file: um `docker compose down -v` que reseta o volume do banco mas
     # não o bind mount do marker deixaria a app subir sem tabela nenhuma.
@@ -61,7 +65,7 @@ services:
       - path: .env
         required: false
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@db:5432/portal_cidadao?schema=public
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}@portal_cidadao_db:5432/portal_cidadao?schema=public
       - TRIBUTARIO_BASE_URL=${TRIBUTARIO_BASE_URL:-http://host.docker.internal:3000/api/v1}
       - PORT=3001
       - NODE_ENV=production
