@@ -7,21 +7,22 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { postJson } from "@/shared/lib/client-api";
 import { adminLoginSchema, type AdminLoginInput } from "@/modules/admin/schemas/admin-login.schema";
+import { useLoginAdmin } from "../hooks/use-login";
 
 export function AdminLoginForm() {
   const router = useRouter();
+  const loginMutation = useLoginAdmin();
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<AdminLoginInput>({ resolver: zodResolver(adminLoginSchema), defaultValues: { email: "", senha: "" } });
 
   async function onSubmit(data: AdminLoginInput) {
     try {
-      await postJson("/api/admin/login", data, "Falha ao entrar");
+      await loginMutation.mutateAsync(data);
       router.push("/admin");
       router.refresh();
     } catch (e) {
@@ -77,8 +78,8 @@ export function AdminLoginForm() {
               </p>
             )}
           </div>
-          <Button type="submit" disabled={isSubmitting} className="w-full px-4 py-3 h-auto rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 disabled:opacity-60">
-            {isSubmitting ? "Entrando..." : "Entrar"}
+          <Button type="submit" disabled={loginMutation.isPending} className="w-full px-4 py-3 h-auto rounded-xl bg-slate-800 text-white font-bold text-sm hover:bg-slate-900 disabled:opacity-60">
+            {loginMutation.isPending ? "Entrando..." : "Entrar"}
           </Button>
         </form>
       </div>
