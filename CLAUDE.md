@@ -185,6 +185,7 @@ import { FiscalResumo } from '@/modules/fiscal/components/fiscal-resumo'
 | [ADR-0006](docs/adr/0006-services-hooks-layer.md) | Camada `services/` + `hooks/` por módulo |
 | [ADR-0007](docs/adr/0007-module-boundary-lint.md) | Fronteira de módulo verificada por ferramenta (ESLint) |
 | [ADR-0008](docs/adr/0008-desif-bancos.md) | DES-IF (bancos) portado de branch pré-modernização para o padrão atual |
+| [ADR-0009](docs/adr/0009-identidade-do-cidadao.md) | Identidade do cidadão: senha, gov.br e certificado digital convergindo na mesma conta |
 
 ---
 
