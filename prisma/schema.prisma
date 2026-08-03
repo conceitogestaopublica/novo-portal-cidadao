@@ -82,8 +82,50 @@ model PortalConta {
   tokenVersion   Int      @default(0) @map("token_version")
   criadoEm       DateTime @default(now()) @map("criado_em") @db.Timestamptz
 
+  identidades PortalContaIdentidade[]
+
   @@unique([documento, municipio], map: "uq_conta_doc_municipio")
   @@map("portal_contas")
+}
+
+/// Meios de entrada vinculados a uma conta — senha própria, gov.br ou certificado
+/// ICP-Brasil. Ver [ADR-0009](../docs/adr/0009-identidade-do-cidadao.md).
+///
+/// Vários meios apontam para a MESMA conta: a identidade é a pessoa
+/// (`documento` + `municipio`), não a forma de provar quem ela é. Quem entra hoje
+/// por senha e amanhã por gov.br continua com o mesmo histórico de solicitações.
+///
+/// Não é escopado por `municipio` diretamente: a conta já é, e a linha só existe
+/// pendurada nela (`onDelete: Cascade`).
+model PortalContaIdentidade {
+  id       String              @id @default(uuid()) @db.Uuid
+  contaId  String              @map("conta_id") @db.Uuid
+  provedor IdentidadeProvedor
+  /// Identificador da pessoa NO PROVEDOR: o `sub` do gov.br; do certificado, o
+  /// CPF/CNPJ do titular (OID 2.16.76.1.3.1 / .3). Para SENHA, o próprio documento.
+  sujeito  String              @db.VarChar(255)
+  /// Nível de confiabilidade no momento do vínculo — no gov.br, o selo
+  /// (bronze/prata/ouro). Serviço que movimenta dinheiro ou emite documento com
+  /// efeito legal deve exigir mínimo; ver ADR-0009.
+  nivel    String?             @db.VarChar(30)
+
+  criadoEm    DateTime  @default(now()) @map("criado_em") @db.Timestamptz
+  ultimoUsoEm DateTime? @map("ultimo_uso_em") @db.Timestamptz
+
+  conta PortalConta @relation(fields: [contaId], references: [id], onDelete: Cascade)
+
+  /// Um mesmo sujeito no mesmo provedor não pode se ligar a duas contas.
+  @@unique([provedor, sujeito], map: "uq_identidade_provedor_sujeito")
+  @@index([contaId], map: "idx_identidade_conta")
+  @@map("portal_conta_identidades")
+}
+
+enum IdentidadeProvedor {
+  SENHA
+  GOVBR
+  CERTIFICADO
+
+  @@map("identidade_provedor")
 }
 
 /// Espelho leve do Portal (Lei 13.460) — a tramitação real acontece no PROTOCOLO/PAE (gpe2).
