@@ -19,6 +19,7 @@ export default async function PortalAreaLayout({
   // M0: UG a partir do tenant-map. M1/M3: enriquecer com brasão/banners/contato do GED.
   const ug: Ug = {
     nome: tenant.nome,
+    cor: tenant.cor,
   };
 
   const cidadao = await getSessionCidadao();

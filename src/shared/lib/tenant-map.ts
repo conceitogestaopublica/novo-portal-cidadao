@@ -19,6 +19,12 @@ export interface TenantConfig {
   nome: string;
   /** Subdomínio do tributário (multi-tenant por subdomínio). */
   tributarioSubdomain: string;
+  /**
+   * Cor institucional do município (hex) usada no topo do portal. Sem valor, cai
+   * no azul padrão. Enquanto o brasão vem do GED, a cor ainda não tem origem
+   * definida — ver `docs/redesign-portal-direcao-a.md` §4.
+   */
+  cor?: string;
   /** `portal_slug` da UG no GED. */
   gedPortalSlug?: string;
   /** Gestora/tenant no gpe2. */
@@ -50,6 +56,7 @@ function loadMap(): Record<string, TenantConfig> {
       municipio: devSub,
       nome: process.env.DEV_TENANT_NOME ?? "Município de Demonstração",
       tributarioSubdomain: devSub,
+      cor: process.env.DEV_TENANT_COR,
       gedPortalSlug: process.env.DEV_GED_SLUG,
       gpe2Gestora: process.env.DEV_GPE2_GESTORA,
       gpe2GestoraId: process.env.DEV_GPE2_GESTORA_ID ? Number(process.env.DEV_GPE2_GESTORA_ID) : undefined,

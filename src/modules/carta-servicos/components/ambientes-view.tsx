@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { CatalogoIcon } from "@/shared/lib/icon-registry";
 import type { Servico } from "@/shared/types/portal";
 
@@ -31,6 +32,8 @@ export function AmbientesView({
   ambientes: AmbienteCard[];
   maisAcessados?: Servico[];
 }) {
+  const maiorContagem = Math.max(0, ...ambientes.filter((a) => a.disponivel).map((a) => a.servicos_count));
+
   return (
     <>
       <div className="mb-8">
@@ -40,20 +43,31 @@ export function AmbientesView({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
         {ambientes.map((a) => {
+          // Hierarquia por uso: o ambiente com mais serviços ocupa a linha inteira.
+          // Hoje é o Atendimento ao Contribuinte, que concentra 10 dos 12 serviços —
+          // dar a ele o mesmo peso de um "Em breve" escondia o que o cidadão mais usa.
+          const destaque = a.disponivel && a.servicos_count === maiorContagem && maiorContagem > 0;
           const card = (
-            <div className={`relative overflow-hidden rounded-2xl border p-6 transition-all h-full ${a.disponivel ? "bg-card border-border hover:shadow-lg hover:ring-2 hover:ring-blue-200 group" : "bg-muted/50 border-border opacity-70"}`}>
+            <div
+              className={cn(
+                "relative overflow-hidden rounded border border-t-[3px] p-6 transition-all h-full",
+                a.disponivel
+                  ? "bg-card border-border border-t-[var(--mun)] hover:shadow-lg group"
+                  : "bg-muted/50 border-border opacity-70",
+              )}
+            >
               <div className="flex items-start gap-4">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${COR_BG[a.cor] || "from-gray-500 to-gray-600"} flex items-center justify-center shadow-md shrink-0 ${a.disponivel ? "group-hover:scale-110 transition-transform" : ""}`}>
+                <div className={`w-16 h-16 rounded bg-gradient-to-br ${COR_BG[a.cor] || "from-gray-500 to-gray-600"} flex items-center justify-center shadow-md shrink-0 ${a.disponivel ? "group-hover:scale-110 transition-transform" : ""}`}>
                   <CatalogoIcon nome={a.icone} className="text-white size-6" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-foreground">{a.nome}</h2>
+                    <h2 className={cn("font-bold text-foreground", destaque ? "text-xl" : "text-lg")}>{a.nome}</h2>
                     {!a.disponivel && <span className="text-[9px] uppercase tracking-wider px-2 py-0.5 bg-gray-200 text-muted-foreground rounded-full font-semibold">Em breve</span>}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{a.descricao}</p>
                   {a.disponivel && (
-                    <p className="text-xs text-blue-600 font-semibold mt-3 uppercase tracking-wide inline-flex items-center gap-1">
+                    <p className="text-xs text-[var(--mun)] font-semibold mt-3 uppercase tracking-wide inline-flex items-center gap-1">
                       {a.servicos_count} serviços <ArrowRight className="size-3" aria-hidden="true" />
                     </p>
                   )}
@@ -61,10 +75,11 @@ export function AmbientesView({
               </div>
             </div>
           );
+          const classe = cn("block", destaque && "md:col-span-2");
           return a.disponivel ? (
-            <Link key={a.slug} href={`/ambiente/${a.slug}`} className="block">{card}</Link>
+            <Link key={a.slug} href={`/ambiente/${a.slug}`} className={classe}>{card}</Link>
           ) : (
-            <div key={a.slug}>{card}</div>
+            <div key={a.slug} className={classe}>{card}</div>
           );
         })}
       </div>

@@ -5,6 +5,12 @@ export interface Ug {
   cidade?: string | null;
   uf?: string | null;
   brasao?: string | null;
+  /**
+   * Cor institucional do município (hex), aplicada no topo e nos destaques.
+   * Sem valor → cai no azul padrão do portal. Não confundir com `Categoria.cor`,
+   * que é a cor da categoria no catálogo.
+   */
+  cor?: string | null;
   telefone?: string | null;
   email?: string | null;
   site?: string | null;
