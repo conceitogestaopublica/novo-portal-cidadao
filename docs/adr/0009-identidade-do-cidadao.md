@@ -110,13 +110,21 @@ junto com o resto da configuração — mesma mecânica de `gpe2GestoraId`/`gpe2
 
 Antes de escrever criptografia de certificado do zero, olhar o que já existe na plataforma:
 
-- **GED** — truststore ICP-Brasil configurado (`config/icp_brasil.php`), com política
-  AD-RB v2 e OIDs de assinatura
-- **Tributário** — módulo `assinatura` com PAdES e provider de certificado A1 (`p12-info.ts`)
+- **GED** — truststore ICP-Brasil configurado (`config/icp_brasil.php`), política AD-RB v2,
+  e **já extrai CPF e CNPJ de dentro do certificado** pelos OIDs `2.16.76.1.3.1` (e-CPF) e
+  `2.16.76.1.3.3` (e-CNPJ): `AssinaturaService::extrairCpf()/extrairCnpj()`, usados em
+  `AssinaturaController` e no comando `InspecionarPfx`.
+- **Tributário** — módulo `assinatura` com PAdES e provider de certificado A1 (`p12-info.ts`).
 
-O que **não** existe ainda em lugar nenhum: extrair CPF/CNPJ do certificado para
-**autenticar** (o OID `2.16.76.1.3.*` do ICP-Brasil, no `subjectAltName`). Hoje a plataforma
-usa certificado para *assinar*, não para *identificar*. É essa a parte nova.
+**A extração da identidade, que é o coração da autenticação por certificado, já está
+resolvida no GED** — não reimplementar. O trabalho novo é o restante do fluxo: desafio
+(nonce) assinado pelo cliente para provar posse da chave privada, validação da cadeia
+contra o truststore, verificação de revogação (CRL/OCSP) e validade, e só então casar o
+CPF extraído com `PortalConta`.
+
+> **Atenção ao truststore:** hoje o GED tem só a raiz (`raizicpbrasilv10.pem`) e a pasta
+> `intermediarias` está **vazia**. Sem as intermediárias, validação de cadeia falha para
+> certificado real. Popular antes de qualquer teste.
 
 ## Escopo desta decisão
 
