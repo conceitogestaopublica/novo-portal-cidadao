@@ -222,6 +222,16 @@ import { FiscalResumo } from '@/modules/fiscal/components/fiscal-resumo'
 - `data-fetching.md` — React Query
 - `naming.md` — convenções de nomenclatura
 
+## Templates de Prompt (`docs/templates/`)
+
+Contrato de como pedir uma funcionalidade nova. Copie, preencha os `[colchetes]` e cole.
+As "Regras desta tarefa" são fixas — não edite ao usar.
+
+| Template | Quando usar |
+|----------|-------------|
+| [nova-funcionalidade-frontend.md](docs/templates/nova-funcionalidade-frontend.md) | Funcionalidade **neste** repositório (portal do cidadão) |
+| [nova-funcionalidade-backend.md](docs/templates/nova-funcionalidade-backend.md) | Cópia de referência do backend NestJS — **não** se aplica a este repositório |
+
 ---
 
 ## Como Rodar
