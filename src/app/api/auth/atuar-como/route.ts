@@ -3,6 +3,7 @@ import { z } from "zod";
 import { currentTenant } from "@/shared/lib/tenant-map";
 import { TributarioAdapter, IdentidadeNaoAutorizadaError } from "@/shared/adapters/tributario.adapter";
 import { readSession, writeSession } from "@/shared/lib/portal-session";
+import { INDISPONIVEL } from "@/shared/lib/mensagens";
 
 const schema = z.object({ contribuinteId: z.string().uuid() });
 
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     if (e instanceof IdentidadeNaoAutorizadaError) {
       return NextResponse.json({ message: "Identidade não autorizada." }, { status: 403 });
     }
-    return NextResponse.json({ message: "Falha ao trocar de identidade." }, { status: 502 });
+    return NextResponse.json({ message: INDISPONIVEL.atuarComo }, { status: 502 });
   }
 
   await writeSession({

@@ -4,6 +4,7 @@ import { currentTenant } from "@/shared/lib/tenant-map";
 import { readSession, writeSession } from "@/shared/lib/portal-session";
 import { tokenVersionAtual } from "@/shared/repos/conta-repo";
 import { TributarioAdapter, IdentidadeNaoAutorizadaError } from "@/shared/adapters/tributario.adapter";
+import { INDISPONIVEL } from "@/shared/lib/mensagens";
 
 /**
  * Cliente server-side do `portal-me` para os route handlers fiscais.
@@ -117,7 +118,7 @@ export async function proxyPortalMeRaw(
   if (!t.ok) return NextResponse.json({ message: "Sessão inválida" }, { status: t.status });
   const r = await t.adapter.portalMe<unknown>(path, t.token, { searchParams });
   const res = r.raw;
-  if (!res) return NextResponse.json({ message: "Serviço indisponível" }, { status: 502 });
+  if (!res) return NextResponse.json({ message: INDISPONIVEL.fiscal }, { status: 502 });
   const ct = res.headers.get("content-type") ?? "application/octet-stream";
   if (ct.includes("application/json")) {
     // Erro estruturado do backend (posse/vencida) — repassa o JSON e o status.

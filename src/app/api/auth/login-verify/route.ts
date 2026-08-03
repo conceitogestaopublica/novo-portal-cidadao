@@ -3,6 +3,7 @@ import { currentTenant } from "@/shared/lib/tenant-map";
 import { verificarDesafio } from "@/shared/lib/otp-store";
 import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
 import { loginVerifySchema as schema } from "@/modules/auth/schemas/auth.schema";
+import { INDISPONIVEL } from "@/shared/lib/mensagens";
 
 /**
  * Passo 2 do login: valida o OTP, emite o JWT CONTRIBUINTE no tributário e cria
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       nome: v.nome,
     });
   } catch {
-    return NextResponse.json({ message: "Falha ao autenticar. Tente novamente." }, { status: 502 });
+    return NextResponse.json({ message: INDISPONIVEL.login }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });

@@ -4,6 +4,7 @@ import { contaByDocumento, verificarSenha } from "@/shared/repos/conta-repo";
 import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
 import { loginBloqueado, registrarFalha, registrarSucesso } from "@/shared/lib/login-lock";
 import { loginSenhaSchema as schema } from "@/modules/auth/schemas/auth.schema";
+import { INDISPONIVEL } from "@/shared/lib/mensagens";
 
 /**
  * Login por documento + senha (conta registrada do Atendimento ao Contribuinte).
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
       nome: conta.nome,
     });
   } catch {
-    return NextResponse.json({ message: "Falha ao autenticar. Tente novamente." }, { status: 502 });
+    return NextResponse.json({ message: INDISPONIVEL.login }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });
