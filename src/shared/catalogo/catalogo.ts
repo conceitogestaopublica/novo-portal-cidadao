@@ -2,6 +2,7 @@ import "server-only";
 import type { Categoria, Servico } from "@/shared/types/portal";
 import { carregarCatalogo } from "./catalogo-repo";
 import { PUBLICOS, type CategoriaSeed, type ServicoSeed } from "./catalogo-seed";
+import { normalizarTexto } from "@/shared/lib/slugify";
 
 /**
  * Catálogo (Carta de Serviços) — agora servido do banco do portal
@@ -69,10 +70,11 @@ export async function listServicos(municipio: string, opts?: { q?: string; categ
   if (opts?.categoria) list = list.filter((s) => s.categoriaSlug === opts.categoria);
   if (opts?.publico) list = list.filter((s) => s.publico_alvo === opts.publico);
   if (opts?.q) {
-    const q = opts.q.toLowerCase();
+    const q = normalizarTexto(opts.q);
     list = list.filter((s) =>
-      [s.titulo, s.descricao_curta, s.descricao_completa, (s.palavras_chave ?? []).join(" ")]
-        .join(" ").toLowerCase().includes(q),
+      normalizarTexto(
+        [s.titulo, s.descricao_curta, s.descricao_completa, (s.palavras_chave ?? []).join(" ")].join(" "),
+      ).includes(q),
     );
   }
   return { items: list.map((s) => toPublic(s, categorias)), total: list.length, publicos: PUBLICOS };
