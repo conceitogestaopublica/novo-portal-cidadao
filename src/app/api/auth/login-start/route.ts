@@ -3,6 +3,7 @@ import { currentTenant } from "@/shared/lib/tenant-map";
 import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { criarDesafio } from "@/shared/lib/otp-store";
 import { loginStartSchema as schema } from "@/modules/auth/schemas/auth.schema";
+import { INDISPONIVEL } from "@/shared/lib/mensagens";
 
 /**
  * Passo 1 do login: resolve o contribuinte no tributário e cria o desafio OTP.
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
   try {
     resolved = await adapter.resolver(documento);
   } catch {
-    return NextResponse.json({ message: "Serviço indisponível. Tente novamente." }, { status: 502 });
+    return NextResponse.json({ message: INDISPONIVEL.login }, { status: 502 });
   }
 
   if (!resolved) {

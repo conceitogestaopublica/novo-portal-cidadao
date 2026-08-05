@@ -4,6 +4,7 @@ import { getSessionCidadao } from "@/shared/lib/portal-session";
 import { getByIdDaConta } from "@/shared/repos/solicitacao-repo";
 import { protocoloConfigDe, responderProtocoloGpe2 } from "@/shared/adapters/gpe2.adapter";
 import { responderSolicitacaoSchema as schema } from "@/modules/solicitacoes/schemas/solicitacoes.schema";
+import { INDISPONIVEL } from "@/shared/lib/mensagens";
 
 /**
  * O cidadão responde a uma exigência ("pedir mais informações") do protocolo.
@@ -30,7 +31,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const r = await responderProtocoloGpe2(cfg, { origemRef: s.protocolo, texto: parsed.data.texto });
     if (!r.ok) return NextResponse.json({ message: r.mensagem ?? "Não foi possível registrar a resposta." }, { status: 422 });
   } catch {
-    return NextResponse.json({ message: "Serviço indisponível. Tente novamente." }, { status: 502 });
+    return NextResponse.json({ message: INDISPONIVEL.responder }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });

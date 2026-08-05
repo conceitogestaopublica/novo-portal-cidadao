@@ -4,6 +4,7 @@ import { TributarioAdapter } from "@/shared/adapters/tributario.adapter";
 import { contaByDocumento, criarConta } from "@/shared/repos/conta-repo";
 import { montarSessaoLogada } from "@/shared/lib/montar-sessao";
 import { cadastroSchema as schema } from "@/modules/auth/schemas/auth.schema";
+import { INDISPONIVEL } from "@/shared/lib/mensagens";
 
 /**
  * Cadastro no Atendimento ao Contribuinte: documento + senha.
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   try {
     resolved = await adapter.resolver(documento);
   } catch {
-    return NextResponse.json({ message: "Serviço indisponível. Tente novamente." }, { status: 502 });
+    return NextResponse.json({ message: INDISPONIVEL.cadastro }, { status: 502 });
   }
 
   // Prestador de fora: a ficha dele nasce aqui. O backend valida o documento
