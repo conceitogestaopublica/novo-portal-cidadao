@@ -46,3 +46,8 @@ next-env.d.ts
 
 # O template DEVE ser versionado — sem ele ninguém sabe o que configurar.
 !.env.example
+
+# Permissões locais do Claude Code — estado de máquina, não governança.
+# `agents/` e `skills/` continuam versionados: são o contrato do projeto.
+.claude/settings.json
+.claude/settings.local.json
