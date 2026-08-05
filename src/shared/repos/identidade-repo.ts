@@ -94,9 +94,17 @@ export async function registrarUso(id: string): Promise<void> {
 /**
  * Desvincula um meio. Recusa remover o ÚLTIMO meio de entrada da conta — sem
  * isso o cidadão consegue se trancar para fora da própria conta.
+ *
+ * O `FOR UPDATE` trava as linhas da conta ANTES de contar: sem ele, duas
+ * chamadas concorrentes removendo dois meios diferentes da mesma conta veriam
+ * `total = 2` cada uma (READ COMMITTED não protege contagem-depois-decide) e
+ * as duas prosseguiriam — zerando a conta que a regra promete nunca zerar. Com
+ * a trava, a segunda chamada espera a primeira comitar e reconta com o estado
+ * já atualizado.
  */
 export async function desvincularIdentidade(contaId: string, id: string): Promise<boolean> {
   return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT id FROM portal_conta_identidades WHERE conta_id = ${contaId}::uuid FOR UPDATE`;
     const total = await tx.portalContaIdentidade.count({ where: { contaId } });
     if (total <= 1) return false;
     const r = await tx.portalContaIdentidade.deleteMany({ where: { id, contaId } });
