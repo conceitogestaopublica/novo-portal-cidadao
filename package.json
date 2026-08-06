@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run",
     "admin:criar": "node prisma/scripts/criar-admin.mjs",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "catalogo:exportar": "node prisma/scripts/exportar-catalogo.mjs",
+    "catalogo:importar": "node prisma/scripts/importar-catalogo.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

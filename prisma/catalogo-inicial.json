@@ -1,0 +1,436 @@
+{
+  "versao": 1,
+  "origem": "dev",
+  "ambientes": [
+    {
+      "slug": "atendimento",
+      "ordem": 0,
+      "dados": {
+        "cor": "blue",
+        "nome": "Atendimento ao Contribuinte",
+        "slug": "atendimento",
+        "icone": "fas fa-hand-holding-dollar",
+        "sistema": "tributario",
+        "descricao": "Débitos, 2ª via de guias, certidões, parcelamento, IPTU, ISS e caixa postal (DTE).",
+        "disponivel": true
+      }
+    },
+    {
+      "slug": "protocolo",
+      "ordem": 1,
+      "dados": {
+        "cor": "indigo",
+        "nome": "Protocolo e Ouvidoria",
+        "slug": "protocolo",
+        "icone": "fas fa-folder-open",
+        "sistema": "ged",
+        "descricao": "Abra requerimentos, protocolos e manifestações de ouvidoria e acompanhe a tramitação.",
+        "disponivel": true
+      }
+    },
+    {
+      "slug": "servidor",
+      "ordem": 2,
+      "dados": {
+        "cor": "green",
+        "nome": "Servidor Público",
+        "slug": "servidor",
+        "icone": "fas fa-id-badge",
+        "sistema": "gpe2",
+        "descricao": "Contracheque, informe de rendimentos e serviços do servidor.",
+        "disponivel": false
+      }
+    },
+    {
+      "slug": "transparencia",
+      "ordem": 3,
+      "dados": {
+        "cor": "amber",
+        "nome": "Transparência",
+        "slug": "transparencia",
+        "icone": "fas fa-chart-pie",
+        "sistema": "gpe2",
+        "descricao": "Consultas públicas de receitas, despesas e contratações.",
+        "disponivel": false
+      }
+    }
+  ],
+  "categorias": [
+    {
+      "slug": "tributos",
+      "ambienteSlug": "atendimento",
+      "ordem": 0,
+      "dados": {
+        "id": "tributos",
+        "cor": "blue",
+        "nome": "Tributos e Débitos",
+        "slug": "tributos",
+        "icone": "fas fa-file-invoice-dollar",
+        "descricao": "Consulte débitos, emita 2ª via de guias, certidões e parcele online.",
+        "ambienteSlug": "atendimento"
+      }
+    },
+    {
+      "slug": "imoveis",
+      "ambienteSlug": "atendimento",
+      "ordem": 1,
+      "dados": {
+        "id": "imoveis",
+        "cor": "green",
+        "nome": "Imóveis (IPTU)",
+        "slug": "imoveis",
+        "icone": "fas fa-home",
+        "descricao": "IPTU, valor venal, situação cadastral e certidões do imóvel.",
+        "ambienteSlug": "atendimento"
+      }
+    },
+    {
+      "slug": "empresas",
+      "ambienteSlug": "atendimento",
+      "ordem": 2,
+      "dados": {
+        "id": "empresas",
+        "cor": "amber",
+        "nome": "Empresas (ISS)",
+        "slug": "empresas",
+        "icone": "fas fa-store",
+        "descricao": "NFS-e, DMS, ISS e serviços do cadastro econômico.",
+        "ambienteSlug": "atendimento"
+      }
+    },
+    {
+      "slug": "cidade",
+      "ambienteSlug": "protocolo",
+      "ordem": 3,
+      "dados": {
+        "id": "cidade",
+        "cor": "indigo",
+        "nome": "Requerimentos e Ouvidoria",
+        "slug": "cidade",
+        "icone": "fas fa-city",
+        "descricao": "Solicitações, reclamações, denúncias e serviços gerais ao cidadão.",
+        "ambienteSlug": "protocolo"
+      }
+    }
+  ],
+  "servicos": [
+    {
+      "slug": "meus-debitos",
+      "categoriaSlug": "tributos",
+      "publicado": true,
+      "ordem": 0,
+      "dados": {
+        "id": "meus-debitos",
+        "slug": "meus-debitos",
+        "custo": "Gratuito",
+        "icone": "fas fa-magnifying-glass-dollar",
+        "titulo": "Consultar meus débitos",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "debitos",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "tributos",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "débito",
+          "consulta",
+          "dívida"
+        ],
+        "descricao_curta": "Veja todos os seus débitos em aberto com a prefeitura.",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "Após entrar com seu CPF/CNPJ, você vê a relação completa dos seus débitos (IPTU, ISS, taxas e dívida ativa), com valores atualizados."
+      }
+    },
+    {
+      "slug": "segunda-via-guias",
+      "categoriaSlug": "tributos",
+      "publicado": true,
+      "ordem": 1,
+      "dados": {
+        "id": "segunda-via",
+        "slug": "segunda-via-guias",
+        "custo": "Gratuito",
+        "icone": "fas fa-receipt",
+        "titulo": "2ª via de guias (IPTU, ISS, taxas)",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "segunda_via",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "tributos",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "2ª via",
+          "boleto",
+          "guia",
+          "pix"
+        ],
+        "descricao_curta": "Emita a 2ª via do seu boleto com código de barras e PIX.",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "Gere a 2ª via das suas guias em aberto. Guias vencidas são atualizadas com juros e multa antes da emissão. O boleto traz código de barras e QR PIX."
+      }
+    },
+    {
+      "slug": "certidao-negativa",
+      "categoriaSlug": "tributos",
+      "publicado": true,
+      "ordem": 2,
+      "dados": {
+        "id": "certidao",
+        "slug": "certidao-negativa",
+        "custo": "Gratuito",
+        "icone": "fas fa-file-shield",
+        "titulo": "Certidão negativa de débitos (CND)",
+        "legislacao": "CTN, arts. 205 e 206",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "certidao",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "tributos",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "certidão",
+          "cnd",
+          "negativa"
+        ],
+        "descricao_curta": "Emita sua CND ou certidão positiva com efeito de negativa.",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "O sistema apura sua situação fiscal e emite a certidão (CND ou CPEN) assinada digitalmente, com QR Code de verificação pública."
+      }
+    },
+    {
+      "slug": "parcelamento",
+      "categoriaSlug": "tributos",
+      "publicado": true,
+      "ordem": 3,
+      "dados": {
+        "id": "parcelamento",
+        "slug": "parcelamento",
+        "custo": "Gratuito",
+        "icone": "fas fa-handshake",
+        "titulo": "Parcelamento de débitos",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "parcelamento",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "tributos",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "parcelar",
+          "refis",
+          "dívida ativa"
+        ],
+        "descricao_curta": "Simule e parcele seus débitos em dívida ativa online.",
+        "orgao_responsavel": "Procuradoria / Fazenda",
+        "descricao_completa": "Consulte os débitos elegíveis, simule o parcelamento (nº de parcelas e valores) e faça a adesão com termo de confissão de dívida. As guias das parcelas são geradas na hora."
+      }
+    },
+    {
+      "slug": "caixa-postal",
+      "categoriaSlug": "tributos",
+      "publicado": true,
+      "ordem": 4,
+      "dados": {
+        "id": "caixa-postal",
+        "slug": "caixa-postal",
+        "custo": "Gratuito",
+        "icone": "fas fa-inbox",
+        "titulo": "Caixa Postal Eletrônica (DTE)",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "caixa_postal",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "tributos",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "dte",
+          "caixa postal",
+          "notificação"
+        ],
+        "descricao_curta": "Receba comunicados oficiais da prefeitura com validade legal.",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "Seu Domicílio Tributário Eletrônico: notificações e comunicados oficiais, com registro de ciência (data, IP e hash) com validade probatória."
+      }
+    },
+    {
+      "slug": "certidao-imovel",
+      "categoriaSlug": "imoveis",
+      "publicado": true,
+      "ordem": 5,
+      "dados": {
+        "id": "certidao-imovel",
+        "slug": "certidao-imovel",
+        "custo": "Gratuito",
+        "icone": "fas fa-map-location-dot",
+        "titulo": "Certidão de valor venal / cadastral",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "certidao",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "imoveis",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "imóvel",
+          "valor venal",
+          "certidão"
+        ],
+        "descricao_curta": "Certidão do imóvel (valor venal, dados cadastrais, débitos).",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "Emita a certidão cadastral do imóvel com valor venal e situação de débitos, assinada digitalmente e com verificação pública por QR."
+      }
+    },
+    {
+      "slug": "nfse",
+      "categoriaSlug": "empresas",
+      "publicado": true,
+      "ordem": 6,
+      "dados": {
+        "id": "nfse",
+        "slug": "nfse",
+        "custo": "Gratuito",
+        "icone": "fas fa-file-invoice",
+        "titulo": "NFS-e — Nota Fiscal de Serviços",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "nfse",
+        "publico_alvo": "empresa",
+        "categoriaSlug": "empresas",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "nfse",
+          "nota fiscal",
+          "iss"
+        ],
+        "descricao_curta": "Emissão e consulta de NFS-e (Padrão Nacional).",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "Prestadores emitem, consultam e cancelam suas NFS-e. Verificação pública da nota por chave/QR, sem login."
+      }
+    },
+    {
+      "slug": "dms",
+      "categoriaSlug": "empresas",
+      "publicado": true,
+      "ordem": 7,
+      "dados": {
+        "id": "dms",
+        "slug": "dms",
+        "custo": "Gratuito",
+        "icone": "fas fa-book",
+        "titulo": "DMS — Declaração mensal de serviços",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "dms",
+        "publico_alvo": "empresa",
+        "categoriaSlug": "empresas",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "dms",
+          "declaração",
+          "iss",
+          "competência"
+        ],
+        "descricao_curta": "Declare os serviços prestados no mês e gere a guia do ISS.",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "O prestador escritura os serviços prestados na competência e entrega a declaração. Na entrega, a guia do ISS é gerada e passa a constar em Meus Débitos. Serviços com ISS retido não entram na guia do prestador."
+      }
+    },
+    {
+      "slug": "prestei",
+      "categoriaSlug": "empresas",
+      "publicado": true,
+      "ordem": 8,
+      "dados": {
+        "id": "prestei",
+        "slug": "prestei",
+        "custo": "Gratuito",
+        "icone": "fas fa-file-circle-plus",
+        "titulo": "Prestei serviço aqui e sou de outro município",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "prestei",
+        "publico_alvo": "empresa",
+        "categoriaSlug": "empresas",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "prestador de fora",
+          "outro município",
+          "iss",
+          "declarar"
+        ],
+        "descricao_curta": "Declare o serviço que você prestou no município e pague o ISS.",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "Empresa ou profissional de outro município que prestou serviço aqui: declare a nota (número, competência, valor e ISS) e gere a guia — de tudo junto ou nota a nota. Se quem contratou reteve o ISS na fonte, quem declara é ele: o imposto já saiu do seu pagamento."
+      }
+    },
+    {
+      "slug": "desif",
+      "categoriaSlug": "empresas",
+      "publicado": true,
+      "ordem": 9,
+      "dados": {
+        "id": "desif",
+        "slug": "desif",
+        "custo": "Gratuito",
+        "icone": "fas fa-building-columns",
+        "titulo": "DES-IF — declaração de instituições financeiras",
+        "tipo_fluxo": "self_service_fiscal",
+        "fiscal_acao": "desif",
+        "publico_alvo": "empresa",
+        "categoriaSlug": "empresas",
+        "prazo_entrega": "Imediato",
+        "palavras_chave": [
+          "desif",
+          "banco",
+          "instituição financeira",
+          "cosif",
+          "issqn"
+        ],
+        "descricao_curta": "Bancos e instituições financeiras entregam a escrituração do ISSQN.",
+        "orgao_responsavel": "Secretaria da Fazenda",
+        "descricao_completa": "Instituição financeira autorizada pelo BACEN: envie a DES-IF no leiaute nacional da ABRASF (versão 3.1), gerada pelo seu sistema contábil. O sistema valida o arquivo e devolve o protocolo de entrega — guarde-o, é o seu comprovante. Ao encerrar a competência, a guia do ISSQN é emitida."
+      }
+    },
+    {
+      "slug": "ouvidoria",
+      "categoriaSlug": "cidade",
+      "publicado": true,
+      "ordem": 10,
+      "dados": {
+        "id": "ouvidoria",
+        "slug": "ouvidoria",
+        "custo": "Gratuito",
+        "icone": "fas fa-comment-dots",
+        "titulo": "Ouvidoria — reclamação, denúncia ou elogio",
+        "legislacao": "Lei 13.460/2017",
+        "tipo_fluxo": "processo_ged",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "cidade",
+        "prazo_entrega": "Até 30 dias",
+        "palavras_chave": [
+          "ouvidoria",
+          "reclamação",
+          "denúncia"
+        ],
+        "descricao_curta": "Registre uma manifestação e acompanhe a resposta.",
+        "permite_anonimo": true,
+        "orgao_responsavel": "Ouvidoria Municipal",
+        "descricao_completa": "Abra uma manifestação de ouvidoria. Você pode se identificar para receber a resposta ou registrar de forma anônima. A prefeitura responde pelo próprio portal."
+      }
+    },
+    {
+      "slug": "protocolo",
+      "categoriaSlug": "cidade",
+      "publicado": true,
+      "ordem": 11,
+      "dados": {
+        "id": "protocolo",
+        "slug": "protocolo",
+        "custo": "Gratuito",
+        "icone": "fas fa-folder-plus",
+        "titulo": "Abrir requerimento / protocolo",
+        "tipo_fluxo": "processo_ged",
+        "publico_alvo": "cidadao",
+        "categoriaSlug": "cidade",
+        "prazo_entrega": "Conforme o serviço",
+        "palavras_chave": [
+          "protocolo",
+          "requerimento",
+          "processo"
+        ],
+        "descricao_curta": "Protocole um requerimento e acompanhe a tramitação.",
+        "orgao_responsavel": "Protocolo Geral",
+        "descricao_completa": "Abra um processo administrativo (requerimento) e acompanhe cada etapa da tramitação, recebendo a decisão pelo portal."
+      }
+    }
+  ]
+}
